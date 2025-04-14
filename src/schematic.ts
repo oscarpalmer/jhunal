@@ -1,12 +1,6 @@
 import type {Inferred, Schema, Schematic, Typed, TypedSchema} from './model';
-import {getValidatedSchema, validate} from './validation';
-
-/**
- * Create a schematic from a typed schema
- */
-export function schematic<Model extends Typed>(
-	schema: TypedSchema<Model>,
-): Schematic<Model>;
+import {validateSchema} from './validation/schema.validation';
+import {validateValue} from './validation/value.validation';
 
 /**
  * Create a schematic from a schema
@@ -15,12 +9,22 @@ export function schematic<Model extends Schema>(
 	schema: Model,
 ): Schematic<Inferred<Model>>;
 
-export function schematic<Model extends Schema>(schema: Model) {
-	const validated = getValidatedSchema(schema);
+/**
+ * Create a schematic from a typed schema
+ */
+export function schematic<Model extends Typed>(
+	schema: TypedSchema<Model>,
+): Schematic<Model>;
+
+export function schematic<Model extends Schema>(
+	schema: Model,
+): Schematic<Model> {
+	const validated = validateSchema(schema);
 
 	const canValidate = validated.length > 0;
 
 	return Object.freeze({
-		is: (value: unknown) => canValidate && validate(validated, value),
-	});
+		$schematic: true,
+		is: (value: unknown) => canValidate && validateValue(validated, value),
+	}) as never;
 }

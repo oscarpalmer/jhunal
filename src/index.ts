@@ -1,2 +1,2 @@
-export type {Schema, Schematic} from './model';
+export type {Schema, Schematic, TypedSchema} from './model';
 export * from './schematic';

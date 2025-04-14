@@ -1,5 +1,6 @@
 import {expect, test} from 'vitest';
 import * as Schema from '../src';
+import {isSchematic} from '../src/is';
 
 test('basic schema', () => {
 	const schema = {
@@ -7,9 +8,11 @@ test('basic schema', () => {
 		bigint: 'bigint',
 		boolean: 'boolean',
 		date: 'date',
+		'date-like': 'date-like',
 		function: 'function',
 		null: 'null',
 		number: 'number',
+		numerical: 'numerical',
 		object: 'object',
 		string: 'string',
 		symbol: 'symbol',
@@ -23,9 +26,11 @@ test('basic schema', () => {
 		bigint: BigInt(1),
 		boolean: true,
 		date: new Date(),
+		'date-like': '2000-01-01',
 		function: () => {},
 		null: null,
 		number: 1,
+		numerical: 1,
 		object: {},
 		string: 'hello, world!',
 		symbol: Symbol('a symbol?'),
@@ -36,6 +41,11 @@ test('basic schema', () => {
 
 	expect(basicSchematic.is(first)).toBe(true);
 	expect(basicSchematic.is({...first, date: 99})).toBe(false);
+	expect(basicSchematic.is({...first, 'date-like': 99})).toBe(true);
+	expect(basicSchematic.is({...first, 'date-like': new Date()})).toBe(true);
+	expect(basicSchematic.is({...first, 'date-like': 'x'})).toBe(false);
+	expect(basicSchematic.is({...first, numerical: BigInt(1)})).toBe(true);
+	expect(basicSchematic.is({...first, numerical: 'x'})).toBe(false);
 	expect(basicSchematic.is(second)).toBe(false);
 	expect(basicSchematic.is({})).toBe(false);
 	expect(basicSchematic.is(123)).toBe(false);
@@ -111,4 +121,81 @@ test('complex schema', () => {
 	expect(complexSchematic.is({...first, optionalMultiple: true})).toBe(true);
 	expect(complexSchematic.is({...first, optionalMultiple: 123})).toBe(true);
 	expect(complexSchematic.is({...first, optionalMultiple: 'abc'})).toBe(false);
+});
+
+test('is', () => {
+	const schema = {
+		message: 'string',
+	} satisfies Schema.Schema;
+
+	const schematic = Schema.schematic(schema);
+
+	const values = [
+		undefined,
+		null,
+		'',
+		123,
+		true,
+		BigInt(123),
+		new Date(),
+		Symbol('123'),
+		{},
+		[],
+		() => {},
+		schema,
+		schematic,
+	];
+
+	const {length} = values;
+
+	for (let index = 0; index < length; index += 1) {
+		expect(isSchematic(values[index])).toBe(index === length - 1);
+	}
+});
+
+test('nested schema', () => {
+	const first = {
+		message: 'string',
+	} satisfies Schema.Schema;
+
+	const second = first;
+
+	const third = {
+		active: 'boolean',
+	} satisfies Schema.Schema;
+
+	const fourth = Schema.schematic(third);
+
+	const outer = {
+		first: {
+			type: first,
+		},
+		second: {
+			type: second,
+		},
+		third: {
+			type: fourth,
+		},
+	} satisfies Schema.Schema;
+
+	const schematic = Schema.schematic(outer);
+
+	const alpha = {
+		first: {
+			message: 'Hello, world!',
+		},
+		second: {
+			message: 'I am second!',
+		},
+		third: {
+			active: false,
+		},
+	};
+
+	const omega = {
+		message: 'Hello, world!',
+	};
+
+	expect(schematic.is(alpha)).toBe(true);
+	expect(schematic.is(omega)).toBe(false);
 });
