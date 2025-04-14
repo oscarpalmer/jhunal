@@ -1,0 +1,50 @@
+{
+	"author": {
+		"name": "Oscar Palmér",
+		"url": "https://oscarpalmer.se"
+	},
+	"description": "Flies free beneath the glistening moons…",
+	"devDependencies": {
+		"@biomejs/biome": "^1.9",
+		"@types/node": "^22.14",
+		"@vitest/coverage-istanbul": "^3.1",
+		"dts-bundle-generator": "^9.5",
+		"glob": "^11",
+		"typescript": "^5.8",
+		"vite": "^6.2",
+		"vitest": "^3.1"
+	},
+	"exports": {
+		"./package.json": "./package.json",
+		".": {
+			"import": {
+				"types": "./types/index.d.ts",
+				"default": "./dist/index.js"
+			},
+			"require": {
+				"types": "./types/index.d.cts",
+				"default": "./dist/index.cjs"
+			}
+		}
+	},
+	"files": ["dist", "src", "types"],
+	"keywords": [],
+	"license": "MIT",
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"name": "@oscarpalmer/jhunal",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/oscarpalmer/jhunal.git"
+	},
+	"scripts": {
+		"build": "npm run clean && npx vite build && npm run types",
+		"clean": "rm -rf ./dist && rm -rf ./types && rm -f ./tsconfig.tsbuildinfo",
+		"test": "npx vitest --coverage",
+		"types": "npx tsc && npx dts-bundle-generator --config ./dts.config.cts --silent",
+		"watch": "npx vite build --watch"
+	},
+	"type": "module",
+	"types": "./types/index.d.cts",
+	"version": "0.1.0"
+}
