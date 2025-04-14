@@ -3,6 +3,10 @@
 		"name": "Oscar Palmér",
 		"url": "https://oscarpalmer.se"
 	},
+	"dependencies": {
+		"@oscarpalmer/atoms": "^0.94",
+		"type-fest": "^4.39"
+	},
 	"description": "Flies free beneath the glistening moons…",
 	"devDependencies": {
 		"@biomejs/biome": "^1.9",
@@ -46,5 +50,5 @@
 	},
 	"type": "module",
 	"types": "./types/index.d.cts",
-	"version": "0.1.0"
+	"version": "0.2.0"
 }
