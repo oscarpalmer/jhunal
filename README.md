@@ -1,2 +1,12 @@
-# jhunal
-Flies free beneath the glistening moons…
+# Jhunal
+
+> Jhunal, sage God of Runes,  
+> Flies free beneath the glistening moons.  
+> A night owl who's so droll,  
+> Soars with us, the wise Jhunal.
+
+— [The Song of Gods](https://en.uesp.net/wiki/Lore:The_Song_of_Gods)
+
+## License
+
+[MIT licensed](LICENSE), natch :wink:
