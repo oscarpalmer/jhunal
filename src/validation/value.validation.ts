@@ -1,11 +1,20 @@
 import type {PlainObject} from '@oscarpalmer/atoms/models';
-import type {ValidatedSchema} from '../model';
-import {validateType} from './type.validation';
+import {isDateLike, isSchematic} from '../is';
+import type {ValidatedPropertyType, ValidatedSchema, Values} from '../model';
 
-export function validateValue(
-	validated: ValidatedSchema,
-	obj: unknown,
-): boolean {
+export function validateType(type: ValidatedPropertyType, value: unknown): boolean {
+	if (typeof type === 'string') {
+		return validators[type](value);
+	}
+
+	if (isSchematic(type)) {
+		return type.is(value);
+	}
+
+	return validateValue(type as ValidatedSchema, value);
+}
+
+export function validateValue(validated: ValidatedSchema, obj: unknown): boolean {
 	if (typeof obj !== 'object' || obj === null) {
 		return false;
 	}
@@ -15,11 +24,7 @@ export function validateValue(
 		const property = validated.properties[key];
 		const value = (obj as PlainObject)[key];
 
-		if (
-			value === undefined &&
-			property.required &&
-			!property.types.includes('undefined')
-		) {
+		if (value === undefined && property.required && !property.types.includes('undefined')) {
 			return false;
 		}
 
@@ -44,3 +49,21 @@ export function validateValue(
 
 	return true;
 }
+
+//
+
+const validators: Record<keyof Values, (value: unknown) => boolean> = {
+	array: Array.isArray,
+	bigint: value => typeof value === 'bigint',
+	boolean: value => typeof value === 'boolean',
+	date: value => value instanceof Date,
+	'date-like': isDateLike,
+	function: value => typeof value === 'function',
+	null: value => value === null,
+	number: value => typeof value === 'number',
+	numerical: value => validators.bigint(value) || validators.number(value),
+	object: value => typeof value === 'object' && value !== null,
+	string: value => typeof value === 'string',
+	symbol: value => typeof value === 'symbol',
+	undefined: value => value === undefined,
+};

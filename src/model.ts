@@ -1,29 +1,7 @@
-import type {
-	OptionalKeysOf,
-	RequiredKeysOf,
-	Simplify,
-	UnionToTuple,
-} from 'type-fest';
+import type {Simplify} from '@oscarpalmer/atoms/models';
+import type {Schematic} from './schematic';
 
 export type AutoInferExclude = 'date-like' | 'numerical';
-
-export type GetKey<Value> = {
-		[Key in Exclude<ValueKey, AutoInferExclude>]: Value extends Values[Key]
-			? Key
-			: never;
-	}[Exclude<ValueKey, AutoInferExclude>] extends infer SpecificKey
-		? SpecificKey extends never
-			? {
-					[Key in AutoInferExclude]: Value extends Values[Key] ? Key : never;
-				}[AutoInferExclude]
-			: SpecificKey
-		: never;
-
-export type GetTypes<Value extends unknown[]> = Value extends [infer Type]
-	? Type
-	: Value;
-
-export type GetType<Value> = GetTypes<UnionToTuple<GetKey<Value>>>;
 
 export type InferProperty<Value> = Value extends Property
 	? InferPropertyType<Value['type']>
@@ -63,37 +41,54 @@ export type Inferred<Model extends Schema> = Simplify<
 	}
 >;
 
-export type InferredOptionalProperties<Model extends Schema> = {
-	[Key in keyof Model]: Model[Key] extends Property
-		? Model[Key]['required'] extends false
-			? Key
-			: never
-		: never;
-}[keyof Model];
+export type InferredOptionalProperties<Model extends Schema> = keyof {
+	[Key in keyof Model as IsOptionalInSchema<Model[Key]> extends true ? Key : never]: never;
+};
 
-export type InferredRequiredProperties<Model extends Schema> = {
-	[Key in keyof Model]: Model[Key] extends Property
-		? Model[Key]['required'] extends false
-			? never
-			: Key
-		: Key;
-}[keyof Model];
+export type InferredRequiredProperties<Model extends Schema> = keyof {
+	[Key in keyof Model as IsOptionalInSchema<Model[Key]> extends true ? never : Key]: never;
+};
+
+type IsNestedObject<Value> = Value extends object
+	? Value extends any[] | Date | Function
+		? false
+		: true
+	: false;
+
+type IsOptionalInSchema<Prop> = Prop extends Property
+	? Prop['required'] extends false
+		? true
+		: false
+	: false;
+
+export type OptionalKeys<Value> = {
+	[Key in keyof Value]-?: {} extends Pick<Value, Key> ? Key : never;
+}[keyof Value];
 
 export type OptionalProperty<Type> = {
 	required: false;
-	type: GetType<Type>;
+	type: PropertyTypeFor<Type>;
 };
 
 export type Property = {
-		required?: boolean;
-		type: PropertyType | PropertyType[];
-	};
+	required?: boolean;
+	type: PropertyType | PropertyType[];
+};
 
 type PropertyType = Schema | Schematic<unknown> | ValueKey;
 
+type PropertyTypeFor<Value> =
+	IsNestedObject<Value> extends true
+		? Value extends Typed
+			? TypedSchema<Value>
+			: never
+		: ValueToType<Value>;
+
+type RequiredKeys<Value> = Exclude<keyof Value, OptionalKeys<Value>>;
+
 export type RequiredProperty<Type> = {
 	required: true;
-	type: GetType<Type>;
+	type: PropertyTypeFor<Type>;
 };
 
 /**
@@ -103,15 +98,15 @@ export type Schema = {
 	[key: string]: Property | ValueKey | ValueKey[];
 };
 
-/**
- * A schematic for validating objects
- */
-export type Schematic<Model> = {
-	/**
-	 * Does the value match the schema?
-	 */
-	is(value: unknown): value is Model;
-};
+export type TypeToValueKey<Value> = {
+	[Key in Exclude<ValueKey, AutoInferExclude>]: Value extends Values[Key] ? Key : never;
+}[Exclude<ValueKey, AutoInferExclude>] extends infer SpecificKey
+	? SpecificKey extends never
+		? {
+				[Key in AutoInferExclude]: Value extends Values[Key] ? Key : never;
+			}[AutoInferExclude]
+		: SpecificKey
+	: never;
 
 export type Typed = Record<string, unknown>;
 
@@ -120,29 +115,47 @@ export type Typed = Record<string, unknown>;
  */
 export type TypedSchema<Model extends Typed> = Simplify<
 	{
-		[Key in RequiredKeysOf<Model>]:
-			| GetType<Model[Key]>
-			| RequiredProperty<Model[Key]>;
+		[Key in RequiredKeys<Model>]: IsNestedObject<Model[Key]> extends true
+			? Model[Key] extends Typed
+				? TypedSchema<Model[Key]>
+				: never
+			: ValueToType<Model[Key]> | RequiredProperty<Model[Key]>;
 	} & {
-		[Key in OptionalKeysOf<Model>]: OptionalProperty<Model[Key]>;
+		[Key in OptionalKeys<Model>]: IsNestedObject<Model[Key]> extends true
+			? Exclude<Model[Key], undefined> extends Typed
+				? TypedSchema<Exclude<Model[Key], undefined>> | OptionalProperty<Model[Key]>
+				: never
+			: OptionalProperty<Model[Key]>;
 	}
 >;
 
-export type ValidatedProperty = {
-		required: boolean;
-		types: ValidatedPropertyType[];
-	};
+type UnionToIntersection<Value> = (Value extends any ? (value: Value) => void : never) extends (
+	item: infer Item,
+) => void
+	? Item
+	: never;
 
-export type ValidatedPropertyType =
-	| Schematic<unknown>
-	| ValidatedSchema
-	| ValueKey;
+type LastOfUnion<Value> =
+	UnionToIntersection<Value extends any ? () => Value : never> extends () => infer Item
+		? Item
+		: never;
+
+type UnionToTuple<Value, Values extends any[] = []> = [Value] extends [never]
+	? Values
+	: UnionToTuple<Exclude<Value, LastOfUnion<Value>>, [LastOfUnion<Value>, ...Values]>;
+
+export type ValidatedProperty = {
+	required: boolean;
+	types: ValidatedPropertyType[];
+};
+
+export type ValidatedPropertyType = Schematic<unknown> | ValidatedSchema | ValueKey;
 
 export type ValidatedSchema = {
-		keys: string[];
-		length: number;
-		properties: ValidatedSchemaProperties;
-	};
+	keys: string[];
+	length: number;
+	properties: ValidatedSchemaProperties;
+};
 
 type ValidatedSchemaProperties = {
 	[key: string]: ValidatedProperty;
@@ -150,19 +163,23 @@ type ValidatedSchemaProperties = {
 
 export type ValueKey = keyof Values;
 
+export type ValueToType<Value> = ValueToTypes<UnionToTuple<TypeToValueKey<Value>>>;
+
+export type ValueToTypes<Value extends unknown[]> = Value extends [infer Type] ? Type : Value;
+
 export type Values = {
-		array: unknown[];
-		bigint: bigint;
-		boolean: boolean;
-		date: Date;
-		'date-like': number | string | Date;
-		// biome-ignore lint/complexity/noBannedTypes: it's the most basic value type, so I think it's ok
-		function: Function;
-		null: null;
-		number: number;
-		numerical: bigint | number;
-		object: object;
-		string: string;
-		symbol: symbol;
-		undefined: undefined;
-	};
+	array: unknown[];
+	bigint: bigint;
+	boolean: boolean;
+	date: Date;
+	'date-like': number | string | Date;
+	// biome-ignore lint/complexity/noBannedTypes: it's the most basic value type, so I think it's ok
+	function: Function;
+	null: null;
+	number: number;
+	numerical: bigint | number;
+	object: object;
+	string: string;
+	symbol: symbol;
+	undefined: undefined;
+};

@@ -39,6 +39,7 @@ test('basic schema', () => {
 
 	const second = {};
 
+	expect(basicSchematic.validatable).toBe(true);
 	expect(basicSchematic.is(first)).toBe(true);
 	expect(basicSchematic.is({...first, date: 99})).toBe(false);
 	expect(basicSchematic.is({...first, 'date-like': 99})).toBe(true);
@@ -54,11 +55,13 @@ test('basic schema', () => {
 
 	let invalidSchematic = Schema.schematic(invalid);
 
+	expect(invalidSchematic.validatable).toBe(false);
 	expect(invalidSchematic.is({})).toBe(false);
 	expect(invalidSchematic.is(123)).toBe(false);
 
 	invalidSchematic = Schema.schematic('!!!' as never);
 
+	expect(invalidSchematic.validatable).toBe(false);
 	expect(invalidSchematic.is({})).toBe(false);
 	expect(invalidSchematic.is(123)).toBe(false);
 });

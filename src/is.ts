@@ -1,4 +1,4 @@
-import type {Schematic} from './model';
+import type {Schematic} from './schematic';
 
 export function isDateLike(value: unknown): value is Date {
 	if (value instanceof Date) {
