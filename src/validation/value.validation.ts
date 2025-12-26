@@ -1,17 +1,10 @@
 import type {PlainObject} from '@oscarpalmer/atoms/models';
-import {isDateLike, isSchematic} from '../is';
+import {smush} from '@oscarpalmer/atoms/value';
+import {isDateLike} from '../is';
 import type {ValidatedPropertyType, ValidatedSchema, Values} from '../model';
 
 export function validateType(type: ValidatedPropertyType, value: unknown): boolean {
-	if (typeof type === 'string') {
-		return validators[type](value);
-	}
-
-	if (isSchematic(type)) {
-		return type.is(value);
-	}
-
-	return validateValue(type as ValidatedSchema, value);
+	return typeof type === 'string' ? validators[type](value) : type.is(value);
 }
 
 export function validateValue(validated: ValidatedSchema, obj: unknown): boolean {
@@ -19,10 +12,15 @@ export function validateValue(validated: ValidatedSchema, obj: unknown): boolean
 		return false;
 	}
 
-	outer: for (let keyIndex = 0; keyIndex < validated.length; keyIndex += 1) {
-		const key = validated.keys[keyIndex];
-		const property = validated.properties[key];
-		const value = (obj as PlainObject)[key];
+	const {keys, properties} = validated;
+	const keysLength = keys.array.length;
+
+	const smushed = smush(obj as PlainObject);
+
+	outer: for (let keyIndex = 0; keyIndex < keysLength; keyIndex += 1) {
+		const key = keys.array[keyIndex];
+		const property = properties[key];
+		const value = smushed[key];
 
 		if (value === undefined && property.required && !property.types.includes('undefined')) {
 			return false;
@@ -60,7 +58,7 @@ const validators: Record<keyof Values, (value: unknown) => boolean> = {
 	'date-like': isDateLike,
 	function: value => typeof value === 'function',
 	null: value => value === null,
-	number: value => typeof value === 'number',
+	number: value => typeof value === 'number' && !Number.isNaN(value),
 	numerical: value => validators.bigint(value) || validators.number(value),
 	object: value => typeof value === 'object' && value !== null,
 	string: value => typeof value === 'string',

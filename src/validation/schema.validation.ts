@@ -1,63 +1,157 @@
 import type {PlainObject} from '@oscarpalmer/atoms/models';
-import {getTypes} from '../helpers';
-import type {Schema, ValidatedPropertyType, ValidatedSchema} from '../model';
+import {smush} from '@oscarpalmer/atoms/value';
+import {isSchematic} from '../is';
+import type {Schema, ValidatedPropertyType, ValidatedSchema, Values} from '../model';
 
-export function validateSchema(schema: unknown): ValidatedSchema {
-	if (validatedSchemas.has(schema as never)) {
-		return validatedSchemas.get(schema as never) as ValidatedSchema;
+function addPropertyType(
+	to: ValidatedSchema,
+	key: string,
+	values: ValidatedPropertyType[],
+	required: boolean,
+): void {
+	if (to.keys.set.has(key)) {
+		const property = to.properties[key];
+
+		property.types.push(...values);
+	} else {
+		to.keys.array.push(key);
+		to.keys.set.add(key);
+
+		to.properties[key] = {
+			required,
+			types: values,
+		};
 	}
 
-	const validated: ValidatedSchema = {
-		keys: [],
-		length: 0,
-		properties: {},
-	};
+	if (!required && !to.properties[key].types.includes('undefined')) {
+		to.properties[key].types.push('undefined');
+	}
+}
 
-	if (typeof schema !== 'object' || schema === null) {
-		return validated;
+function getTypes(
+	value: unknown,
+	validated: ValidatedSchema,
+	prefix: string,
+): ValidatedPropertyType[] {
+	const propertyTypes: ValidatedPropertyType[] = [];
+
+	const values = Array.isArray(value) ? value : [value];
+	const {length} = values;
+
+	for (let index = 0; index < length; index += 1) {
+		const type = values[index];
+
+		if (isSchematic(type) || (typeof type === 'string' && types.has(type as never))) {
+			propertyTypes.push(type as never);
+
+			continue;
+		}
+
+		if (typeof type !== 'object' || type === null) {
+			continue;
+		}
+
+		if ('$type' in type) {
+			propertyTypes.push(...getTypes(type.$type, validated, prefix));
+
+			continue;
+		}
+
+		addPropertyType(
+			validated,
+			prefix,
+			['object'],
+			typeof type.$required === 'boolean' ? type.$required : true,
+		);
+
+		propertyTypes.push('object');
+
+		getValidatedSchema(type as Schema, validated, prefix);
 	}
 
-	const keys = Object.keys(schema);
+	return propertyTypes;
+}
+
+function getValidatedSchema(
+	schema: Schema,
+	validated: ValidatedSchema,
+	prefix?: string,
+): ValidatedSchema {
+	const smushed = smush(schema as PlainObject);
+	const keys = Object.keys(smushed);
 	const {length} = keys;
+
+	const arrayKeys = new Set<string>();
+	const noPrefix = prefix == null;
+
+	prefix = noPrefix ? '' : `${prefix}.`;
 
 	for (let index = 0; index < length; index += 1) {
 		const key = keys[index];
-		const value = (schema as Schema)[key];
-
-		let required = true;
-		let types: ValidatedPropertyType[];
+		const value = smushed[key];
 
 		if (Array.isArray(value)) {
-			types = getTypes(value);
-		} else if (typeof value === 'object' && value !== null) {
-			if (typeof (value as PlainObject).required === 'boolean') {
-				required = (value as PlainObject).required as boolean;
-			}
-
-			types = getTypes((value as PlainObject).type);
-		} else {
-			types = getTypes(value);
+			arrayKeys.add(key);
 		}
 
+		if (/\.\$(required|type)(\.|$)/.test(key)) {
+			continue;
+		}
+
+		if (/\d+/.test(key) && arrayKeys.has(key.replace(/\.\d+$/, ''))) {
+			continue;
+		}
+
+		let required = true;
+
+		if (typeof value === 'object' && value !== null && '$required' in value) {
+			required = typeof value.$required === 'boolean' ? value.$required : true;
+		}
+
+		const prefixedKey = `${prefix}${key}`;
+
+		const types = getTypes(value, validated, prefixedKey);
+
 		if (types.length > 0) {
-			if (!required && !types.includes('undefined')) {
-				types.push('undefined');
-			}
-
-			validated.keys.push(key);
-
-			validated.properties[key] = {
-				required,
-				types,
-			};
-
-			validated.length += 1;
+			addPropertyType(validated, prefixedKey, types, required);
 		}
 	}
 
-	validatedSchemas.set(schema as never, validated);
+	if (noPrefix) {
+		validated.keys.array.sort();
+	}
 
 	return validated;
 }
 
-export const validatedSchemas = new WeakMap<Schema, ValidatedSchema>();
+export function validateSchema(schema: unknown): ValidatedSchema {
+	const validated: ValidatedSchema = {
+		keys: {
+			array: [],
+			set: new Set<string>(),
+		},
+		properties: {},
+	};
+
+	return typeof schema === 'object' && schema !== null
+		? getValidatedSchema(schema as Schema, validated)
+		: validated;
+}
+
+//
+
+const types = new Set<keyof Values>([
+	'array',
+	'bigint',
+	'boolean',
+	'date',
+	'date-like',
+	'function',
+	'null',
+	'number',
+	'numerical',
+	'object',
+	'string',
+	'symbol',
+	'undefined',
+]);

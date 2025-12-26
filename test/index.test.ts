@@ -73,20 +73,20 @@ test('complex schema', () => {
 		booleanOrDateOrNumber: ['boolean', 'date', 'number'],
 		dateOrFunction: ['date', 'function'],
 		functionOrNumber: {
-			required: 'maybe?' as never,
-			type: ['function', 'number'],
+			$required: 'maybe?' as never,
+			$type: ['function', 'number'],
 		},
 		invalid: 'invalid' as never,
 		multipleInvalid: ['invalid', 'invalid'] as never,
 		none: [],
 		numberOrObject: ['number', 'object'],
 		optionalMultiple: {
-			required: false,
-			type: ['boolean', 'number'],
+			$required: false,
+			$type: ['boolean', 'number'],
 		},
 		optionalSingle: {
-			required: false,
-			type: 'string',
+			$required: false,
+			$type: 'string',
 		},
 		someInvalid: ['number', 'invalid', 'object'] as never,
 		symbol: 'symbol',
@@ -171,14 +171,12 @@ test('nested schema', () => {
 
 	const outer = {
 		first: {
-			type: first,
+			$type: first,
 		},
 		second: {
-			type: second,
+			$type: [second],
 		},
-		third: {
-			type: fourth,
-		},
+		third: fourth,
 	} satisfies Schema.Schema;
 
 	const schematic = Schema.schematic(outer);

@@ -1,4 +1,5 @@
-import type {Inferred, Schema, Typed, TypedSchema, ValidatedSchema} from './model';
+import type {PlainObject} from '@oscarpalmer/atoms';
+import type {Infer, Schema, TypedSchema, ValidatedSchema} from './model';
 import {validateSchema} from './validation/schema.validation';
 import {validateValue} from './validation/value.validation';
 
@@ -22,7 +23,7 @@ export class Schematic<Model> {
 
 		this.#schema = validateSchema(schema as unknown as Schema);
 
-		this.#validatable = this.#schema.length > 0;
+		this.#validatable = this.#schema.keys.array.length > 0;
 	}
 
 	/**
@@ -36,12 +37,12 @@ export class Schematic<Model> {
 /**
  * Create a schematic from a schema
  */
-export function schematic<Model extends Schema>(schema: Model): Schematic<Inferred<Model>>;
+export function schematic<Model extends Schema>(schema: Model): Schematic<Infer<Model>>;
 
 /**
  * Create a schematic from a typed schema
  */
-export function schematic<Model extends Typed>(schema: TypedSchema<Model>): Schematic<Model>;
+export function schematic<Model extends PlainObject>(schema: TypedSchema<Model>): Schematic<Model>;
 
 export function schematic<Model extends Schema>(schema: Model): Schematic<Model> {
 	return new Schematic<Model>(schema);

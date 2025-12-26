@@ -1,179 +1,196 @@
-import type {Simplify} from '@oscarpalmer/atoms/models';
+import type {PlainObject, Simplify} from '@oscarpalmer/atoms/models';
 import type {Schematic} from './schematic';
 
-export type AutoInferExclude = 'date-like' | 'numerical';
-
-export type InferProperty<Value> = Value extends Property
-	? InferPropertyType<Value['type']>
-	: never;
-
-type InferPropertyType<Value> = Value extends (infer Type)[]
-	? InferPropertyTypeValue<Type>[]
-	: InferPropertyTypeValue<Value>;
-
-type InferPropertyTypeValue<Value> = Value extends PropertyType
-	? Value extends Schema
-		? Inferred<Value>
-		: Value extends Schematic<infer Model>
-			? Model
-			: Value extends ValueKey
-				? Values[Value]
-				: Value extends (infer NestedElementType)[]
-					? InferPropertyTypeValue<NestedElementType>[]
-					: Value
-	: never;
-
-export type InferValue<Value> = Value extends ValueKey
-	? Values[Value]
-	: Value extends ValueKey[]
-		? Values[Value[number]]
-		: never;
-
-export type Inferred<Model extends Schema> = Simplify<
+/**
+ * Infer the TypeScript type from a schema definition
+ */
+export type Infer<Model extends Schema> = Simplify<
 	{
-		[Key in InferredRequiredProperties<Model>]: Model[Key] extends Property
-			? InferProperty<Model[Key]>
-			: InferValue<Model[Key]>;
+		[Key in InferRequiredKeys<Model>]: Model[Key] extends Schematic<infer SchematicModel>
+			? SchematicModel
+			: Model[Key] extends SchemaProperty
+				? InferPropertyValue<Model[Key]>
+				: InferEntryValue<Model[Key]>;
 	} & {
-		[Key in InferredOptionalProperties<Model>]?: Model[Key] extends Property
-			? InferProperty<Model[Key]>
-			: never;
+		[Key in InferOptionalKeys<Model>]?: Model[Key] extends Schematic<infer SchematicModel>
+			? SchematicModel
+			: Model[Key] extends SchemaProperty
+				? InferPropertyValue<Model[Key]>
+				: never;
 	}
 >;
 
-export type InferredOptionalProperties<Model extends Schema> = keyof {
-	[Key in keyof Model as IsOptionalInSchema<Model[Key]> extends true ? Key : never]: never;
+type InferEntryValue<Value> = Value extends ValueName
+	? Values[Value]
+	: Value extends ValueName[]
+		? Values[Value[number]]
+		: never;
+
+type InferOptionalKeys<Model extends Schema> = keyof {
+	[Key in keyof Model as IsOptionalProperty<Model[Key]> extends true ? Key : never]: never;
 };
 
-export type InferredRequiredProperties<Model extends Schema> = keyof {
-	[Key in keyof Model as IsOptionalInSchema<Model[Key]> extends true ? never : Key]: never;
+type InferPropertyType<Value> = Value extends (infer Item)[]
+	? InferTypeValue<Item>[]
+	: InferTypeValue<Value>;
+
+type InferPropertyValue<Prop> = Prop extends SchemaProperty
+	? InferPropertyType<Prop['$type']>
+	: never;
+
+type InferRequiredKeys<Model extends Schema> = keyof {
+	[Key in keyof Model as IsOptionalProperty<Model[Key]> extends true ? never : Key]: never;
 };
 
-type IsNestedObject<Value> = Value extends object
-	? Value extends any[] | Date | Function
-		? false
-		: true
-	: false;
+type InferTypeValue<Value> = Value extends SchemaPropertyType
+	? Value extends Schema
+		? Infer<Value>
+		: Value extends Schematic<infer Model>
+			? Model
+			: Value extends ValueName
+				? Values[Value]
+				: Value extends (infer Nested)[]
+					? InferTypeValue<Nested>[]
+					: Value
+	: never;
 
-type IsOptionalInSchema<Prop> = Prop extends Property
-	? Prop['required'] extends false
+type IsOptionalProperty<Value> = Value extends SchemaProperty
+	? Value['$required'] extends false
 		? true
 		: false
 	: false;
 
-export type OptionalKeys<Value> = {
+type LastOfUnion<Value> =
+	UnionToIntersection<Value extends unknown ? () => Value : never> extends () => infer Item
+		? Item
+		: never;
+
+/**
+ * A nested schema with optional requirement flag
+ */
+export type NestedSchema = {
+	$required?: boolean;
+} & Schema;
+
+type OptionalKeys<Value> = {
 	[Key in keyof Value]-?: {} extends Pick<Value, Key> ? Key : never;
 }[keyof Value];
 
-export type OptionalProperty<Type> = {
-	required: false;
-	type: PropertyTypeFor<Type>;
-};
-
-export type Property = {
-	required?: boolean;
-	type: PropertyType | PropertyType[];
-};
-
-type PropertyType = Schema | Schematic<unknown> | ValueKey;
-
-type PropertyTypeFor<Value> =
-	IsNestedObject<Value> extends true
-		? Value extends Typed
-			? TypedSchema<Value>
-			: never
-		: ValueToType<Value>;
-
 type RequiredKeys<Value> = Exclude<keyof Value, OptionalKeys<Value>>;
-
-export type RequiredProperty<Type> = {
-	required: true;
-	type: PropertyTypeFor<Type>;
-};
 
 /**
  * A schema for validating objects
  */
-export type Schema = {
-	[key: string]: Property | ValueKey | ValueKey[];
-};
+export type Schema = SchemaIndex;
 
-export type TypeToValueKey<Value> = {
-	[Key in Exclude<ValueKey, AutoInferExclude>]: Value extends Values[Key] ? Key : never;
-}[Exclude<ValueKey, AutoInferExclude>] extends infer SpecificKey
-	? SpecificKey extends never
-		? {
-				[Key in AutoInferExclude]: Value extends Values[Key] ? Key : never;
-			}[AutoInferExclude]
-		: SpecificKey
-	: never;
+type SchemaEntry = NestedSchema | SchemaProperty | Schematic<unknown> | ValueName | ValueName[];
 
-export type Typed = Record<string, unknown>;
+interface SchemaIndex {
+	[key: string]: SchemaEntry;
+}
 
 /**
- * A typed schema for validating objects
+ * A property definition with explicit type(s) and optional requirement flag
  */
-export type TypedSchema<Model extends Typed> = Simplify<
+export type SchemaProperty = {
+	$required?: boolean;
+	$type: SchemaPropertyType | SchemaPropertyType[];
+};
+
+type SchemaPropertyType = Schema | Schematic<unknown> | ValueName;
+
+type ToSchemaPropertyType<Value> = UnwrapSingle<UnionToTuple<ToSchemaPropertyTypeEach<Value>>>;
+
+type ToSchemaPropertyTypeEach<Value> = Value extends PlainObject
+	? TypedSchema<Value>
+	: ToValueName<Value>;
+
+type ToSchemaType<Value> = UnwrapSingle<UnionToTuple<ToValueName<Value>>>;
+
+type ToValueName<Value> = {
+	[Key in Exclude<ValueName, ValueNameFallbacks>]: Value extends Values[Key] ? Key : never;
+}[Exclude<ValueName, ValueNameFallbacks>] extends infer Specific
+	? Specific extends never
+		? {[Key in ValueNameFallbacks]: Value extends Values[Key] ? Key : never}[ValueNameFallbacks]
+		: Specific
+	: never;
+
+export type TypedPropertyOptional<Value> = {
+	$required: false;
+	$type: ToSchemaPropertyType<Value>;
+};
+
+export type TypedPropertyRequired<Value> = {
+	$required?: true;
+	$type: ToSchemaPropertyType<Value>;
+};
+
+/**
+ * Create a schema type constrained to match a TypeScript type
+ */
+export type TypedSchema<Model extends PlainObject> = Simplify<
 	{
-		[Key in RequiredKeys<Model>]: IsNestedObject<Model[Key]> extends true
-			? Model[Key] extends Typed
-				? TypedSchema<Model[Key]>
-				: never
-			: ValueToType<Model[Key]> | RequiredProperty<Model[Key]>;
+		[Key in RequiredKeys<Model>]: Model[Key] extends PlainObject
+			? TypedSchemaRequired<Model[Key]>
+			: ToSchemaType<Model[Key]> | TypedPropertyRequired<Model[Key]>;
 	} & {
-		[Key in OptionalKeys<Model>]: IsNestedObject<Model[Key]> extends true
-			? Exclude<Model[Key], undefined> extends Typed
-				? TypedSchema<Exclude<Model[Key], undefined>> | OptionalProperty<Model[Key]>
-				: never
-			: OptionalProperty<Model[Key]>;
+		[Key in OptionalKeys<Model>]: Exclude<Model[Key], undefined> extends PlainObject
+			? TypedSchemaOptional<Exclude<Model[Key], undefined>>
+			: TypedPropertyOptional<Model[Key]>;
 	}
 >;
 
-type UnionToIntersection<Value> = (Value extends any ? (value: Value) => void : never) extends (
-	item: infer Item,
+type TypedSchemaOptional<Model extends PlainObject> = {
+	$required: false;
+} & TypedSchema<Model>;
+
+type TypedSchemaRequired<Model extends PlainObject> = {
+	$required?: boolean;
+} & TypedSchema<Model>;
+
+type UnionToIntersection<Value> = (Value extends unknown ? (x: Value) => void : never) extends (
+	x: infer Item,
 ) => void
 	? Item
 	: never;
 
-type LastOfUnion<Value> =
-	UnionToIntersection<Value extends any ? () => Value : never> extends () => infer Item
-		? Item
-		: never;
+type UnionToTuple<Value, Items extends unknown[] = []> = [Value] extends [never]
+	? Items
+	: UnionToTuple<Exclude<Value, LastOfUnion<Value>>, [LastOfUnion<Value>, ...Items]>;
 
-type UnionToTuple<Value, Values extends any[] = []> = [Value] extends [never]
-	? Values
-	: UnionToTuple<Exclude<Value, LastOfUnion<Value>>, [LastOfUnion<Value>, ...Values]>;
+type UnwrapSingle<Value extends unknown[]> = Value extends [infer Only] ? Only : Value;
 
 export type ValidatedProperty = {
 	required: boolean;
 	types: ValidatedPropertyType[];
 };
 
-export type ValidatedPropertyType = Schematic<unknown> | ValidatedSchema | ValueKey;
+export type ValidatedPropertyType = Schematic<unknown> | ValueName;
 
 export type ValidatedSchema = {
-	keys: string[];
-	length: number;
-	properties: ValidatedSchemaProperties;
+	keys: {
+		array: string[];
+		set: Set<string>;
+	};
+	properties: Record<string, ValidatedProperty>;
 };
 
-type ValidatedSchemaProperties = {
-	[key: string]: ValidatedProperty;
-};
+/**
+ * Valid type name strings
+ */
+export type ValueName = keyof Values;
 
-export type ValueKey = keyof Values;
+type ValueNameFallbacks = 'date-like' | 'numerical';
 
-export type ValueToType<Value> = ValueToTypes<UnionToTuple<TypeToValueKey<Value>>>;
-
-export type ValueToTypes<Value extends unknown[]> = Value extends [infer Type] ? Type : Value;
-
+/**
+ * Map of type names to their TypeScript/validatable equivalents
+ */
 export type Values = {
 	array: unknown[];
 	bigint: bigint;
 	boolean: boolean;
 	date: Date;
 	'date-like': number | string | Date;
-	// biome-ignore lint/complexity/noBannedTypes: it's the most basic value type, so I think it's ok
 	function: Function;
 	null: null;
 	number: number;

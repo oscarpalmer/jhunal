@@ -10,7 +10,7 @@
 	"devDependencies": {
 		"@types/node": "^25",
 		"@vitest/coverage-istanbul": "^4",
-		"jsdom": "^27.3",
+		"jsdom": "^27.4",
 		"oxfmt": "^0.20",
 		"oxlint": "^1.35",
 		"rolldown": "1.0.0-beta.57",
@@ -27,9 +27,8 @@
 		}
 	},
 	"files": ["dist", "src", "types"],
-	"keywords": [],
+	"keywords": ["schema", "validation"],
 	"license": "MIT",
-	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
 	"name": "@oscarpalmer/jhunal",
 	"repository": {
@@ -45,6 +44,6 @@
 		"watch": "npx vite build --watch"
 	},
 	"type": "module",
-	"types": "./types/index.d.cts",
-	"version": "0.5.0"
+	"types": "./types/index.d.ts",
+	"version": "0.6.0"
 }

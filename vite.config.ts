@@ -21,6 +21,9 @@ export default defineConfig({
 		minify: false,
 		outDir: './dist',
 		rollupOptions: {
+			external: [
+				'@oscarpalmer/atoms/value'
+			],
 			input: Object.fromEntries(files),
 			output: {
 				preserveModules: true,
