@@ -1,4 +1,4 @@
-
+import {SCHEMATIC_NAME} from './constants';
 import type {Schematic} from './schematic';
 
 export function isDateLike(value: unknown): value is Date {
@@ -17,7 +17,7 @@ export function isSchematic(value: unknown): value is Schematic<never> {
 	return (
 		typeof value === 'object' &&
 		value !== null &&
-		'$schematic' in value &&
-		value.$schematic === true
+		SCHEMATIC_NAME in value &&
+		value[SCHEMATIC_NAME] === true
 	);
 }

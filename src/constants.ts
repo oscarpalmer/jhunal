@@ -1,0 +1,27 @@
+import type {Values} from './models';
+
+export const PROPERTY_REQUIRED = '$required';
+
+export const PROPERTY_TYPE = '$type';
+
+export const SCHEMATIC_NAME = '$schematic';
+
+export const TYPE_OBJECT = 'object';
+
+export const TYPE_UNDEFINED = 'undefined';
+
+export const TYPE_ALL = new Set<keyof Values>([
+	'array',
+	'bigint',
+	'boolean',
+	'date',
+	'date-like',
+	'function',
+	'null',
+	'number',
+	'numerical',
+	'string',
+	'symbol',
+	TYPE_OBJECT,
+	TYPE_UNDEFINED,
+]);

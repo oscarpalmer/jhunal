@@ -82,7 +82,13 @@ test('complex schema', () => {
 		numberOrObject: ['number', 'object'],
 		optionalMultiple: {
 			$required: false,
-			$type: ['boolean', 'number'],
+			$type: [
+				'boolean',
+				'number',
+				{
+					nestedInside: 'string',
+				},
+			],
 		},
 		optionalSingle: {
 			$required: false,
@@ -123,6 +129,7 @@ test('complex schema', () => {
 
 	expect(complexSchematic.is({...first, optionalMultiple: true})).toBe(true);
 	expect(complexSchematic.is({...first, optionalMultiple: 123})).toBe(true);
+	expect(complexSchematic.is({...first, optionalMultiple: {nestedInside: 'hello!'}})).toBe(true);
 	expect(complexSchematic.is({...first, optionalMultiple: 'abc'})).toBe(false);
 });
 

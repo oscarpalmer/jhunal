@@ -1,5 +1,6 @@
-import type {PlainObject} from '@oscarpalmer/atoms';
-import type {Infer, Schema, TypedSchema, ValidatedSchema} from './model';
+import type {PlainObject} from '@oscarpalmer/atoms/models';
+import {SCHEMATIC_NAME} from './constants';
+import type {Infer, Schema, TypedSchema, ValidatedSchema} from './models';
 import {validateSchema} from './validation/schema.validation';
 import {validateValue} from './validation/value.validation';
 
@@ -17,11 +18,11 @@ export class Schematic<Model> {
 	}
 
 	constructor(schema: Model) {
-		Object.defineProperty(this, '$schematic', {
+		Object.defineProperty(this, SCHEMATIC_NAME, {
 			value: true,
 		});
 
-		this.#schema = validateSchema(schema as unknown as Schema);
+		this.#schema = validateSchema(schema);
 
 		this.#validatable = this.#schema.keys.array.length > 0;
 	}
