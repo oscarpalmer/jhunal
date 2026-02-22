@@ -22,6 +22,7 @@ export default defineConfig({
 		outDir: './dist',
 		rollupOptions: {
 			external: [
+				'@oscarpalmer/atoms/is',
 				'@oscarpalmer/atoms/value'
 			],
 			input: Object.fromEntries(files),

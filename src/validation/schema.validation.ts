@@ -1,3 +1,4 @@
+import {isConstructor} from '@oscarpalmer/atoms/is';
 import type {PlainObject} from '@oscarpalmer/atoms/models';
 import {smush} from '@oscarpalmer/atoms/value';
 import {
@@ -10,7 +11,7 @@ import {
 	TYPE_OBJECT,
 	TYPE_UNDEFINED,
 } from '../constants';
-import {isConstructor, isInstance, isSchematic} from '../is';
+import {isInstance, isSchematic} from '../is';
 import type {Schema, ValidatedPropertyType, ValidatedSchema} from '../models';
 
 function addPropertyType(

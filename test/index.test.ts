@@ -1,6 +1,6 @@
 import {expect, test} from 'vitest';
 import * as Jhunal from '../src';
-import {isConstructor, isSchematic} from '../src/is';
+import {isSchematic} from '../src/is';
 
 class Test {}
 
@@ -128,7 +128,7 @@ test('complex schema', () => {
 	expect(complexSchematic.is({...first, optionalMultiple: 'abc'})).toBe(false);
 });
 
-test('isConstructor + isInstance', () => {
+test('isInstance', () => {
 	const values = [
 		null,
 		undefined,
@@ -148,10 +148,9 @@ test('isConstructor + isInstance', () => {
 	let {length} = values;
 
 	for (let index = 0; index < length; index += 1) {
-		const value = values[index];
-
-		expect(isConstructor(value)).toBe(false);
-		expect(() => Jhunal.isInstance(value as never)).toThrow('Expected a constructor function');
+		expect(() => Jhunal.isInstance(values[index] as never)).toThrow(
+			'Expected a constructor function',
+		);
 	}
 
 	values.splice(0, length, Object, Array, Map, Set, class {}, Test);
@@ -159,10 +158,7 @@ test('isConstructor + isInstance', () => {
 	length = values.length;
 
 	for (let index = 0; index < length; index += 1) {
-		const value = values[index];
-
-		expect(isConstructor(value)).toBe(true);
-		expect(Jhunal.isInstance(value as never)).toBeTypeOf('function');
+		expect(Jhunal.isInstance(values[index] as never)).toBeTypeOf('function');
 	}
 });
 
@@ -245,7 +241,7 @@ test('nested schema', () => {
 
 test('typed schematic', () => {
 	type Typed = {
-		test: Test,
+		test: Test;
 	};
 
 	const schematic = Jhunal.schematic<Typed>({

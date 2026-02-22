@@ -1,10 +1,7 @@
+import {isConstructor} from '@oscarpalmer/atoms/is';
 import {SCHEMATIC_NAME} from './constants';
 import type {Constructor} from './models';
 import type {Schematic} from './schematic';
-
-export function isConstructor(value: unknown): value is Constructor<unknown> {
-	return typeof value === 'function' && value.prototype !== undefined;
-}
 
 export function isInstance<Instance>(
 	constructor: Constructor<Instance>,
