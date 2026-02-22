@@ -1,11 +1,19 @@
 import type {PlainObject} from '@oscarpalmer/atoms/models';
 import {smush} from '@oscarpalmer/atoms/value';
-import {TYPE_OBJECT, TYPE_UNDEFINED} from '../constants';
-import {isDateLike} from '../is';
+import {TYPE_UNDEFINED} from '../constants';
 import type {ValidatedPropertyType, ValidatedSchema, Values} from '../models';
 
 export function validateType(type: ValidatedPropertyType, value: unknown): boolean {
-	return typeof type === 'string' ? validators[type](value) : type.is(value);
+	switch (true) {
+		case typeof type === 'function':
+			return (type as any)(value);
+
+		case typeof type === 'string':
+			return validators[type](value);
+
+		default:
+			return type.is(value);
+	}
 }
 
 export function validateValue(validated: ValidatedSchema, obj: unknown): boolean {
@@ -50,7 +58,7 @@ export function validateValue(validated: ValidatedSchema, obj: unknown): boolean
 			const type = property.types[typeIndex];
 
 			if (validateType(type, value)) {
-				if (type !== TYPE_OBJECT) {
+				if ((type as never) !== 'object') {
 					ignore.add(key);
 				}
 
@@ -75,11 +83,9 @@ const validators: Record<keyof Values, (value: unknown) => boolean> = {
 	bigint: value => typeof value === 'bigint',
 	boolean: value => typeof value === 'boolean',
 	date: value => value instanceof Date,
-	'date-like': isDateLike,
 	function: value => typeof value === 'function',
 	null: value => value === null,
 	number: value => typeof value === 'number' && !Number.isNaN(value),
-	numerical: value => validators.bigint(value) || validators.number(value),
 	object: value => typeof value === 'object' && value !== null,
 	string: value => typeof value === 'string',
 	symbol: value => typeof value === 'symbol',

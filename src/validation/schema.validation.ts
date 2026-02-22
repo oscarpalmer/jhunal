@@ -1,13 +1,16 @@
 import type {PlainObject} from '@oscarpalmer/atoms/models';
 import {smush} from '@oscarpalmer/atoms/value';
 import {
+	EXPRESSION_HAS_NUMBER,
+	EXPRESSION_INDEX,
+	EXPRESSION_PROPERTY,
 	PROPERTY_REQUIRED,
 	PROPERTY_TYPE,
 	TYPE_ALL,
 	TYPE_OBJECT,
 	TYPE_UNDEFINED,
 } from '../constants';
-import {isSchematic} from '../is';
+import {isConstructor, isInstance, isSchematic} from '../is';
 import type {Schema, ValidatedPropertyType, ValidatedSchema} from '../models';
 
 function addPropertyType(
@@ -39,6 +42,21 @@ function addPropertyType(
 	}
 }
 
+export function getSchema(schema: unknown): ValidatedSchema {
+	const validated: ValidatedSchema = {
+		enabled: false,
+		keys: {
+			array: [],
+			set: new Set<string>(),
+		},
+		properties: {},
+	};
+
+	return typeof schema === 'object' && schema !== null
+		? getValidatedSchema(schema as Schema, validated)
+		: validated;
+}
+
 function getTypes(
 	value: unknown,
 	validated: ValidatedSchema,
@@ -51,14 +69,21 @@ function getTypes(
 
 	for (let index = 0; index < length; index += 1) {
 		const type = values[index];
+		const typeOfType = typeof type;
 
-		if (isSchematic(type) || (typeof type === 'string' && TYPE_ALL.has(type as never))) {
+		if (isSchematic(type) || (typeOfType === 'string' && TYPE_ALL.has(type as never))) {
 			propertyTypes.push(type as never);
 
 			continue;
 		}
 
-		if (typeof type !== 'object' || type === null) {
+		if (typeOfType === 'function') {
+			propertyTypes.push(isConstructor(type) ? isInstance(type) : type);
+
+			continue;
+		}
+
+		if (typeOfType !== 'object' || type === null) {
 			continue;
 		}
 
@@ -100,11 +125,11 @@ function getValidatedSchema(
 			arrayKeys.add(key);
 		}
 
-		if (/\.\$(required|type)(\.|$)/.test(key)) {
+		if (EXPRESSION_PROPERTY.test(key)) {
 			continue;
 		}
 
-		if (/\d+/.test(key) && arrayKeys.has(key.replace(/\.\d+$/, ''))) {
+		if (EXPRESSION_HAS_NUMBER.test(key) && arrayKeys.has(key.replace(EXPRESSION_INDEX, ''))) {
 			continue;
 		}
 
@@ -128,18 +153,4 @@ function getValidatedSchema(
 	}
 
 	return validated;
-}
-
-export function validateSchema(schema: unknown): ValidatedSchema {
-	const validated: ValidatedSchema = {
-		keys: {
-			array: [],
-			set: new Set<string>(),
-		},
-		properties: {},
-	};
-
-	return typeof schema === 'object' && schema !== null
-		? getValidatedSchema(schema as Schema, validated)
-		: validated;
 }

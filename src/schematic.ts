@@ -1,7 +1,7 @@
 import type {PlainObject} from '@oscarpalmer/atoms/models';
 import {SCHEMATIC_NAME} from './constants';
 import type {Infer, Schema, TypedSchema, ValidatedSchema} from './models';
-import {validateSchema} from './validation/schema.validation';
+import {getSchema} from './validation/schema.validation';
 import {validateValue} from './validation/value.validation';
 
 /**
@@ -11,10 +11,9 @@ export class Schematic<Model> {
 	declare private readonly $schematic: true;
 
 	#schema: ValidatedSchema;
-	#validatable: boolean;
 
-	get validatable(): boolean {
-		return this.#validatable;
+	get enabled(): boolean {
+		return this.#schema.enabled;
 	}
 
 	constructor(schema: Model) {
@@ -22,16 +21,16 @@ export class Schematic<Model> {
 			value: true,
 		});
 
-		this.#schema = validateSchema(schema);
+		this.#schema = getSchema(schema);
 
-		this.#validatable = this.#schema.keys.array.length > 0;
+		this.#schema.enabled = this.#schema.keys.array.length > 0;
 	}
 
 	/**
 	 * Does the value match the schema?
 	 */
 	is(value: unknown): value is Model {
-		return this.#validatable && validateValue(this.#schema, value);
+		return this.#schema.enabled && validateValue(this.#schema, value);
 	}
 }
 

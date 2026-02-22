@@ -1,5 +1,11 @@
 import type {Values} from './models';
 
+export const EXPRESSION_HAS_NUMBER = /\d+/;
+
+export const EXPRESSION_INDEX = /\.\d+$/;
+
+export const EXPRESSION_PROPERTY = /\.\$(required|type)(\.|$)/;
+
 export const PROPERTY_REQUIRED = '$required';
 
 export const PROPERTY_TYPE = '$type';
@@ -15,11 +21,9 @@ export const TYPE_ALL = new Set<keyof Values>([
 	'bigint',
 	'boolean',
 	'date',
-	'date-like',
 	'function',
 	'null',
 	'number',
-	'numerical',
 	'string',
 	'symbol',
 	TYPE_OBJECT,

@@ -1,6 +1,8 @@
 import {expect, test} from 'vitest';
-import * as Schema from '../src';
-import {isSchematic} from '../src/is';
+import * as Jhunal from '../src';
+import {isConstructor, isSchematic} from '../src/is';
+
+class Test {}
 
 test('basic schema', () => {
 	const schema = {
@@ -8,29 +10,27 @@ test('basic schema', () => {
 		bigint: 'bigint',
 		boolean: 'boolean',
 		date: 'date',
-		'date-like': 'date-like',
 		function: 'function',
+		instance: Test,
 		null: 'null',
 		number: 'number',
-		numerical: 'numerical',
 		object: 'object',
 		string: 'string',
 		symbol: 'symbol',
 		undefined: 'undefined',
-	} satisfies Schema.Schema;
+	} satisfies Jhunal.Schema;
 
-	const basicSchematic = Schema.schematic(schema);
+	const basicSchematic = Jhunal.schematic(schema);
 
 	const first = {
 		array: [1, 2, 3],
 		bigint: BigInt(1),
 		boolean: true,
 		date: new Date(),
-		'date-like': '2000-01-01',
 		function: () => {},
+		instance: new Test(),
 		null: null,
 		number: 1,
-		numerical: 1,
 		object: {},
 		string: 'hello, world!',
 		symbol: Symbol('a symbol?'),
@@ -39,29 +39,24 @@ test('basic schema', () => {
 
 	const second = {};
 
-	expect(basicSchematic.validatable).toBe(true);
+	expect(basicSchematic.enabled).toBe(true);
 	expect(basicSchematic.is(first)).toBe(true);
 	expect(basicSchematic.is({...first, date: 99})).toBe(false);
-	expect(basicSchematic.is({...first, 'date-like': 99})).toBe(true);
-	expect(basicSchematic.is({...first, 'date-like': new Date()})).toBe(true);
-	expect(basicSchematic.is({...first, 'date-like': 'x'})).toBe(false);
-	expect(basicSchematic.is({...first, numerical: BigInt(1)})).toBe(true);
-	expect(basicSchematic.is({...first, numerical: 'x'})).toBe(false);
 	expect(basicSchematic.is(second)).toBe(false);
 	expect(basicSchematic.is({})).toBe(false);
 	expect(basicSchematic.is(123)).toBe(false);
 
-	const invalid = {} satisfies Schema.Schema;
+	const invalid = {} satisfies Jhunal.Schema;
 
-	let invalidSchematic = Schema.schematic(invalid);
+	let invalidSchematic = Jhunal.schematic(invalid);
 
-	expect(invalidSchematic.validatable).toBe(false);
+	expect(invalidSchematic.enabled).toBe(false);
 	expect(invalidSchematic.is({})).toBe(false);
 	expect(invalidSchematic.is(123)).toBe(false);
 
-	invalidSchematic = Schema.schematic('!!!' as never);
+	invalidSchematic = Jhunal.schematic('!!!' as never);
 
-	expect(invalidSchematic.validatable).toBe(false);
+	expect(invalidSchematic.enabled).toBe(false);
 	expect(invalidSchematic.is({})).toBe(false);
 	expect(invalidSchematic.is(123)).toBe(false);
 });
@@ -96,9 +91,9 @@ test('complex schema', () => {
 		},
 		someInvalid: ['number', 'invalid', 'object'] as never,
 		symbol: 'symbol',
-	} satisfies Schema.Schema;
+	} satisfies Jhunal.Schema;
 
-	const complexSchematic = Schema.schematic(schema);
+	const complexSchematic = Jhunal.schematic(schema);
 
 	const first = {
 		arrayOrBoolean: [1, 2, 3],
@@ -133,12 +128,52 @@ test('complex schema', () => {
 	expect(complexSchematic.is({...first, optionalMultiple: 'abc'})).toBe(false);
 });
 
-test('is', () => {
+test('isConstructor + isInstance', () => {
+	const values = [
+		null,
+		undefined,
+		'',
+		123,
+		true,
+		BigInt(123),
+		new Date(),
+		Symbol('123'),
+		{},
+		[],
+		() => {},
+		new Map(),
+		new Set(),
+	];
+
+	let {length} = values;
+
+	for (let index = 0; index < length; index += 1) {
+		const value = values[index];
+
+		expect(isConstructor(value)).toBe(false);
+		expect(() => Jhunal.isInstance(value as never)).toThrow('Expected a constructor function');
+	}
+
+	values.splice(0, length, Object, Array, Map, Set, class {}, Test);
+
+	length = values.length;
+
+	for (let index = 0; index < length; index += 1) {
+		const value = values[index];
+
+		expect(isConstructor(value)).toBe(true);
+		expect(Jhunal.isInstance(value as never)).toBeTypeOf('function');
+	}
+});
+
+test('isInstance', () => {});
+
+test('isSchematic', () => {
 	const schema = {
 		message: 'string',
-	} satisfies Schema.Schema;
+	} satisfies Jhunal.Schema;
 
-	const schematic = Schema.schematic(schema);
+	const schematic = Jhunal.schematic(schema);
 
 	const values = [
 		undefined,
@@ -166,15 +201,15 @@ test('is', () => {
 test('nested schema', () => {
 	const first = {
 		message: 'string',
-	} satisfies Schema.Schema;
+	} satisfies Jhunal.Schema;
 
 	const second = first;
 
 	const third = {
 		active: 'boolean',
-	} satisfies Schema.Schema;
+	} satisfies Jhunal.Schema;
 
-	const fourth = Schema.schematic(third);
+	const fourth = Jhunal.schematic(third);
 
 	const outer = {
 		first: {
@@ -184,9 +219,9 @@ test('nested schema', () => {
 			$type: [second],
 		},
 		third: fourth,
-	} satisfies Schema.Schema;
+	} satisfies Jhunal.Schema;
 
-	const schematic = Schema.schematic(outer);
+	const schematic = Jhunal.schematic(outer);
 
 	const alpha = {
 		first: {
@@ -206,4 +241,24 @@ test('nested schema', () => {
 
 	expect(schematic.is(alpha)).toBe(true);
 	expect(schematic.is(omega)).toBe(false);
+});
+
+test('typed schematic', () => {
+	type Typed = {
+		test: Test,
+	};
+
+	const schematic = Jhunal.schematic<Typed>({
+		test: Jhunal.isInstance(Test),
+	});
+
+	expect(schematic.is({test: new Test()})).toBe(true);
+	expect(schematic.is({test: {}})).toBe(false);
+	expect(schematic.is({})).toBe(false);
+	expect(schematic.is({test: new Date()})).toBe(false);
+	expect(schematic.is({test: null})).toBe(false);
+	expect(schematic.is({test: undefined})).toBe(false);
+	expect(schematic.is({test: 123})).toBe(false);
+	expect(schematic.is({test: 'hello'})).toBe(false);
+	expect(schematic.is({test: true})).toBe(false);
 });

@@ -1,58 +1,67 @@
 import type {PlainObject, Simplify} from '@oscarpalmer/atoms/models';
 import type {Schematic} from './schematic';
 
+export type Constructor<Instance = any> = new (...args: any[]) => Instance;
+
+type DeduplicateTuple<Value extends unknown[], Seen extends unknown[] = []> = Value extends [
+	infer Head,
+	...infer Tail,
+]
+	? Head extends Seen[number]
+		? DeduplicateTuple<Tail, Seen>
+		: DeduplicateTuple<Tail, [...Seen, Head]>
+	: Seen;
+
 /**
  * Infer the TypeScript type from a schema definition
  */
 export type Infer<Model extends Schema> = Simplify<
 	{
-		[Key in InferRequiredKeys<Model>]: Model[Key] extends Schematic<infer SchematicModel>
-			? SchematicModel
-			: Model[Key] extends SchemaProperty
-				? InferPropertyValue<Model[Key]>
-				: InferEntryValue<Model[Key]>;
+		[Key in InferRequiredKeys<Model>]: InferSchemaEntry<Model[Key]>;
 	} & {
-		[Key in InferOptionalKeys<Model>]?: Model[Key] extends Schematic<infer SchematicModel>
-			? SchematicModel
-			: Model[Key] extends SchemaProperty
-				? InferPropertyValue<Model[Key]>
-				: never;
+		[Key in InferOptionalKeys<Model>]?: InferSchemaEntry<Model[Key]>;
 	}
 >;
-
-type InferEntryValue<Value> = Value extends ValueName
-	? Values[Value]
-	: Value extends ValueName[]
-		? Values[Value[number]]
-		: never;
 
 type InferOptionalKeys<Model extends Schema> = keyof {
 	[Key in keyof Model as IsOptionalProperty<Model[Key]> extends true ? Key : never]: never;
 };
 
 type InferPropertyType<Value> = Value extends (infer Item)[]
-	? InferTypeValue<Item>[]
-	: InferTypeValue<Value>;
+	? InferPropertyValue<Item>
+	: InferPropertyValue<Value>;
 
-type InferPropertyValue<Prop> = Prop extends SchemaProperty
-	? InferPropertyType<Prop['$type']>
-	: never;
+type InferPropertyValue<Value> =
+	Value extends Constructor<infer Instance>
+		? Instance
+		: Value extends Schematic<infer Model>
+			? Model
+			: Value extends ValueName
+				? Values[Value & ValueName]
+				: Value extends Schema
+					? Infer<Value>
+					: never;
 
 type InferRequiredKeys<Model extends Schema> = keyof {
 	[Key in keyof Model as IsOptionalProperty<Model[Key]> extends true ? never : Key]: never;
 };
 
-type InferTypeValue<Value> = Value extends SchemaPropertyType
-	? Value extends Schema
-		? Infer<Value>
+type InferSchemaEntry<Value> = Value extends (infer Item)[]
+	? InferSchemaEntryValue<Item>
+	: InferSchemaEntryValue<Value>;
+
+type InferSchemaEntryValue<Value> =
+	Value extends Constructor<infer Instance>
+		? Instance
 		: Value extends Schematic<infer Model>
 			? Model
-			: Value extends ValueName
-				? Values[Value]
-				: Value extends (infer Nested)[]
-					? InferTypeValue<Nested>[]
-					: Value
-	: never;
+			: Value extends SchemaProperty
+				? InferPropertyType<Value['$type']>
+				: Value extends ValueName
+					? Values[Value & ValueName]
+					: Value extends Schema
+						? Infer<Value>
+						: never;
 
 type IsOptionalProperty<Value> = Value extends SchemaProperty
 	? Value['$required'] extends false
@@ -64,6 +73,14 @@ type LastOfUnion<Value> =
 	UnionToIntersection<Value extends unknown ? () => Value : never> extends () => infer Item
 		? Item
 		: never;
+
+type MapToValueTypes<Value extends unknown[]> = Value extends [infer Head, ...infer Tail]
+	? [ToValueType<Head>, ...MapToValueTypes<Tail>]
+	: [];
+
+type MapToSchemaPropertyTypes<Value extends unknown[]> = Value extends [infer Head, ...infer Tail]
+	? [ToSchemaPropertyTypeEach<Head>, ...MapToSchemaPropertyTypes<Tail>]
+	: [];
 
 /**
  * A nested schema with optional requirement flag
@@ -83,10 +100,10 @@ type RequiredKeys<Value> = Exclude<keyof Value, OptionalKeys<Value>>;
  */
 export type Schema = SchemaIndex;
 
-type SchemaEntry = NestedSchema | SchemaProperty | Schematic<unknown> | ValueName | ValueName[];
+type SchemaEntry = Constructor | NestedSchema | SchemaProperty | Schematic<unknown> | ValueName;
 
 interface SchemaIndex {
-	[key: string]: SchemaEntry;
+	[key: string]: SchemaEntry | SchemaEntry[];
 }
 
 /**
@@ -97,27 +114,67 @@ export type SchemaProperty = {
 	$type: SchemaPropertyType | SchemaPropertyType[];
 };
 
-type SchemaPropertyType = Schema | Schematic<unknown> | ValueName;
+type SchemaPropertyType = Constructor | Schema | Schematic<unknown> | ValueName;
 
-type ToSchemaPropertyType<Value> = UnwrapSingle<UnionToTuple<ToSchemaPropertyTypeEach<Value>>>;
+type ToSchemaPropertyType<Value> = UnwrapSingle<
+	DeduplicateTuple<MapToSchemaPropertyTypes<UnionToTuple<Value>>>
+>;
 
 type ToSchemaPropertyTypeEach<Value> = Value extends PlainObject
 	? TypedSchema<Value>
-	: ToValueName<Value>;
+	: ToValueType<Value>;
 
-type ToSchemaType<Value> = UnwrapSingle<UnionToTuple<ToValueName<Value>>>;
+type ToSchemaType<Value> = UnwrapSingle<DeduplicateTuple<MapToValueTypes<UnionToTuple<Value>>>>;
 
-type ToValueName<Value> = {
-	[Key in Exclude<ValueName, ValueNameFallbacks>]: Value extends Values[Key] ? Key : never;
-}[Exclude<ValueName, ValueNameFallbacks>] extends infer Specific
-	? Specific extends never
-		? {[Key in ValueNameFallbacks]: Value extends Values[Key] ? Key : never}[ValueNameFallbacks]
-		: Specific
-	: never;
+type ToValueType<Value> = Value extends unknown[]
+	? 'array'
+	: Value extends bigint
+		? 'bigint'
+		: Value extends boolean
+			? 'boolean'
+			: Value extends Date
+				? 'date'
+				: Value extends Function
+					? 'function'
+					: Value extends null
+						? 'null'
+						: Value extends number
+							? 'number'
+							: Value extends object
+								? 'object' | ((value: unknown) => value is Value)
+								: Value extends string
+									? 'string'
+									: Value extends symbol
+										? 'symbol'
+										: Value extends undefined
+											? 'undefined'
+											: (value: unknown) => value is Value;
+
+type TuplePermutations<
+	Tuple extends unknown[],
+	Elput extends unknown[] = [],
+> = Tuple['length'] extends 0
+	? Elput
+	: {
+			[Key in keyof Tuple]: TuplePermutations<
+				TupleRemoveAt<Tuple, Key & `${number}`>,
+				[...Elput, Tuple[Key]]
+			>;
+		}[keyof Tuple & `${number}`];
+
+type TupleRemoveAt<
+	Items extends unknown[],
+	Item extends string,
+	Prefix extends unknown[] = [],
+> = Items extends [infer Head, ...infer Tail]
+	? `${Prefix['length']}` extends Item
+		? [...Prefix, ...Tail]
+		: TupleRemoveAt<Tail, Item, [...Prefix, Head]>
+	: Prefix;
 
 export type TypedPropertyOptional<Value> = {
 	$required: false;
-	$type: ToSchemaPropertyType<Value>;
+	$type: ToSchemaPropertyType<Exclude<Value, undefined>>;
 };
 
 export type TypedPropertyRequired<Value> = {
@@ -145,11 +202,11 @@ type TypedSchemaOptional<Model extends PlainObject> = {
 } & TypedSchema<Model>;
 
 type TypedSchemaRequired<Model extends PlainObject> = {
-	$required?: boolean;
+	$required?: true;
 } & TypedSchema<Model>;
 
-type UnionToIntersection<Value> = (Value extends unknown ? (x: Value) => void : never) extends (
-	x: infer Item,
+type UnionToIntersection<Value> = (Value extends unknown ? (value: Value) => void : never) extends (
+	value: infer Item,
 ) => void
 	? Item
 	: never;
@@ -158,7 +215,11 @@ type UnionToTuple<Value, Items extends unknown[] = []> = [Value] extends [never]
 	? Items
 	: UnionToTuple<Exclude<Value, LastOfUnion<Value>>, [LastOfUnion<Value>, ...Items]>;
 
-type UnwrapSingle<Value extends unknown[]> = Value extends [infer Only] ? Only : Value;
+type UnwrapSingle<Value extends unknown[]> = Value extends [infer Only]
+	? Only
+	: Value['length'] extends 1 | 2 | 3 | 4 | 5
+		? TuplePermutations<Value>
+		: Value;
 
 export type ValidatedProperty = {
 	required: boolean;
@@ -168,6 +229,7 @@ export type ValidatedProperty = {
 export type ValidatedPropertyType = Schematic<unknown> | ValueName;
 
 export type ValidatedSchema = {
+	enabled: boolean;
 	keys: {
 		array: string[];
 		set: Set<string>;
@@ -180,8 +242,6 @@ export type ValidatedSchema = {
  */
 export type ValueName = keyof Values;
 
-type ValueNameFallbacks = 'date-like' | 'numerical';
-
 /**
  * Map of type names to their TypeScript/validatable equivalents
  */
@@ -190,11 +250,9 @@ export type Values = {
 	bigint: bigint;
 	boolean: boolean;
 	date: Date;
-	'date-like': number | string | Date;
 	function: Function;
 	null: null;
 	number: number;
-	numerical: bigint | number;
 	object: object;
 	string: string;
 	symbol: symbol;
