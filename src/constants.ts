@@ -4,11 +4,13 @@ export const EXPRESSION_HAS_NUMBER = /\d+/;
 
 export const EXPRESSION_INDEX = /\.\d+$/;
 
-export const EXPRESSION_PROPERTY = /\.\$(required|type)(\.|$)/;
+export const EXPRESSION_PROPERTY = /\.\$(required|type|validators)(\.|$)/;
 
 export const PROPERTY_REQUIRED = '$required';
 
 export const PROPERTY_TYPE = '$type';
+
+export const PROPERTY_VALIDATORS = '$validators';
 
 export const SCHEMATIC_NAME = '$schematic';
 

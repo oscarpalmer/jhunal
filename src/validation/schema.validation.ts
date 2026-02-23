@@ -1,23 +1,30 @@
 import {isConstructor} from '@oscarpalmer/atoms/is';
 import type {PlainObject} from '@oscarpalmer/atoms/models';
-import {smush} from '@oscarpalmer/atoms/value';
+import {smush} from '@oscarpalmer/atoms/value/misc';
 import {
 	EXPRESSION_HAS_NUMBER,
 	EXPRESSION_INDEX,
 	EXPRESSION_PROPERTY,
 	PROPERTY_REQUIRED,
 	PROPERTY_TYPE,
+	PROPERTY_VALIDATORS,
 	TYPE_ALL,
 	TYPE_OBJECT,
 	TYPE_UNDEFINED,
 } from '../constants';
 import {isInstance, isSchematic} from '../is';
-import type {Schema, ValidatedPropertyType, ValidatedSchema} from '../models';
+import type {
+	Schema,
+	ValidatedPropertyType,
+	ValidatedPropertyValidators,
+	ValidatedSchema,
+} from '../models';
 
 function addPropertyType(
 	to: ValidatedSchema,
 	key: string,
 	values: ValidatedPropertyType[],
+	validators: ValidatedPropertyValidators,
 	required: boolean,
 ): void {
 	if (to.keys.set.has(key)) {
@@ -35,12 +42,15 @@ function addPropertyType(
 		to.properties[key] = {
 			required,
 			types: values,
+			validators: {},
 		};
 	}
 
 	if (!required && !to.properties[key].types.includes(TYPE_UNDEFINED)) {
 		to.properties[key].types.push(TYPE_UNDEFINED);
 	}
+
+	to.properties[key].validators = validators;
 }
 
 export function getSchema(schema: unknown): ValidatedSchema {
@@ -94,7 +104,7 @@ function getTypes(
 			continue;
 		}
 
-		addPropertyType(validated, prefix, [TYPE_OBJECT], type[PROPERTY_REQUIRED] !== false);
+		addPropertyType(validated, prefix, [TYPE_OBJECT], {}, type[PROPERTY_REQUIRED] !== false);
 
 		propertyTypes.push(TYPE_OBJECT);
 
@@ -135,9 +145,16 @@ function getValidatedSchema(
 		}
 
 		let required = true;
+		let validators: ValidatedPropertyValidators = {};
 
-		if (typeof value === 'object' && value !== null && PROPERTY_REQUIRED in value) {
+		const isObject = typeof value === 'object' && value !== null;
+
+		if (isObject && PROPERTY_REQUIRED in value) {
 			required = typeof value[PROPERTY_REQUIRED] === 'boolean' ? value[PROPERTY_REQUIRED] : true;
+		}
+
+		if (isObject && PROPERTY_VALIDATORS in value) {
+			validators = getValidators(value[PROPERTY_VALIDATORS]);
 		}
 
 		const prefixedKey = `${prefix}${key}`;
@@ -145,7 +162,7 @@ function getValidatedSchema(
 		const types = getTypes(value, validated, prefixedKey);
 
 		if (types.length > 0) {
-			addPropertyType(validated, prefixedKey, types, required);
+			addPropertyType(validated, prefixedKey, types, validators, required);
 		}
 	}
 
@@ -154,4 +171,22 @@ function getValidatedSchema(
 	}
 
 	return validated;
+}
+
+function getValidators(original: unknown): ValidatedPropertyValidators {
+	const validators: ValidatedPropertyValidators = {};
+
+	if (typeof original !== 'object' || original === null) {
+		return validators;
+	}
+
+	for (const type of TYPE_ALL) {
+		const value = (original as PlainObject)[type];
+
+		validators[type] = (Array.isArray(value) ? value : [value]).filter(
+			validator => typeof validator === 'function',
+		);
+	}
+
+	return validators;
 }

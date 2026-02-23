@@ -12,6 +12,14 @@ type DeduplicateTuple<Value extends unknown[], Seen extends unknown[] = []> = Va
 		: DeduplicateTuple<Tail, [...Seen, Head]>
 	: Seen;
 
+type ExtractValueNames<Value> = Value extends ValueName
+	? Value
+	: Value extends (infer Item)[]
+		? ExtractValueNames<Item>
+		: Value extends readonly (infer Item)[]
+			? ExtractValueNames<Item>
+			: never;
+
 /**
  * Infer the TypeScript type from a schema definition
  */
@@ -93,6 +101,12 @@ type OptionalKeys<Value> = {
 	[Key in keyof Value]-?: {} extends Pick<Value, Key> ? Key : never;
 }[keyof Value];
 
+type PropertyValidators<Value> = {
+	[Key in ExtractValueNames<Value>]?:
+		| ((value: Values[Key]) => boolean)
+		| Array<(value: Values[Key]) => boolean>;
+};
+
 type RequiredKeys<Value> = Exclude<keyof Value, OptionalKeys<Value>>;
 
 /**
@@ -112,6 +126,7 @@ interface SchemaIndex {
 export type SchemaProperty = {
 	$required?: boolean;
 	$type: SchemaPropertyType | SchemaPropertyType[];
+	$validators?: PropertyValidators<SchemaPropertyType | SchemaPropertyType[]>;
 };
 
 type SchemaPropertyType = Constructor | Schema | Schematic<unknown> | ValueName;
@@ -173,13 +188,33 @@ type TupleRemoveAt<
 	: Prefix;
 
 export type TypedPropertyOptional<Value> = {
+	/**
+	 * The property is not required
+	 */
 	$required: false;
+	/**
+	 * The type(s) of the property
+	 */
 	$type: ToSchemaPropertyType<Exclude<Value, undefined>>;
+	/**
+	 * Custom validators for the property and its types
+	 */
+	$validators?: PropertyValidators<ToSchemaPropertyType<Exclude<Value, undefined>>>;
 };
 
 export type TypedPropertyRequired<Value> = {
+	/**
+	 * The property is required _(defaults to `true`)_
+	 */
 	$required?: true;
+	/**
+	 * The type(s) of the property
+	 */
 	$type: ToSchemaPropertyType<Value>;
+	/**
+	 * Custom validators for the property and its types
+	 */
+	$validators?: PropertyValidators<ToSchemaPropertyType<Value>>;
 };
 
 /**
@@ -224,9 +259,14 @@ type UnwrapSingle<Value extends unknown[]> = Value extends [infer Only]
 export type ValidatedProperty = {
 	required: boolean;
 	types: ValidatedPropertyType[];
+	validators: ValidatedPropertyValidators;
 };
 
 export type ValidatedPropertyType = Schematic<unknown> | ValueName;
+
+export type ValidatedPropertyValidators = {
+	[Key in ValueName]?: Array<(value: unknown) => boolean>;
+};
 
 export type ValidatedSchema = {
 	enabled: boolean;

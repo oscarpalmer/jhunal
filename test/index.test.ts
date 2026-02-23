@@ -258,3 +258,32 @@ test('typed schematic', () => {
 	expect(schematic.is({test: 'hello'})).toBe(false);
 	expect(schematic.is({test: true})).toBe(false);
 });
+
+test('validators', () => {
+	const schematic = Jhunal.schematic({
+		alpha: {
+			$type: 'number',
+			$validators: {
+				number: value => value > 0 && value < 100,
+			},
+		},
+		beta: {
+			$type: 'string',
+			$validators: {
+				string: [value => value.length > 0, value => value.length < 100, 'blah' as never],
+			},
+		},
+		delta: {
+			$type: 'date',
+			$validators: 'blah' as never,
+		},
+	});
+
+	const date = new Date();
+
+	expect(schematic.is({alpha: 50, beta: 'hello', delta: date})).toBe(true);
+	expect(schematic.is({alpha: -1, beta: 'hello', delta: date})).toBe(false);
+	expect(schematic.is({alpha: 101, beta: 'hello', delta: date})).toBe(false);
+	expect(schematic.is({alpha: 50, beta: '', delta: date})).toBe(false);
+	expect(schematic.is({alpha: 50, beta: 'a'.repeat(100), delta: date})).toBe(false);
+});

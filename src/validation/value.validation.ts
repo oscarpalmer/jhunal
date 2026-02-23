@@ -1,15 +1,22 @@
 import type {PlainObject} from '@oscarpalmer/atoms/models';
-import {smush} from '@oscarpalmer/atoms/value';
+import {smush} from '@oscarpalmer/atoms/value/misc';
 import {TYPE_UNDEFINED} from '../constants';
-import type {ValidatedPropertyType, ValidatedSchema, Values} from '../models';
+import type {ValidatedProperty, ValidatedPropertyType, ValidatedSchema, Values} from '../models';
 
-export function validateType(type: ValidatedPropertyType, value: unknown): boolean {
+export function validateType(
+	type: ValidatedPropertyType,
+	property: ValidatedProperty,
+	value: unknown,
+): boolean {
 	switch (true) {
 		case typeof type === 'function':
 			return (type as any)(value);
 
 		case typeof type === 'string':
-			return validators[type](value);
+			return (
+				validators[type](value) &&
+				(property.validators[type]?.every(validator => validator(value)) ?? true)
+			);
 
 		default:
 			return type.is(value);
@@ -47,7 +54,7 @@ export function validateValue(validated: ValidatedSchema, obj: unknown): boolean
 		const typesLength = property.types.length;
 
 		if (typesLength === 1) {
-			if (!validateType(property.types[0], value)) {
+			if (!validateType(property.types[0], property, value)) {
 				return false;
 			}
 
@@ -57,7 +64,7 @@ export function validateValue(validated: ValidatedSchema, obj: unknown): boolean
 		for (let typeIndex = 0; typeIndex < typesLength; typeIndex += 1) {
 			const type = property.types[typeIndex];
 
-			if (validateType(type, value)) {
+			if (validateType(type, property, value)) {
 				if ((type as never) !== 'object') {
 					ignore.add(key);
 				}
