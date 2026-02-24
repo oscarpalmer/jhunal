@@ -1,5 +1,5 @@
 import {isConstructor} from '@oscarpalmer/atoms/is';
-import {SCHEMATIC_NAME} from './constants';
+import {MESSAGE_CONSTRUCTOR, SCHEMATIC_NAME} from './constants';
 import type {Constructor} from './models';
 import type {Schematic} from './schematic';
 
@@ -7,7 +7,7 @@ export function isInstance<Instance>(
 	constructor: Constructor<Instance>,
 ): (value: unknown) => value is Instance {
 	if (!isConstructor(constructor)) {
-		throw new TypeError('Expected a constructor function');
+		throw new TypeError(MESSAGE_CONSTRUCTOR);
 	}
 
 	return (value: unknown): value is Instance => {

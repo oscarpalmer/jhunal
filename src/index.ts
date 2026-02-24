@@ -1,3 +1,3 @@
 export {isInstance} from './is';
-export type {Schema, TypedSchema} from './models';
+export {SchematicError, type Schema, type TypedSchema} from './models';
 export {schematic, type Schematic} from './schematic';

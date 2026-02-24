@@ -1,4 +1,5 @@
 import type {PlainObject, Simplify} from '@oscarpalmer/atoms/models';
+import {ERROR_NAME} from './constants';
 import type {Schematic} from './schematic';
 
 export type Constructor<Instance = any> = new (...args: any[]) => Instance;
@@ -65,17 +66,23 @@ type InferSchemaEntryValue<Value> =
 			? Model
 			: Value extends SchemaProperty
 				? InferPropertyType<Value['$type']>
-				: Value extends ValueName
-					? Values[Value & ValueName]
-					: Value extends Schema
-						? Infer<Value>
-						: never;
+				: Value extends NestedSchema
+					? Infer<Omit<Value, '$required'>>
+					: Value extends ValueName
+						? Values[Value & ValueName]
+						: Value extends Schema
+							? Infer<Value>
+							: never;
 
 type IsOptionalProperty<Value> = Value extends SchemaProperty
 	? Value['$required'] extends false
 		? true
 		: false
-	: false;
+	: Value extends {$required?: boolean}
+		? Value extends {$required: false}
+			? true
+			: false
+		: false;
 
 type LastOfUnion<Value> =
 	UnionToIntersection<Value extends unknown ? () => Value : never> extends () => infer Item
@@ -95,7 +102,8 @@ type MapToSchemaPropertyTypes<Value extends unknown[]> = Value extends [infer He
  */
 export type NestedSchema = {
 	$required?: boolean;
-} & Schema;
+	[key: string]: any;
+};
 
 type OptionalKeys<Value> = {
 	[Key in keyof Value]-?: {} extends Pick<Value, Key> ? Key : never;
@@ -114,7 +122,7 @@ type RequiredKeys<Value> = Exclude<keyof Value, OptionalKeys<Value>>;
  */
 export type Schema = SchemaIndex;
 
-type SchemaEntry = Constructor | NestedSchema | SchemaProperty | Schematic<unknown> | ValueName;
+type SchemaEntry = Constructor | SchemaProperty | Schematic<unknown> | ValueName | NestedSchema;
 
 interface SchemaIndex {
 	[key: string]: SchemaEntry | SchemaEntry[];
@@ -131,13 +139,23 @@ export type SchemaProperty = {
 
 type SchemaPropertyType = Constructor | Schema | Schematic<unknown> | ValueName;
 
+export class SchematicError extends Error {
+	constructor(message: string) {
+		super(message);
+
+		this.name = ERROR_NAME;
+	}
+}
+
 type ToSchemaPropertyType<Value> = UnwrapSingle<
 	DeduplicateTuple<MapToSchemaPropertyTypes<UnionToTuple<Value>>>
 >;
 
-type ToSchemaPropertyTypeEach<Value> = Value extends PlainObject
-	? TypedSchema<Value>
-	: ToValueType<Value>;
+type ToSchemaPropertyTypeEach<Value> = Value extends NestedSchema
+	? Omit<Value, '$required'>
+	: Value extends PlainObject
+		? TypedSchema<Value>
+		: ToValueType<Value>;
 
 type ToSchemaType<Value> = UnwrapSingle<DeduplicateTuple<MapToValueTypes<UnionToTuple<Value>>>>;
 
@@ -149,21 +167,23 @@ type ToValueType<Value> = Value extends unknown[]
 			? 'boolean'
 			: Value extends Date
 				? 'date'
-				: Value extends Function
-					? 'function'
-					: Value extends null
-						? 'null'
-						: Value extends number
-							? 'number'
-							: Value extends object
-								? 'object' | ((value: unknown) => value is Value)
-								: Value extends string
-									? 'string'
-									: Value extends symbol
-										? 'symbol'
-										: Value extends undefined
-											? 'undefined'
-											: (value: unknown) => value is Value;
+				: Value extends Schematic<any>
+					? Value
+					: Value extends Function
+						? 'function'
+						: Value extends null
+							? 'null'
+							: Value extends number
+								? 'number'
+								: Value extends object
+									? 'object' | ((value: unknown) => value is Value)
+									: Value extends string
+										? 'string'
+										: Value extends symbol
+											? 'symbol'
+											: Value extends undefined
+												? 'undefined'
+												: (value: unknown) => value is Value;
 
 type TuplePermutations<
 	Tuple extends unknown[],
@@ -223,11 +243,13 @@ export type TypedPropertyRequired<Value> = {
 export type TypedSchema<Model extends PlainObject> = Simplify<
 	{
 		[Key in RequiredKeys<Model>]: Model[Key] extends PlainObject
-			? TypedSchemaRequired<Model[Key]>
+			? TypedSchemaRequired<Model[Key]> | Schematic<Model[Key]>
 			: ToSchemaType<Model[Key]> | TypedPropertyRequired<Model[Key]>;
 	} & {
 		[Key in OptionalKeys<Model>]: Exclude<Model[Key], undefined> extends PlainObject
-			? TypedSchemaOptional<Exclude<Model[Key], undefined>>
+			?
+					| TypedSchemaOptional<Exclude<Model[Key], undefined>>
+					| Schematic<Exclude<Model[Key], undefined>>
 			: TypedPropertyOptional<Model[Key]>;
 	}
 >;
@@ -269,7 +291,6 @@ export type ValidatedPropertyValidators = {
 };
 
 export type ValidatedSchema = {
-	enabled: boolean;
 	keys: {
 		array: string[];
 		set: Set<string>;
