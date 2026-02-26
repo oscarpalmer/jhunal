@@ -15,16 +15,16 @@ test('complex', () => {
 	const instance = schematic(complex.schema);
 
 	for (let index = 0; index < complex.length; index += 1) {
-		expect(instance.is(complex.values[index])).toBe(index === complex.length - 2);
+		expect(instance.is(complex.values[index])).toBe(index >= complex.length - 3);
 	}
 
 	expect(() =>
 		schematic({
 			...complex.schema,
 			n: {
+				$required: 'not a boolean',
 				$type: {
 					...complex.schema.n,
-					$required: 'not a boolean',
 				},
 			},
 		} as never),

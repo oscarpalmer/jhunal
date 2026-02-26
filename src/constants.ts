@@ -2,11 +2,13 @@ import type {ValueName} from './models';
 
 export const ERROR_NAME = 'SchematicError';
 
-export const EXPRESSION_HAS_NUMBER = /\d+/;
-
 export const EXPRESSION_INDEX = /\.\d+$/;
 
-export const EXPRESSION_PROPERTY = /\.\$(required|type|validators)(\.|$)/;
+export const EXPRESSION_KEY_PREFIX = /\.\w+$/;
+
+export const EXPRESSION_KEY_VALUE = /^.*\.(\w+)$/;
+
+export const EXPRESSION_PROPERTY = /(^|\.)\$(required|type|validators)(\.|$)/;
 
 export const MESSAGE_CONSTRUCTOR = 'Expected a constructor function';
 

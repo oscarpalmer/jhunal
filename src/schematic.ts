@@ -1,15 +1,16 @@
 import {isPlainObject} from '@oscarpalmer/atoms/is';
 import type {PlainObject} from '@oscarpalmer/atoms/models';
 import {MESSAGE_SCHEMA_INVALID_TYPE, SCHEMATIC_NAME} from './constants';
+import {isSchematic} from './is';
 import {
 	SchematicError,
 	type Infer,
 	type Schema,
 	type TypedSchema,
-	type ValidatedSchema,
+	type ValidatedProperty,
 } from './models';
-import {getSchema} from './validation/schema.validation';
-import {validateValue} from './validation/value.validation';
+import {getProperties} from './validation/property.validation';
+import {validateObject} from './validation/value.validation';
 
 /**
  * A schematic for validating objects
@@ -17,21 +18,21 @@ import {validateValue} from './validation/value.validation';
 export class Schematic<Model> {
 	declare private readonly $schematic: true;
 
-	#schema: ValidatedSchema;
+	#properties: ValidatedProperty[];
 
-	constructor(schema: ValidatedSchema) {
+	constructor(properties: ValidatedProperty[]) {
 		Object.defineProperty(this, SCHEMATIC_NAME, {
 			value: true,
 		});
 
-		this.#schema = schema;
+		this.#properties = properties;
 	}
 
 	/**
 	 * Does the value match the schema?
 	 */
 	is(value: unknown): value is Model {
-		return validateValue(this.#schema, value);
+		return validateObject(value, this.#properties);
 	}
 }
 
@@ -46,11 +47,13 @@ export function schematic<Model extends Schema>(schema: Model): Schematic<Infer<
 export function schematic<Model extends PlainObject>(schema: TypedSchema<Model>): Schematic<Model>;
 
 export function schematic<Model extends Schema>(schema: Model): Schematic<Model> {
+	if (isSchematic(schema)) {
+		return schema;
+	}
+
 	if (!isPlainObject(schema)) {
 		throw new SchematicError(MESSAGE_SCHEMA_INVALID_TYPE);
 	}
 
-	const validated = getSchema(schema);
-
-	return new Schematic<Model>(validated);
+	return new Schematic<Model>(getProperties(schema));
 }

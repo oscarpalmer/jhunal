@@ -3,7 +3,7 @@ import {MESSAGE_CONSTRUCTOR, SCHEMATIC_NAME} from './constants';
 import type {Constructor} from './models';
 import type {Schematic} from './schematic';
 
-export function isInstance<Instance>(
+export function instanceOf<Instance>(
 	constructor: Constructor<Instance>,
 ): (value: unknown) => value is Instance {
 	if (!isConstructor(constructor)) {

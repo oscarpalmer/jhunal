@@ -82,7 +82,18 @@ export const complex = {
 				},
 			},
 		},
-		numberOrObject: ['number', 'object'],
+		numberOrObject: {
+			$type: [
+				'number',
+				{
+					error: Error,
+				},
+				{
+					message: 'string',
+				},
+			],
+		},
+		object: 'object',
 		stringOrSymbol: ['string', 'symbol'],
 		undefinedOrArray: ['undefined', 'array'],
 	} satisfies Schema,
@@ -106,6 +117,7 @@ const firstComplex = {
 		},
 	},
 	numberOrObject: 1,
+	object: {},
 	stringOrSymbol: 'string',
 	undefinedOrArray: undefined,
 };
@@ -115,9 +127,20 @@ const secondComplex = {
 	booleanOrDate: new Date(),
 	functionOrNull: null,
 	instance: new TestItem(),
-	numberOrObject: {},
+	numberOrObject: {
+		message: 'hello',
+	},
+	object: [],
 	stringOrSymbol: Symbol('symbol'),
 	undefinedOrArray: [],
+};
+
+const thirdComplex = {
+	...secondComplex,
+	numberOrObject: {
+		error: new Error(),
+	},
+	object: new Map(),
 };
 
 complex.values = [
@@ -131,6 +154,7 @@ complex.values = [
 	{...firstComplex, undefinedOrArray: 'not undefined or array'},
 	firstComplex,
 	secondComplex,
+	thirdComplex,
 ];
 
 complex.length = complex.values.length;

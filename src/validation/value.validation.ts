@@ -1,73 +1,49 @@
-import type {PlainObject} from '@oscarpalmer/atoms/models';
-import {smush} from '@oscarpalmer/atoms/value/misc';
-import {TYPE_UNDEFINED} from '../constants';
-import type {ValidatedProperty, ValidatedPropertyType, ValidatedSchema, Values} from '../models';
+import {isPlainObject} from '@oscarpalmer/atoms/is';
+import {isSchematic} from '../is';
+import type {ValidatedProperty, ValidatedPropertyType, ValueName} from '../models';
 
-export function validateType(
-	type: ValidatedPropertyType,
-	property: ValidatedProperty,
-	value: unknown,
-): boolean {
-	switch (true) {
-		case typeof type === 'function':
-			return (type as any)(value);
-
-		case typeof type === 'string':
-			return (
-				validators[type](value) &&
-				(property.validators[type]?.every(validator => validator(value)) ?? true)
-			);
-
-		default:
-			return type.is(value);
-	}
-}
-
-export function validateValue(validated: ValidatedSchema, obj: unknown): boolean {
-	if (typeof obj !== 'object' || obj === null) {
+export function validateObject(obj: unknown, properties: ValidatedProperty[]): boolean {
+	if (!isPlainObject(obj)) {
 		return false;
 	}
 
-	const {keys, properties} = validated;
-	const keysLength = keys.array.length;
+	const ignoredKeys = new Set<string>();
+	const propertiesLength = properties.length;
 
-	const ignore = new Set<string>();
+	let key!: string;
+	let value!: unknown;
 
-	const smushed = smush(obj as PlainObject);
+	outer: for (let propertyIndex = 0; propertyIndex < propertiesLength; propertyIndex += 1) {
+		const property = properties[propertyIndex];
 
-	outer: for (let keyIndex = 0; keyIndex < keysLength; keyIndex += 1) {
-		const key = keys.array[keyIndex];
+		if (ignoredKeys.has(property.key.prefix!)) {
+			key = undefined as never;
 
-		const prefix = key.replace(EXPRESSION_SUFFIX, '');
+			ignoredKeys.add(property.key.full);
 
-		if (ignore.has(prefix)) {
 			continue;
 		}
 
-		const property = properties[key];
-		const value = smushed[key];
+		/* if (key == null || !property.key.full.startsWith(key)) {
+			value = obj[property.key.full];
+		} else {
+			value = (value as PlainObject)?.[property.key.value];
+		} */
 
-		if (value === undefined && property.required && !property.types.includes(TYPE_UNDEFINED)) {
+		key = property.key.full;
+		value = obj[key];
+
+		if (value === undefined && property.required) {
 			return false;
 		}
 
 		const typesLength = property.types.length;
 
-		if (typesLength === 1) {
-			if (!validateType(property.types[0], property, value)) {
-				return false;
-			}
-
-			continue;
-		}
-
 		for (let typeIndex = 0; typeIndex < typesLength; typeIndex += 1) {
 			const type = property.types[typeIndex];
 
-			if (validateType(type, property, value)) {
-				if ((type as never) !== 'object') {
-					ignore.add(key);
-				}
+			if (validateValue(type, property, value)) {
+				ignoredKeys.add(property.key.full);
 
 				continue outer;
 			}
@@ -79,20 +55,36 @@ export function validateValue(validated: ValidatedSchema, obj: unknown): boolean
 	return true;
 }
 
+function validateValue(
+	type: ValidatedPropertyType,
+	property: ValidatedProperty,
+	value: unknown,
+): boolean {
+	switch (true) {
+		case typeof type === 'function':
+			return (type as (value: unknown) => boolean)(value);
+
+		case isSchematic(type):
+			return type.is(value);
+
+		default:
+			return (
+				validators[type as ValueName](value) &&
+				(property.validators[type as ValueName]?.every(validator => validator(value)) ?? true)
+			);
+	}
+}
+
 //
 
-const EXPRESSION_SUFFIX = /\.\w+$/;
-
-//
-
-const validators: Record<keyof Values, (value: unknown) => boolean> = {
+const validators: Record<ValueName, (value: unknown) => boolean> = {
 	array: Array.isArray,
 	bigint: value => typeof value === 'bigint',
 	boolean: value => typeof value === 'boolean',
 	date: value => value instanceof Date,
 	function: value => typeof value === 'function',
 	null: value => value === null,
-	number: value => typeof value === 'number' && !Number.isNaN(value),
+	number: value => typeof value === 'number',
 	object: value => typeof value === 'object' && value !== null,
 	string: value => typeof value === 'string',
 	symbol: value => typeof value === 'symbol',

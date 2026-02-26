@@ -10,5 +10,8 @@ test('errors', () => {
 });
 
 test('instance', () => {
-	expect(isSchematic(schematic(schema))).toBe(true);
+	const instance = schematic(schema);
+
+	expect(isSchematic(instance)).toBe(true);
+	expect(schematic(instance as never)).toBe(instance);
 });

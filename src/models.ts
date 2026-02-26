@@ -1,4 +1,4 @@
-import type {PlainObject, Simplify} from '@oscarpalmer/atoms/models';
+import type {GenericCallback, PlainObject, Simplify} from '@oscarpalmer/atoms/models';
 import {ERROR_NAME} from './constants';
 import type {Schematic} from './schematic';
 
@@ -122,10 +122,16 @@ type RequiredKeys<Value> = Exclude<keyof Value, OptionalKeys<Value>>;
  */
 export type Schema = SchemaIndex;
 
-type SchemaEntry = Constructor | SchemaProperty | Schematic<unknown> | ValueName | NestedSchema;
+type SchemaEntry =
+	| Constructor
+	| Schema
+	| SchemaProperty
+	| Schematic<unknown>
+	| ValueName
+	| ((value: unknown) => boolean);
 
 interface SchemaIndex {
-	[key: string]: SchemaEntry | SchemaEntry[];
+	[key: string]: NestedSchema | SchemaEntry | SchemaEntry[];
 }
 
 /**
@@ -137,7 +143,12 @@ export type SchemaProperty = {
 	$validators?: PropertyValidators<SchemaPropertyType | SchemaPropertyType[]>;
 };
 
-type SchemaPropertyType = Constructor | Schema | Schematic<unknown> | ValueName;
+type SchemaPropertyType =
+	| Constructor
+	| Schema
+	| Schematic<unknown>
+	| ValueName
+	| ((value: unknown) => boolean);
 
 export class SchematicError extends Error {
 	constructor(message: string) {
@@ -279,23 +290,22 @@ type UnwrapSingle<Value extends unknown[]> = Value extends [infer Only]
 		: Value;
 
 export type ValidatedProperty = {
+	key: ValidatedPropertyKey;
 	required: boolean;
 	types: ValidatedPropertyType[];
 	validators: ValidatedPropertyValidators;
 };
 
-export type ValidatedPropertyType = Schematic<unknown> | ValueName;
+export type ValidatedPropertyKey = {
+	full: string;
+	prefix: string | undefined;
+	value: string;
+};
+
+export type ValidatedPropertyType = GenericCallback | Schematic<unknown> | ValueName;
 
 export type ValidatedPropertyValidators = {
 	[Key in ValueName]?: Array<(value: unknown) => boolean>;
-};
-
-export type ValidatedSchema = {
-	keys: {
-		array: string[];
-		set: Set<string>;
-	};
-	properties: Record<string, ValidatedProperty>;
 };
 
 /**
