@@ -23,6 +23,7 @@ export default defineConfig({
 		rollupOptions: {
 			external: [
 				'@oscarpalmer/atoms/is',
+				'@oscarpalmer/atoms/string/misc',
 				'@oscarpalmer/atoms/value/misc'
 			],
 			input: Object.fromEntries(files),
