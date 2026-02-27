@@ -1,7 +1,7 @@
 import {isPlainObject} from '@oscarpalmer/atoms/is';
 import type {PlainObject} from '@oscarpalmer/atoms/models';
 import {MESSAGE_SCHEMA_INVALID_TYPE, SCHEMATIC_NAME} from './constants';
-import {isSchematic} from './is';
+import {isSchematic} from './helpers';
 import {
 	SchematicError,
 	type Infer,

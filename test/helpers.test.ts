@@ -1,8 +1,8 @@
 import {expect, test} from 'vitest';
 import {MESSAGE_CONSTRUCTOR} from '../src/constants';
-import {instanceOf, isSchematic} from '../src/is';
+import {instanceOf, isSchematic} from '../src/helpers';
 import {schematic} from '../src/schematic';
-import {length, values} from './.fixture/is.fixture';
+import {length, values} from './.fixture/helpers.fixture';
 import {TestItem} from './.fixture/models.fixture';
 
 test('instanceOf', () => {

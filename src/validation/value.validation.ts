@@ -1,5 +1,5 @@
 import {isPlainObject} from '@oscarpalmer/atoms/is';
-import {isSchematic} from '../is';
+import {isSchematic} from '../helpers';
 import type {ValidatedProperty, ValidatedPropertyType, ValueName} from '../models';
 
 export function validateObject(obj: unknown, properties: ValidatedProperty[]): boolean {
@@ -7,44 +7,25 @@ export function validateObject(obj: unknown, properties: ValidatedProperty[]): b
 		return false;
 	}
 
-	const ignoredKeys = new Set<string>();
 	const propertiesLength = properties.length;
-
-	let key!: string;
-	let value!: unknown;
 
 	outer: for (let propertyIndex = 0; propertyIndex < propertiesLength; propertyIndex += 1) {
 		const property = properties[propertyIndex];
 
-		if (ignoredKeys.has(property.key.prefix!)) {
-			key = undefined as never;
+		const {key, required, types} = property;
 
-			ignoredKeys.add(property.key.full);
+		const value = obj[key];
 
-			continue;
-		}
-
-		/* if (key == null || !property.key.full.startsWith(key)) {
-			value = obj[property.key.full];
-		} else {
-			value = (value as PlainObject)?.[property.key.value];
-		} */
-
-		key = property.key.full;
-		value = obj[key];
-
-		if (value === undefined && property.required) {
+		if (value === undefined && required) {
 			return false;
 		}
 
-		const typesLength = property.types.length;
+		const typesLength = types.length;
 
 		for (let typeIndex = 0; typeIndex < typesLength; typeIndex += 1) {
-			const type = property.types[typeIndex];
+			const type = types[typeIndex];
 
 			if (validateValue(type, property, value)) {
-				ignoredKeys.add(property.key.full);
-
 				continue outer;
 			}
 		}
@@ -61,11 +42,14 @@ function validateValue(
 	value: unknown,
 ): boolean {
 	switch (true) {
+		case isSchematic(type):
+			return type.is(value);
+
 		case typeof type === 'function':
 			return (type as (value: unknown) => boolean)(value);
 
-		case isSchematic(type):
-			return type.is(value);
+		case typeof type === 'object':
+			return validateObject(value, [type] as ValidatedProperty[]);
 
 		default:
 			return (

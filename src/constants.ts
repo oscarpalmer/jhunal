@@ -14,7 +14,11 @@ export const MESSAGE_CONSTRUCTOR = 'Expected a constructor function';
 
 export const MESSAGE_SCHEMA_INVALID_EMPTY = 'Schema must have at least one property';
 
-export const MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED = "'<>.$required' property must be a boolean";
+export const MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED_DISALLOWED =
+	"'<>.$required' property is not allowed for schemas in $type";
+
+export const MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED_TYPE =
+	"'<>.$required' property must be a boolean";
 
 export const MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE = "'<>' property must be of a valid type";
 

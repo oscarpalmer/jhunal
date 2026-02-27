@@ -1,21 +1,28 @@
 import {
 	MESSAGE_SCHEMA_INVALID_EMPTY,
-	MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED,
+	MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED_DISALLOWED,
+	MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED_TYPE,
 	MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE,
 	MESSAGE_SCHEMA_INVALID_TYPE,
 	TEMPLATE_PATTERN,
 } from '../../src/constants';
 import {Schema} from '../../src/models';
-import {length as isLength, values as isValues} from './is.fixture';
+import {length as isLength, values as isValues} from './helpers.fixture';
 
 export const errors = [
 	...Array.from({length: isLength - 1}, () => MESSAGE_SCHEMA_INVALID_TYPE),
 	MESSAGE_SCHEMA_INVALID_EMPTY,
-	MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED.replace(TEMPLATE_PATTERN, 'property'),
+	MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED_TYPE.replace(TEMPLATE_PATTERN, 'property'),
+	MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED_DISALLOWED.replace(TEMPLATE_PATTERN, 'nested.property'),
+	MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED_DISALLOWED.replace(TEMPLATE_PATTERN, 'nested.property'),
 	MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE.replace(TEMPLATE_PATTERN, 'property'),
 	MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE.replace(TEMPLATE_PATTERN, 'property'),
 	MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE.replace(TEMPLATE_PATTERN, 'property'),
 	MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE.replace(TEMPLATE_PATTERN, 'property'),
+	MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE.replace(TEMPLATE_PATTERN, 'nested.property'),
+	MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE.replace(TEMPLATE_PATTERN, 'nested.property'),
+	MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE.replace(TEMPLATE_PATTERN, 'nested.property'),
+	MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE.replace(TEMPLATE_PATTERN, 'nested.property'),
 ];
 
 export const values = [
@@ -24,6 +31,26 @@ export const values = [
 	{
 		property: {
 			$required: 'not a boolean',
+		},
+	},
+	{
+		nested: {
+			property: {
+				$type: {
+					$required: 'not allowed',
+				},
+			},
+		},
+	},
+	{
+		nested: {
+			property: {
+				$type: [
+					{
+						$required: 'not allowed',
+					},
+				],
+			},
 		},
 	},
 	{
@@ -42,6 +69,32 @@ export const values = [
 	{
 		property: {
 			$type: ['not a valid type'],
+		},
+	},
+	{
+		nested: {
+			property: 'not a valid type',
+		},
+	},
+	{
+		nested: {
+			property: {
+				$type: 'not a valid type',
+			},
+		},
+	},
+	{
+		nested: {
+			property: {
+				$type: [],
+			},
+		},
+	},
+	{
+		nested: {
+			property: {
+				$type: ['not a valid type'],
+			},
 		},
 	},
 ];

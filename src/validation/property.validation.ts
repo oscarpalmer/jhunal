@@ -1,13 +1,12 @@
 import {isConstructor, isPlainObject} from '@oscarpalmer/atoms/is';
 import type {PlainObject} from '@oscarpalmer/atoms/models';
-import {smush} from '@oscarpalmer/atoms/value/misc';
+import {join} from '@oscarpalmer/atoms/string/misc';
 import {
 	EXPRESSION_INDEX,
-	EXPRESSION_KEY_PREFIX,
-	EXPRESSION_KEY_VALUE,
 	EXPRESSION_PROPERTY,
 	MESSAGE_SCHEMA_INVALID_EMPTY,
-	MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED,
+	MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED_DISALLOWED,
+	MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED_TYPE,
 	MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE,
 	MESSAGE_VALIDATOR_INVALID_KEY,
 	MESSAGE_VALIDATOR_INVALID_TYPE,
@@ -17,11 +16,10 @@ import {
 	PROPERTY_VALIDATORS,
 	TEMPLATE_PATTERN,
 	TYPE_ALL,
-	TYPE_OBJECT,
 	TYPE_UNDEFINED,
 	VALIDATABLE_TYPES,
 } from '../constants';
-import {instanceOf, isSchematic} from '../is';
+import {instanceOf, isSchematic} from '../helpers';
 import {
 	SchematicError,
 	type ValidatedProperty,
@@ -29,25 +27,23 @@ import {
 	type ValidatedPropertyValidators,
 	type ValueName,
 } from '../models';
-import {schematic} from '../schematic';
 
-function getKeyPrefix(key: string): string | undefined {
-	const prefix = key.replace(EXPRESSION_KEY_PREFIX, '');
-
-	return prefix === key ? undefined : prefix;
-}
-
-function getKeyValue(key: string): string {
-	return key.replace(EXPRESSION_KEY_VALUE, '$1');
-}
-
-export function getProperties(original: PlainObject): ValidatedProperty[] {
+export function getProperties(
+	original: PlainObject,
+	prefix?: string,
+	fromTypes?: boolean,
+): ValidatedProperty[] {
 	if (Object.keys(original).length === 0) {
 		throw new SchematicError(MESSAGE_SCHEMA_INVALID_EMPTY);
 	}
 
-	const smushed = smush(original);
-	const keys = Object.keys(smushed);
+	if (PROPERTY_REQUIRED in original && (fromTypes ?? false) && prefix != null) {
+		throw new SchematicError(
+			MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED_DISALLOWED.replace(TEMPLATE_PATTERN, prefix),
+		);
+	}
+
+	const keys = Object.keys(original);
 	const keysLength = keys.length;
 
 	const properties: ValidatedProperty[] = [];
@@ -59,9 +55,7 @@ export function getProperties(original: PlainObject): ValidatedProperty[] {
 			continue;
 		}
 
-		const keyPrefix = getKeyPrefix(key);
-		const keyValue = getKeyValue(key);
-		const value = smushed[key];
+		const value = original[key];
 
 		const types: ValidatedPropertyType[] = [];
 
@@ -73,12 +67,12 @@ export function getProperties(original: PlainObject): ValidatedProperty[] {
 			validators = getValidators(value[PROPERTY_VALIDATORS]);
 
 			if (PROPERTY_TYPE in value) {
-				types.push(...getTypes(key, value[PROPERTY_TYPE]));
+				types.push('object', ...getTypes(key, value[PROPERTY_TYPE], prefix, true));
 			} else {
-				types.push(TYPE_OBJECT);
+				types.push('object', ...getTypes(key, value, prefix));
 			}
 		} else {
-			types.push(...getTypes(key, value));
+			types.push(...getTypes(key, value, prefix));
 		}
 
 		if (!required && !types.includes(TYPE_UNDEFINED)) {
@@ -86,13 +80,9 @@ export function getProperties(original: PlainObject): ValidatedProperty[] {
 		}
 
 		properties.push({
+			key,
 			types,
 			validators,
-			key: {
-				full: key,
-				prefix: keyPrefix,
-				value: keyValue,
-			},
 			required: required && !types.includes(TYPE_UNDEFINED),
 		});
 	}
@@ -100,21 +90,26 @@ export function getProperties(original: PlainObject): ValidatedProperty[] {
 	return properties;
 }
 
-function getRequired(key: string, value: PlainObject): boolean | undefined {
-	if (!(PROPERTY_REQUIRED in value)) {
+function getRequired(key: string, obj: PlainObject): boolean | undefined {
+	if (!(PROPERTY_REQUIRED in obj)) {
 		return;
 	}
 
-	if (typeof value[PROPERTY_REQUIRED] !== 'boolean') {
+	if (typeof obj[PROPERTY_REQUIRED] !== 'boolean') {
 		throw new SchematicError(
-			MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED.replace(TEMPLATE_PATTERN, key),
+			MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED_TYPE.replace(TEMPLATE_PATTERN, key),
 		);
 	}
 
-	return value[PROPERTY_REQUIRED];
+	return obj[PROPERTY_REQUIRED];
 }
 
-function getTypes(key: string, original: unknown): ValidatedPropertyType[] {
+function getTypes(
+	key: string,
+	original: unknown,
+	prefix?: string,
+	fromTypes?: boolean,
+): ValidatedPropertyType[] {
 	const array = Array.isArray(original) ? original : [original];
 	const {length} = array;
 
@@ -129,7 +124,7 @@ function getTypes(key: string, original: unknown): ValidatedPropertyType[] {
 				break;
 
 			case isPlainObject(value):
-				types.push(schematic(value as never));
+				types.push(...getProperties(value, join([prefix, key], '.'), fromTypes));
 				break;
 
 			case isSchematic(value):
@@ -142,13 +137,15 @@ function getTypes(key: string, original: unknown): ValidatedPropertyType[] {
 
 			default:
 				throw new SchematicError(
-					MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE.replace(TEMPLATE_PATTERN, key),
+					MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE.replace(TEMPLATE_PATTERN, join([prefix, key], '.')),
 				);
 		}
 	}
 
 	if (types.length === 0) {
-		throw new SchematicError(MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE.replace(TEMPLATE_PATTERN, key));
+		throw new SchematicError(
+			MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE.replace(TEMPLATE_PATTERN, join([prefix, key], '.')),
+		);
 	}
 
 	return types;

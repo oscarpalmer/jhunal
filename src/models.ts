@@ -290,19 +290,17 @@ type UnwrapSingle<Value extends unknown[]> = Value extends [infer Only]
 		: Value;
 
 export type ValidatedProperty = {
-	key: ValidatedPropertyKey;
+	key: string;
 	required: boolean;
 	types: ValidatedPropertyType[];
 	validators: ValidatedPropertyValidators;
 };
 
-export type ValidatedPropertyKey = {
-	full: string;
-	prefix: string | undefined;
-	value: string;
-};
-
-export type ValidatedPropertyType = GenericCallback | Schematic<unknown> | ValueName;
+export type ValidatedPropertyType =
+	| GenericCallback
+	| Schematic<unknown>
+	| ValidatedProperty
+	| ValueName;
 
 export type ValidatedPropertyValidators = {
 	[Key in ValueName]?: Array<(value: unknown) => boolean>;
