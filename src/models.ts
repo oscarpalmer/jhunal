@@ -109,6 +109,10 @@ type OptionalKeys<Value> = {
 	[Key in keyof Value]-?: {} extends Pick<Value, Key> ? Key : never;
 }[keyof Value];
 
+type PlainSchema = {
+	[key: string]: NestedSchema | SchemaEntry | SchemaEntry[];
+};
+
 type PropertyValidators<Value> = {
 	[Key in ExtractValueNames<Value>]?:
 		| ((value: Values[Key]) => boolean)
@@ -135,7 +139,7 @@ interface SchemaIndex {
 }
 
 /**
- * A property definition with explicit type(s) and optional requirement flag
+ * A property definition with explicit type(s), optional requirement flag, and optional validators
  */
 export type SchemaProperty = {
 	$required?: boolean;
@@ -145,7 +149,7 @@ export type SchemaProperty = {
 
 type SchemaPropertyType =
 	| Constructor
-	| Schema
+	| PlainSchema
 	| Schematic<unknown>
 	| ValueName
 	| ((value: unknown) => boolean);

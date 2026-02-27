@@ -1,4 +1,4 @@
-import {MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED_TYPE, TEMPLATE_PATTERN} from '../../src/constants';
+import {MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED, TEMPLATE_PATTERN} from '../../src/constants';
 import {Schema} from '../../src/models';
 import {values} from './helpers.fixture';
 import {TestItem} from './models.fixture';
@@ -63,7 +63,7 @@ basic.values = [
 basic.length = basic.values.length;
 
 export const complex = {
-	errors: [MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED_TYPE.replace(TEMPLATE_PATTERN, 'n')],
+	errors: [MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED.replace(TEMPLATE_PATTERN, 'n')],
 	length: -1,
 	schema: {
 		arrayOrBigInt: ['array', 'bigint'],
