@@ -11,8 +11,7 @@ export const MESSAGE_SCHEMA_INVALID_EMPTY = 'Schema must have at least one prope
 export const MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED =
 	"'<key>.<property>' property is not allowed for schemas in $type";
 
-export const MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED =
-	"'<>.$required' property must be a boolean";
+export const MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED = "'<>.$required' property must be a boolean";
 
 export const MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE = "'<>' property must be of a valid type";
 

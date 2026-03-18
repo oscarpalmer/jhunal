@@ -1,6 +1,6 @@
 import {isConstructor, isPlainObject} from '@oscarpalmer/atoms/is';
 import type {PlainObject} from '@oscarpalmer/atoms/models';
-import {join} from '@oscarpalmer/atoms/string/misc';
+import {join} from '@oscarpalmer/atoms/string';
 import {
 	EXPRESSION_PROPERTY,
 	MESSAGE_SCHEMA_INVALID_EMPTY,

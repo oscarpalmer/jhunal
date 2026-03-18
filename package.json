@@ -1,49 +1,54 @@
 {
-	"author": {
-		"name": "Oscar Palmér",
-		"url": "https://oscarpalmer.se"
-	},
-	"dependencies": {
-		"@oscarpalmer/atoms": "^0.141.2"
-	},
-	"description": "Flies free beneath the glistening moons…",
-	"devDependencies": {
-		"@types/node": "^25.3",
-		"@vitest/coverage-istanbul": "^4",
-		"jsdom": "^28.1",
-		"oxfmt": "^0.35",
-		"oxlint": "^1.50",
-		"rolldown": "1.0.0-rc.5",
-		"tslib": "^2.8",
-		"typescript": "^5.9",
-		"vite": "8.0.0-beta.15",
-		"vitest": "^4"
-	},
-	"exports": {
-		"./package.json": "./package.json",
-		".": {
-			"types": "./types/index.d.ts",
-			"default": "./dist/index.js"
-		}
-	},
-	"files": ["dist", "src", "types"],
-	"keywords": ["schema", "validation"],
-	"license": "MIT",
-	"module": "./dist/index.js",
-	"name": "@oscarpalmer/jhunal",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/oscarpalmer/jhunal.git"
-	},
-	"scripts": {
-		"build": "npm run clean && npx vite build && npm run rolldown:build && npx tsc",
-		"clean": "rm -rf ./dist && rm -rf ./types && rm -f ./tsconfig.tsbuildinfo",
-		"rolldown:build": "npx rolldown -c",
-		"rolldown:watch": "npx rolldown -c ./rolldown.config.js --watch",
-		"test": "npx vitest --coverage",
-		"watch": "npx vite build --watch"
-	},
-	"type": "module",
-	"types": "./types/index.d.ts",
-	"version": "0.15.0"
+  "name": "@oscarpalmer/jhunal",
+  "version": "0.16.0",
+  "description": "Flies free beneath the glistening moons…",
+  "keywords": [
+    "schema",
+    "validation"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Oscar Palmér",
+    "url": "https://oscarpalmer.se"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oscarpalmer/jhunal.git"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "type": "module",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "scripts": {
+    "build": "npx vp pack && npm run tsdown:build",
+    "tsdown:build": "npx tsdown -c ./tsdown.config.ts",
+    "tsdown:watch": "npx tsdown -c ./tsdown.config.ts --watch",
+    "test": "npx vp test run --coverage",
+    "test:leak": "npx vp test run --detect-async-leaks --coverage",
+    "watch": "npx vite build --watch"
+  },
+  "dependencies": {
+    "@oscarpalmer/atoms": "^0.166"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5",
+    "@vitest/coverage-istanbul": "^4.1",
+    "jsdom": "^29.0",
+    "tsdown": "^0.21",
+    "typescript": "^5.9",
+    "vite": "npm:@voidzero-dev/vite-plus-core@latest",
+    "vite-plus": "latest",
+    "vitest": "npm:@voidzero-dev/vite-plus-test@latest"
+  },
+  "packageManager": "npm@11.11.1"
 }

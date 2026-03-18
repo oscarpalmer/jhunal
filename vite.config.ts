@@ -1,38 +1,20 @@
-/// <reference types="vitest" />
-import {extname, relative} from 'node:path';
-import {fileURLToPath} from 'node:url';
-import {globSync} from 'tinyglobby';
-import {defineConfig} from 'vite';
-
-const watch = process.argv.includes('--watch');
-
-const files = globSync(watch ? './src/index.ts' : './src/**/*.ts').map(file => [
-	relative('./src', file.slice(0, file.length - extname(file).length)),
-	fileURLToPath(new URL(file, import.meta.url)),
-]);
+import {defineConfig} from 'vite-plus';
 
 export default defineConfig({
 	base: './',
-	build: {
-		lib: {
-			entry: [],
-			formats: ['es'],
-		},
-		minify: false,
-		outDir: './dist',
-		rollupOptions: {
-			external: [
-				'@oscarpalmer/atoms/is',
-				'@oscarpalmer/atoms/string/misc',
-				'@oscarpalmer/atoms/value/misc'
-			],
-			input: Object.fromEntries(files),
-			output: {
-				preserveModules: true,
-			},
-		},
+	fmt: {
+		arrowParens: 'avoid',
+		bracketSpacing: false,
+		singleQuote: true,
+		useTabs: true,
 	},
+	lint: {},
 	logLevel: 'silent',
+	pack: {
+		dts: true,
+		entry: ['./src/**/*.ts'],
+		unbundle: true,
+	},
 	test: {
 		coverage: {
 			include: ['src/**/*.ts'],
