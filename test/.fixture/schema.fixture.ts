@@ -72,11 +72,13 @@ export const complex = {
 		instance: TestItem,
 		n: {
 			$required: false,
-			e: {
-				s: {
-					t: {
-						e: {
-							d: 'number',
+			$type: {
+				e: {
+					s: {
+						t: {
+							e: {
+								d: 'number',
+							},
 						},
 					},
 				},

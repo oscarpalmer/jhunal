@@ -30,7 +30,7 @@ export class Schematic<Model> {
 
 	/**
 	 * Does the value match the schema?
-	 * @param value - Value to validate
+	 * @param value Value to validate
 	 * @returns `true` if the value matches the schema, otherwise `false`
 	 */
 	is(value: unknown): value is Model {
@@ -40,8 +40,8 @@ export class Schematic<Model> {
 
 /**
  * Create a schematic from a schema
- * @template Model - Schema type
- * @param schema - Schema to create the schematic from
+ * @template Model Schema type
+ * @param schema Schema to create the schematic from
  * @throws Throws {@link SchematicError} if the schema can not be converted into a schematic
  * @returns A schematic for the given schema
  */
@@ -49,8 +49,8 @@ export function schematic<Model extends Schema>(schema: Model): Schematic<Infer<
 
 /**
  * Create a schematic from a typed schema
- * @template Model - Existing type
- * @param schema - Typed schema to create the schematic from
+ * @template Model Existing type
+ * @param schema Typed schema to create the schematic from
  * @throws Throws {@link SchematicError} if the schema can not be converted into a schematic
  * @returns A schematic for the given typed schema
  */

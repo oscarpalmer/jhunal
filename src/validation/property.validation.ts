@@ -2,9 +2,9 @@ import {isConstructor, isPlainObject} from '@oscarpalmer/atoms/is';
 import type {PlainObject} from '@oscarpalmer/atoms/models';
 import {join} from '@oscarpalmer/atoms/string';
 import {
-	EXPRESSION_PROPERTY,
 	MESSAGE_SCHEMA_INVALID_EMPTY,
 	MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED,
+	MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE,
 	MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED,
 	MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE,
 	MESSAGE_VALIDATOR_INVALID_KEY,
@@ -74,11 +74,16 @@ export function getProperties(
 	for (let keyIndex = 0; keyIndex < keysLength; keyIndex += 1) {
 		const key = keys[keyIndex];
 
-		if (EXPRESSION_PROPERTY.test(key)) {
-			continue;
-		}
-
 		const value = original[key];
+
+		if (value == null) {
+			throw new SchematicError(
+				MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE.replace(
+					TEMPLATE_PATTERN,
+					join([prefix, key], '.'),
+				),
+			);
+		}
 
 		const types: ValidatedPropertyType[] = [];
 

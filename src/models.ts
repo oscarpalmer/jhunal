@@ -135,8 +135,8 @@ type InferSchemaEntryValue<Value> =
 			? Model
 			: Value extends SchemaProperty
 				? InferPropertyType<Value['$type']>
-				: Value extends NestedSchema
-					? Infer<Omit<Value, '$required'>>
+				: Value extends PlainSchema
+					? Infer<Value & Schema>
 					: Value extends ValueName
 						? Values[Value & ValueName]
 						: Value extends Schema
@@ -154,11 +154,7 @@ type IsOptionalProperty<Value> = Value extends SchemaProperty
 	? Value['$required'] extends false
 		? true
 		: false
-	: Value extends {$required?: boolean}
-		? Value extends {$required: false}
-			? true
-			: false
-		: false;
+	: false;
 
 /**
  * Extracts the last member from a union type by leveraging intersection of function return types
@@ -189,25 +185,6 @@ type MapToSchemaPropertyTypes<Value extends unknown[]> = Value extends [infer He
 	: [];
 
 /**
- * A nested schema definition that may include a `$required` flag alongside arbitrary string-keyed properties
- *
- * @example
- * ```ts
- * const address: NestedSchema = {
- *   $required: false,
- *   street: 'string',
- *   city: 'string',
- * };
- * ```
- */
-export type NestedSchema = {
-	/**
-	 * Whether the nested schema is required (defaults to `true`)
-	 */
-	$required?: boolean;
-} & Schema;
-
-/**
  * Extracts keys from an object type that are optional
  *
  * @template Value - Object type to inspect
@@ -220,7 +197,11 @@ type OptionalKeys<Value> = {
  * A generic schema allowing {@link NestedSchema}, {@link SchemaEntry}, or arrays of {@link SchemaEntry} as values
  */
 type PlainSchema = {
-	[key: string]: NestedSchema | SchemaEntry | SchemaEntry[];
+	[key: string]: PlainSchema | SchemaEntry | SchemaEntry[] | undefined;
+} & {
+	$required?: never;
+	$type?: never;
+	$validators?: never;
 };
 
 /**
@@ -271,7 +252,7 @@ export type Schema = SchemaIndex;
  */
 type SchemaEntry =
 	| Constructor
-	| Schema
+	| PlainSchema
 	| SchemaProperty
 	| Schematic<unknown>
 	| ValueName
@@ -281,7 +262,7 @@ type SchemaEntry =
  * Index signature interface backing {@link Schema}, allowing string-keyed entries of {@link NestedSchema}, {@link SchemaEntry}, or arrays of {@link SchemaEntry}
  */
 interface SchemaIndex {
-	[key: string]: NestedSchema | SchemaEntry | SchemaEntry[];
+	[key: string]: PlainSchema | SchemaEntry | SchemaEntry[];
 }
 
 /**
@@ -327,12 +308,7 @@ type SchemaPropertyType =
 	| ((value: unknown) => boolean);
 
 /**
- * A custom error class for schema validation failures, with its `name` set to {@link ERROR_NAME}
- *
- * @example
- * ```ts
- * throw new SchematicError('Expected a string, received a number');
- * ```
+ * A custom error class for schematic validation failures
  */
 export class SchematicError extends Error {
 	constructor(message: string) {
@@ -360,11 +336,9 @@ type ToSchemaPropertyType<Value> = UnwrapSingle<
  *
  * @template Value - type to convert
  */
-type ToSchemaPropertyTypeEach<Value> = Value extends NestedSchema
-	? Omit<Value, '$required'>
-	: Value extends PlainObject
-		? TypedSchema<Value>
-		: ToValueType<Value>;
+type ToSchemaPropertyTypeEach<Value> = Value extends PlainObject
+	? TypedSchema<Value>
+	: ToValueType<Value>;
 
 /**
  * Converts a type into its corresponding {@link ValueName}-representation
