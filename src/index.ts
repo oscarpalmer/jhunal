@@ -1,3 +1,5 @@
 export {instanceOf, isSchematic} from './helpers';
-export {SchematicError, type Schema, type TypedSchema} from './models';
+export type {Schema} from './models/schema.plain.model';
+export type {TypedSchema} from './models/schema.typed.model';
+export {SchematicError} from './models/validation.model';
 export {schematic, type Schematic} from './schematic';

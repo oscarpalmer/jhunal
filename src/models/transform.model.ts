@@ -1,0 +1,85 @@
+import type {PlainObject} from '@oscarpalmer/atoms/models';
+import type {Schematic} from '../schematic';
+import type {DeduplicateTuple, UnionToTuple, UnwrapSingle, Values} from './misc.model';
+import type {TypedSchema} from './schema.typed.model';
+
+/**
+ * Maps each element of a tuple through {@link ToValueType}
+ *
+ * @template Value - Tuple of types to map
+ */
+export type MapToValueTypes<Value extends unknown[]> = Value extends [infer Head, ...infer Tail]
+	? [ToValueType<Head>, ...MapToValueTypes<Tail>]
+	: [];
+
+/**
+ * Maps each element of a tuple through {@link ToSchemaPropertyTypeEach}
+ *
+ * @template Value - Tuple of types to map
+ */
+export type MapToSchemaPropertyTypes<Value extends unknown[]> = Value extends [
+	infer Head,
+	...infer Tail,
+]
+	? [ToSchemaPropertyTypeEach<Head>, ...MapToSchemaPropertyTypes<Tail>]
+	: [];
+
+/**
+ * Converts a type into its corresponding {@link SchemaPropertyType}-representation
+ *
+ * Deduplicates and unwraps single-element tuples via {@link UnwrapSingle}
+ *
+ * @template Value - type to convert
+ */
+export type ToSchemaPropertyType<Value> = UnwrapSingle<
+	DeduplicateTuple<MapToSchemaPropertyTypes<UnionToTuple<Value>>>
+>;
+
+/**
+ * Converts a single type to its schema property equivalent
+ *
+ * {@link NestedSchema} values have `$required` stripped, plain objects become {@link TypedSchema}, and primitives go through {@link ToValueType}
+ *
+ * @template Value - type to convert
+ */
+export type ToSchemaPropertyTypeEach<Value> = Value extends PlainObject
+	? TypedSchema<Value>
+	: ToValueType<Value>;
+
+/**
+ * Converts a type into its corresponding {@link ValueName}-representation
+ *
+ * Deduplicates and unwraps single-element tuples via {@link UnwrapSingle}
+ *
+ * @template Value - type to convert
+ */
+export type ToSchemaType<Value> = UnwrapSingle<
+	DeduplicateTuple<MapToValueTypes<UnionToTuple<Value>>>
+>;
+
+/**
+ * Maps a type to its {@link ValueName} string equivalent
+ *
+ * Resolves {@link Schematic} types as-is, then performs a reverse-lookup against {@link Values} _(excluding `'object'`)_ to find a matching key. If no match is found, `object` types resolve to `'object'` or a type-guard function, and all other unrecognised types resolve to a type-guard function
+ *
+ * @template Value - type to map
+ *
+ * @example
+ * ```ts
+ * // ToValueType<string>    => 'string'
+ * // ToValueType<number[]>  => 'array'
+ * // ToValueType<Date>      => 'date'
+ * ```
+ */
+export type ToValueType<Value> =
+	Value extends Schematic<any>
+		? Value
+		: {
+					[Key in keyof Omit<Values, 'object'>]: Value extends Values[Key] ? Key : never;
+			  }[keyof Omit<Values, 'object'>] extends infer Match
+			? [Match] extends [never]
+				? Value extends object
+					? 'object' | ((value: unknown) => value is Value)
+					: (value: unknown) => value is Value
+				: Match
+			: never;

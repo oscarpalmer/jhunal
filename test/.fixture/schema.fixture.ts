@@ -1,5 +1,5 @@
 import {MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED, TEMPLATE_PATTERN} from '../../src/constants';
-import {Schema} from '../../src/models';
+import {Schema} from '../../src/models/schema.plain.model';
 import {values} from './helpers.fixture';
 import {TestItem} from './models.fixture';
 

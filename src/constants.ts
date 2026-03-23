@@ -1,4 +1,4 @@
-import type {ValueName} from './models';
+import type {ValueName} from './models/misc.model';
 
 export const ERROR_NAME = 'SchematicError';
 
@@ -30,6 +30,12 @@ export const PROPERTY_REQUIRED = '$required';
 export const PROPERTY_TYPE = '$type';
 
 export const PROPERTY_VALIDATORS = '$validators';
+
+export const REPORTING_NONE = 'none';
+
+export const REPORTING_THROW = 'throw';
+
+export const REPORTING_TYPES = new Set([REPORTING_NONE, REPORTING_THROW]);
 
 export const SCHEMATIC_NAME = '$schematic';
 

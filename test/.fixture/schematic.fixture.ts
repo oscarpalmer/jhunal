@@ -12,7 +12,7 @@ import {
 	TEMPLATE_PATTERN_KEY,
 	TEMPLATE_PATTERN_PROPERTY,
 } from '../../src/constants';
-import {Schema} from '../../src/models';
+import {Schema} from '../../src/models/schema.plain.model';
 import {length as isLength, values as isValues} from './helpers.fixture';
 
 const invalidDisallowed = MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED;

@@ -1,6 +1,7 @@
 import {isPlainObject} from '@oscarpalmer/atoms/is';
 import {isSchematic} from '../helpers';
-import type {ValidatedProperty, ValidatedPropertyType, ValueName} from '../models';
+import type {ValueName} from '../models/misc.model';
+import type {ValidatedProperty, ValidatedPropertyType} from '../models/validation.model';
 
 export function validateObject(obj: unknown, properties: ValidatedProperty[]): boolean {
 	if (!isPlainObject(obj)) {

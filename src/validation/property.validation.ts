@@ -11,7 +11,7 @@ import {
 	MESSAGE_VALIDATOR_INVALID_TYPE,
 	MESSAGE_VALIDATOR_INVALID_VALUE,
 	PROPERTY_REQUIRED,
-	PROPERTY_TYPE,
+	PROPERTY_TYPE /*  */,
 	PROPERTY_VALIDATORS,
 	TEMPLATE_PATTERN,
 	TEMPLATE_PATTERN_KEY,
@@ -22,13 +22,13 @@ import {
 	VALIDATABLE_TYPES,
 } from '../constants';
 import {instanceOf, isSchematic} from '../helpers';
+import type {ValueName} from '../models/misc.model';
 import {
 	SchematicError,
 	type ValidatedProperty,
 	type ValidatedPropertyType,
 	type ValidatedPropertyValidators,
-	type ValueName,
-} from '../models';
+} from '../models/validation.model';
 
 function getDisallowedProperty(obj: PlainObject): string | undefined {
 	if (PROPERTY_REQUIRED in obj) {

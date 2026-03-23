@@ -2,13 +2,10 @@ import {isPlainObject} from '@oscarpalmer/atoms/is';
 import type {PlainObject} from '@oscarpalmer/atoms/models';
 import {MESSAGE_SCHEMA_INVALID_TYPE, SCHEMATIC_NAME} from './constants';
 import {isSchematic} from './helpers';
-import {
-	SchematicError,
-	type Infer,
-	type Schema,
-	type TypedSchema,
-	type ValidatedProperty,
-} from './models';
+import type {Infer} from './models/infer.model';
+import type {Schema} from './models/schema.plain.model';
+import type {TypedSchema} from './models/schema.typed.model';
+import {SchematicError, type ValidatedProperty} from './models/validation.model';
 import {getProperties} from './validation/property.validation';
 import {validateObject} from './validation/value.validation';
 
