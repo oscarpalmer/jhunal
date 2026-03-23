@@ -1,7 +1,7 @@
 import {
-	MESSAGE_VALIDATOR_INVALID_KEY,
-	MESSAGE_VALIDATOR_INVALID_TYPE,
-	MESSAGE_VALIDATOR_INVALID_VALUE,
+	SCHEMATIC_MESSAGE_VALIDATOR_INVALID_KEY,
+	SCHEMATIC_MESSAGE_VALIDATOR_INVALID_TYPE,
+	SCHEMATIC_MESSAGE_VALIDATOR_INVALID_VALUE,
 	TEMPLATE_PATTERN,
 } from '../../src/constants';
 import {Schema} from '../../src/models/schema.plain.model';
@@ -12,10 +12,10 @@ const invalidValidators = 'number';
 export const errors = {
 	length: 4,
 	messages: [
-		MESSAGE_VALIDATOR_INVALID_TYPE,
-		MESSAGE_VALIDATOR_INVALID_KEY.replace(TEMPLATE_PATTERN, invalidKey),
-		MESSAGE_VALIDATOR_INVALID_VALUE.replace(TEMPLATE_PATTERN, invalidValidators),
-		MESSAGE_VALIDATOR_INVALID_VALUE.replace(TEMPLATE_PATTERN, invalidValidators),
+		SCHEMATIC_MESSAGE_VALIDATOR_INVALID_TYPE,
+		SCHEMATIC_MESSAGE_VALIDATOR_INVALID_KEY.replace(TEMPLATE_PATTERN, invalidKey),
+		SCHEMATIC_MESSAGE_VALIDATOR_INVALID_VALUE.replace(TEMPLATE_PATTERN, invalidValidators),
+		SCHEMATIC_MESSAGE_VALIDATOR_INVALID_VALUE.replace(TEMPLATE_PATTERN, invalidValidators),
 	],
 	schemas: [
 		{
@@ -52,6 +52,7 @@ export const errors = {
 };
 
 export const run = {
+	indices: [0, 1, 0, 0],
 	items: [
 		{
 			age: -5,
@@ -74,7 +75,9 @@ export const run = {
 			name: 'Test',
 		},
 	],
+	keys: ['age', 'age', 'name', 'name'],
 	length: 5,
+	lengths: [2, 2, 1, 1],
 	results: [false, false, false, false, true],
 	schemas: [
 		{
@@ -102,4 +105,5 @@ export const run = {
 			},
 		} satisfies Schema,
 	],
+	types: ['number', 'number', 'string', 'string'],
 };

@@ -1,35 +1,31 @@
 import {
-	MESSAGE_SCHEMA_INVALID_EMPTY,
-	MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED,
-	MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED,
-	MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE,
-	MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE,
-	MESSAGE_SCHEMA_INVALID_TYPE,
 	PROPERTY_REQUIRED,
 	PROPERTY_TYPE,
 	PROPERTY_VALIDATORS,
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_EMPTY,
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED,
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE,
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED,
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE,
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_TYPE,
 	TEMPLATE_PATTERN,
-	TEMPLATE_PATTERN_KEY,
-	TEMPLATE_PATTERN_PROPERTY,
 } from '../../src/constants';
 import {Schema} from '../../src/models/schema.plain.model';
 import {length as isLength, values as isValues} from './helpers.fixture';
 
-const invalidDisallowed = MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED;
-const invalidEmpty = MESSAGE_SCHEMA_INVALID_EMPTY;
-const invalidNullable = MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE;
-const invalidProperty = MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE;
-const invalidRequired = MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED;
-const invalidType = MESSAGE_SCHEMA_INVALID_TYPE;
+const invalidDisallowed = SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED;
+const invalidEmpty = SCHEMATIC_MESSAGE_SCHEMA_INVALID_EMPTY;
+const invalidNullable = SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE;
+const invalidProperty = SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE;
+const invalidRequired = SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED;
+const invalidType = SCHEMATIC_MESSAGE_SCHEMA_INVALID_TYPE;
 
-const propNested = 'nested.property';
-const propSimple = 'property';
+const propertyFull = 'nested.property';
+const propertyShort = 'property';
 
 const required = PROPERTY_REQUIRED;
 
 const tpl = TEMPLATE_PATTERN;
-const tplKey = TEMPLATE_PATTERN_KEY;
-const tplProp = TEMPLATE_PATTERN_PROPERTY;
 
 const type = PROPERTY_TYPE;
 const validators = PROPERTY_VALIDATORS;
@@ -37,23 +33,23 @@ const validators = PROPERTY_VALIDATORS;
 export const errors = [
 	...Array.from({length: isLength - 1}, () => invalidType),
 	invalidEmpty,
-	invalidRequired.replace(tpl, propSimple),
-	invalidDisallowed.replace(tplKey, propNested).replace(tplProp, required),
-	invalidDisallowed.replace(tplKey, propNested).replace(tplProp, required),
-	invalidProperty.replace(tpl, propSimple),
-	invalidProperty.replace(tpl, propSimple),
-	invalidProperty.replace(tpl, propSimple),
-	invalidProperty.replace(tpl, propSimple),
-	invalidProperty.replace(tpl, propNested),
-	invalidProperty.replace(tpl, propNested),
-	invalidProperty.replace(tpl, propNested),
-	invalidProperty.replace(tpl, propNested),
-	invalidDisallowed.replace(tplKey, propNested).replace(tplProp, type),
-	invalidDisallowed.replace(tplKey, propNested).replace(tplProp, type),
-	invalidDisallowed.replace(tplKey, propNested).replace(tplProp, validators),
-	invalidDisallowed.replace(tplKey, propNested).replace(tplProp, validators),
-	invalidNullable.replace(tpl, propSimple),
-	invalidNullable.replace(tpl, propSimple),
+	invalidRequired.replace(tpl, propertyShort),
+	invalidDisallowed.replace(tpl, propertyFull).replace(tpl, required),
+	invalidDisallowed.replace(tpl, propertyFull).replace(tpl, required),
+	invalidProperty.replace(tpl, propertyShort),
+	invalidProperty.replace(tpl, propertyShort),
+	invalidProperty.replace(tpl, propertyShort),
+	invalidProperty.replace(tpl, propertyShort),
+	invalidProperty.replace(tpl, propertyFull),
+	invalidProperty.replace(tpl, propertyFull),
+	invalidProperty.replace(tpl, propertyFull),
+	invalidProperty.replace(tpl, propertyFull),
+	invalidDisallowed.replace(tpl, propertyFull).replace(tpl, type),
+	invalidDisallowed.replace(tpl, propertyFull).replace(tpl, type),
+	invalidDisallowed.replace(tpl, propertyFull).replace(tpl, validators),
+	invalidDisallowed.replace(tpl, propertyFull).replace(tpl, validators),
+	invalidNullable.replace(tpl, propertyShort),
+	invalidNullable.replace(tpl, propertyShort),
 ];
 
 export const values = [

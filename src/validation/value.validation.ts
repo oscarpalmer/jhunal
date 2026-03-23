@@ -1,10 +1,72 @@
 import {isPlainObject} from '@oscarpalmer/atoms/is';
-import {isSchematic} from '../helpers';
+import type {GenericCallback} from '@oscarpalmer/atoms/models';
+import {
+	getInvalidInputMessage,
+	getInvalidMissingMessage,
+	getInvalidTypeMessage,
+	getInvalidValidatorMessage,
+	isSchematic,
+} from '../helpers';
 import type {ValueName} from '../models/misc.model';
-import type {ValidatedProperty, ValidatedPropertyType} from '../models/validation.model';
+import {
+	ValidationError,
+	type ReportingInformation,
+	type ValidatedProperty,
+	type ValidatedPropertyType,
+	type ValidationInformation,
+} from '../models/validation.model';
 
-export function validateObject(obj: unknown, properties: ValidatedProperty[]): boolean {
+function validateNamed(
+	property: ValidatedProperty,
+	name: ValueName,
+	value: unknown,
+	validation: ValidationInformation[],
+): boolean {
+	if (!validators[name](value)) {
+		return false;
+	}
+
+	const propertyValidators = property.validators[name];
+
+	if (propertyValidators == null || propertyValidators.length === 0) {
+		return true;
+	}
+
+	const {length} = propertyValidators;
+
+	for (let index = 0; index < length; index += 1) {
+		const validator = propertyValidators[index];
+
+		if (!validator(value)) {
+			validation.push({
+				key: {...property.key},
+				message: getInvalidValidatorMessage(property, name, index, length),
+				validator: validator as GenericCallback,
+			});
+
+			return false;
+		}
+	}
+
+	return true;
+}
+
+export function validateObject(
+	obj: unknown,
+	properties: ValidatedProperty[],
+	reporting: ReportingInformation,
+	validation?: ValidationInformation[],
+): boolean {
 	if (!isPlainObject(obj)) {
+		if (reporting.throw && validation == null) {
+			throw new ValidationError([
+				{
+					key: {full: '', short: ''},
+					message: getInvalidInputMessage(obj),
+				},
+			]);
+		}
+
 		return false;
 	}
 
@@ -15,21 +77,51 @@ export function validateObject(obj: unknown, properties: ValidatedProperty[]): b
 
 		const {key, required, types} = property;
 
-		const value = obj[key];
+		const value = obj[key.short];
 
 		if (value === undefined && required) {
+			const information: ValidationInformation = {
+				key: {...key},
+				message: getInvalidMissingMessage(property),
+			};
+
+			if (reporting.throw && validation == null) {
+				throw new ValidationError([information]);
+			}
+
+			if (validation != null) {
+				validation.push(information);
+			}
+
 			return false;
 		}
 
 		const typesLength = types.length;
 
+		const information: ValidationInformation[] = [];
+
 		for (let typeIndex = 0; typeIndex < typesLength; typeIndex += 1) {
 			const type = types[typeIndex];
 
-			if (validateValue(type, property, value)) {
+			if (validateValue(type, property, value, reporting, information)) {
 				continue outer;
 			}
 		}
+
+		if (reporting.throw && validation == null) {
+			throw new ValidationError(
+				information.length === 0
+					? [
+							{
+								key: {...key},
+								message: getInvalidTypeMessage(property, value),
+							},
+						]
+					: information,
+			);
+		}
+
+		validation?.push(...information);
 
 		return false;
 	}
@@ -41,23 +133,30 @@ function validateValue(
 	type: ValidatedPropertyType,
 	property: ValidatedProperty,
 	value: unknown,
+	reporting: ReportingInformation,
+	validation: ValidationInformation[],
 ): boolean {
+	let result: boolean;
+
 	switch (true) {
-		case isSchematic(type):
-			return type.is(value);
-
 		case typeof type === 'function':
-			return (type as (value: unknown) => boolean)(value);
+			result = (type as GenericCallback)(value);
+			break;
 
-		case typeof type === 'object':
-			return validateObject(value, [type] as ValidatedProperty[]);
+		case Array.isArray(type):
+			result = validateObject(value, type, reporting, validation);
+			break;
+
+		case isSchematic(type):
+			result = type.is(value, reporting as never) as unknown as boolean;
+			break;
 
 		default:
-			return (
-				validators[type as ValueName](value) &&
-				(property.validators[type as ValueName]?.every(validator => validator(value)) ?? true)
-			);
+			result = validateNamed(property, type as ValueName, value, validation);
+			break;
 	}
+
+	return result;
 }
 
 //

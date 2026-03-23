@@ -1,3 +1,21 @@
+import { schematic } from "../../src";
+
+export const types = [
+	"'null'",
+	"'undefined'",
+	"'boolean'",
+	"'boolean'",
+	"'number'",
+	"'bigint'",
+	"'string'",
+	"'symbol'",
+	"'array'",
+	'Map',
+	'Set',
+	"'function'",
+	"'object'",
+];
+
 export const values = [
 	null,
 	undefined,

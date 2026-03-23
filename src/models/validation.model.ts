@@ -1,27 +1,18 @@
 import type {GenericCallback} from '@oscarpalmer/atoms/models';
-import {ERROR_NAME} from '../constants';
+import {join} from '@oscarpalmer/atoms/string';
+import {NAME_ERROR_SCHEMATIC, NAME_ERROR_VALIDATION} from '../constants';
 import type {Schematic} from '../schematic';
-import type {ExtractValueNames, ValueName, Values} from './misc.model';
+import type {ValueName} from './misc.model';
 
-/**
- * A map of optional validator functions keyed by {@link ValueName}, used to add custom validation to {@link SchemaProperty} definitions
- *
- * Each key may hold a single validator or an array of validators that receive the typed value
- *
- * @template Value - `$type` value(s) to derive validator keys from
- *
- * @example
- * ```ts
- * const validators: PropertyValidators<'string'> = {
- *   string: (value) => value.length > 0,
- * };
- * ```
- */
-export type PropertyValidators<Value> = {
-	[Key in ExtractValueNames<Value>]?:
-		| ((value: Values[Key]) => boolean)
-		| Array<(value: Values[Key]) => boolean>;
-};
+// #region Reporting
+
+export type ReportingInformation = Record<ReportingType, boolean>;
+
+export type ReportingType = 'all' | 'first' | 'none' | 'throw';
+
+// #endregion
+
+// #region Schematic validation
 
 /**
  * A custom error class for schematic validation failures
@@ -30,9 +21,13 @@ export class SchematicError extends Error {
 	constructor(message: string) {
 		super(message);
 
-		this.name = ERROR_NAME;
+		this.name = NAME_ERROR_SCHEMATIC;
 	}
 }
+
+// #endregion
+
+// #region Validated property
 
 /**
  * The runtime representation of a parsed schema property, used internally during validation
@@ -51,7 +46,7 @@ export type ValidatedProperty = {
 	/**
 	 * The property name in the schema
 	 */
-	key: string;
+	key: ValidatedPropertyKey;
 	/**
 	 * Whether the property is required
 	 */
@@ -67,14 +62,28 @@ export type ValidatedProperty = {
 };
 
 /**
+ * Property name in schema
+ */
+export type ValidatedPropertyKey = {
+	/**
+	 * Full property key, including parent keys for nested properties _(e.g., `address.street`)_
+	 */
+	full: string;
+	/**
+	 * The last segment of the property key _(e.g., `street` for `address.street`)_
+	 */
+	short: string;
+};
+
+/**
  * A union of valid types for a {@link ValidatedProperty}'s `types` array
  *
  * Can be a callback _(custom validator)_, a {@link Schematic}, a nested {@link ValidatedProperty}, or a {@link ValueName} string
  */
 export type ValidatedPropertyType =
 	| GenericCallback
+	| ValidatedProperty[]
 	| Schematic<unknown>
-	| ValidatedProperty
 	| ValueName;
 
 /**
@@ -85,3 +94,30 @@ export type ValidatedPropertyType =
 export type ValidatedPropertyValidators = {
 	[Key in ValueName]?: Array<(value: unknown) => boolean>;
 };
+
+// #endregion
+
+// #region Property validation
+
+export class ValidationError extends Error {
+	constructor(readonly information: ValidationInformation[]) {
+		super(
+			join(
+				information.map(item => item.message),
+				'; ',
+			),
+		);
+
+		this.name = NAME_ERROR_VALIDATION;
+	}
+}
+
+export type ValidationInformation = {
+	key: ValidationInformationKey;
+	message: string;
+	validator?: GenericCallback;
+};
+
+export type ValidationInformationKey = ValidatedPropertyKey;
+
+// #endregion

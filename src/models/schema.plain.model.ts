@@ -1,7 +1,6 @@
 import type {Constructor} from '@oscarpalmer/atoms/models';
 import type {Schematic} from '../schematic';
-import type {ValueName} from './misc.model';
-import type {PropertyValidators} from './validation.model';
+import type {ExtractValueNames, ValueName, Values} from './misc.model';
 
 /**
  * A generic schema allowing {@link NestedSchema}, {@link SchemaEntry}, or arrays of {@link SchemaEntry} as values
@@ -89,3 +88,23 @@ export type SchemaPropertyType =
 	| Schematic<unknown>
 	| ValueName
 	| ((value: unknown) => boolean);
+
+/**
+ * A map of optional validator functions keyed by {@link ValueName}, used to add custom validation to {@link SchemaProperty} definitions
+ *
+ * Each key may hold a single validator or an array of validators that receive the typed value
+ *
+ * @template Value - `$type` value(s) to derive validator keys from
+ *
+ * @example
+ * ```ts
+ * const validators: PropertyValidators<'string'> = {
+ *   string: (value) => value.length > 0,
+ * };
+ * ```
+ */
+export type PropertyValidators<Value> = {
+	[Key in ExtractValueNames<Value>]?:
+		| ((value: Values[Key]) => boolean)
+		| Array<(value: Values[Key]) => boolean>;
+};

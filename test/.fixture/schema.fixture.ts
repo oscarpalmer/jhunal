@@ -1,4 +1,7 @@
-import {MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED, TEMPLATE_PATTERN} from '../../src/constants';
+import {
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED,
+	TEMPLATE_PATTERN,
+} from '../../src/constants';
 import {Schema} from '../../src/models/schema.plain.model';
 import {values} from './helpers.fixture';
 import {TestItem} from './models.fixture';
@@ -26,7 +29,9 @@ export const basic = {
 		symbol: 'symbol',
 		undefined: 'undefined',
 	} satisfies Schema,
+	keys: [] as unknown[] as string[],
 	length: -1,
+	types: [] as unknown[] as unknown[][],
 	values: [] as unknown[],
 };
 
@@ -43,6 +48,34 @@ const basicValue = {
 	symbol: Symbol('symbol'),
 	undefined: undefined,
 };
+
+basic.keys = [
+	'array',
+	'bigint',
+	'boolean',
+	'date',
+	'function',
+	'null',
+	'number',
+	'object',
+	'string',
+	'symbol',
+	'undefined',
+];
+
+basic.types = [
+	['array', 'a'],
+	['bigint', 'b'],
+	['boolean', 'c'],
+	['date', 'd'],
+	['function', 'e'],
+	['null', 'f'],
+	['number', 'g'],
+	['object', 'h'],
+	['string', 123],
+	['symbol', 'j'],
+	['undefined', 'k'],
+];
 
 basic.values = [
 	...values,
@@ -63,7 +96,8 @@ basic.values = [
 basic.length = basic.values.length;
 
 export const complex = {
-	errors: [MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED.replace(TEMPLATE_PATTERN, 'n')],
+	errors: [SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED.replace(TEMPLATE_PATTERN, 'n')],
+	keys: [] as string[],
 	length: -1,
 	schema: {
 		arrayOrBigInt: ['array', 'bigint'],
@@ -99,6 +133,7 @@ export const complex = {
 		stringOrSymbol: ['string', 'symbol'],
 		undefinedOrArray: ['undefined', 'array'],
 	} satisfies Schema,
+	types: [] as unknown[][],
 	values: [] as unknown[],
 };
 
@@ -145,15 +180,40 @@ const thirdComplex = {
 	object: new Map(),
 };
 
+complex.keys = [
+	'arrayOrBigInt',
+	'booleanOrDate',
+	'functionOrNull',
+	'instance',
+	'n',
+	'numberOrObject',
+	'object',
+	'stringOrSymbol',
+	'undefinedOrArray',
+];
+
+complex.types = [
+	[complex.schema.arrayOrBigInt, 'not an array or bigint'],
+	[complex.schema.booleanOrDate, 'not a boolean or date'],
+	[complex.schema.functionOrNull, 'not a function or null'],
+	[[() => {}], 'not an instance of TestItem'],
+	[['object', 'undefined'], 'not an object or undefined'],
+	[['number', 'object'], 'not a number or object'],
+	[['object'], 'not an object'],
+	[complex.schema.stringOrSymbol, 123456789],
+	[complex.schema.undefinedOrArray, 'not undefined or array'],
+];
+
 complex.values = [
-	{...firstComplex, arrayOrBigInt: 'not an array or bigint'},
-	{...firstComplex, booleanOrDate: 'not a boolean or date'},
-	{...firstComplex, functionOrNull: 'not a function or null'},
-	{...firstComplex, instance: 'not an instance of TestItem'},
-	{...firstComplex, n: 'not an object'},
-	{...firstComplex, numberOrObject: 'not a number or object'},
-	{...firstComplex, stringOrSymbol: 123456789},
-	{...firstComplex, undefinedOrArray: 'not undefined or array'},
+	{...firstComplex, arrayOrBigInt: complex.types[0][1]},
+	{...firstComplex, booleanOrDate: complex.types[1][1]},
+	{...firstComplex, functionOrNull: complex.types[2][1]},
+	{...firstComplex, instance: complex.types[3][1]},
+	{...firstComplex, n: complex.types[4][1]},
+	{...firstComplex, numberOrObject: complex.types[5][1]},
+	{...firstComplex, object: complex.types[6][1]},
+	{...firstComplex, stringOrSymbol: complex.types[7][1]},
+	{...firstComplex, undefinedOrArray: complex.types[8][1]},
 	firstComplex,
 	secondComplex,
 	thirdComplex,

@@ -2,20 +2,18 @@ import {isConstructor, isPlainObject} from '@oscarpalmer/atoms/is';
 import type {PlainObject} from '@oscarpalmer/atoms/models';
 import {join} from '@oscarpalmer/atoms/string';
 import {
-	MESSAGE_SCHEMA_INVALID_EMPTY,
-	MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED,
-	MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE,
-	MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED,
-	MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE,
-	MESSAGE_VALIDATOR_INVALID_KEY,
-	MESSAGE_VALIDATOR_INVALID_TYPE,
-	MESSAGE_VALIDATOR_INVALID_VALUE,
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_EMPTY,
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED,
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE,
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED,
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE,
+	SCHEMATIC_MESSAGE_VALIDATOR_INVALID_KEY,
+	SCHEMATIC_MESSAGE_VALIDATOR_INVALID_TYPE,
+	SCHEMATIC_MESSAGE_VALIDATOR_INVALID_VALUE,
 	PROPERTY_REQUIRED,
-	PROPERTY_TYPE /*  */,
+	PROPERTY_TYPE,
 	PROPERTY_VALIDATORS,
 	TEMPLATE_PATTERN,
-	TEMPLATE_PATTERN_KEY,
-	TEMPLATE_PATTERN_PROPERTY,
 	TYPE_ALL,
 	TYPE_OBJECT,
 	TYPE_UNDEFINED,
@@ -50,7 +48,7 @@ export function getProperties(
 	fromType?: boolean,
 ): ValidatedProperty[] {
 	if (Object.keys(original).length === 0) {
-		throw new SchematicError(MESSAGE_SCHEMA_INVALID_EMPTY);
+		throw new SchematicError(SCHEMATIC_MESSAGE_SCHEMA_INVALID_EMPTY);
 	}
 
 	if (fromType ?? false) {
@@ -58,10 +56,10 @@ export function getProperties(
 
 		if (property != null) {
 			throw new SchematicError(
-				MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED.replace(TEMPLATE_PATTERN_KEY, prefix!).replace(
-					TEMPLATE_PATTERN_PROPERTY,
-					property,
-				),
+				SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED.replace(
+					TEMPLATE_PATTERN,
+					prefix!,
+				).replace(TEMPLATE_PATTERN, property),
 			);
 		}
 	}
@@ -74,14 +72,12 @@ export function getProperties(
 	for (let keyIndex = 0; keyIndex < keysLength; keyIndex += 1) {
 		const key = keys[keyIndex];
 
+		const prefixed = join([prefix, key], '.');
 		const value = original[key];
 
 		if (value == null) {
 			throw new SchematicError(
-				MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE.replace(
-					TEMPLATE_PATTERN,
-					join([prefix, key], '.'),
-				),
+				SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE.replace(TEMPLATE_PATTERN, prefixed),
 			);
 		}
 
@@ -94,11 +90,9 @@ export function getProperties(
 			required = getRequired(key, value) ?? required;
 			validators = getValidators(value[PROPERTY_VALIDATORS]);
 
-			if (PROPERTY_TYPE in value) {
-				types.push(TYPE_OBJECT, ...getTypes(key, value[PROPERTY_TYPE], prefix, true));
-			} else {
-				types.push(TYPE_OBJECT, ...getTypes(key, value, prefix));
-			}
+			const hasType = PROPERTY_TYPE in value;
+
+			types.push(...getTypes(key, hasType ? value[PROPERTY_TYPE] : value, prefix, hasType));
 		} else {
 			types.push(...getTypes(key, value, prefix));
 		}
@@ -108,9 +102,12 @@ export function getProperties(
 		}
 
 		properties.push({
-			key,
 			types,
 			validators,
+			key: {
+				full: prefixed,
+				short: key,
+			},
 			required: required && !types.includes(TYPE_UNDEFINED),
 		});
 	}
@@ -125,7 +122,7 @@ function getRequired(key: string, obj: PlainObject): boolean | undefined {
 
 	if (typeof obj[PROPERTY_REQUIRED] !== 'boolean') {
 		throw new SchematicError(
-			MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED.replace(TEMPLATE_PATTERN, key),
+			SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED.replace(TEMPLATE_PATTERN, key),
 		);
 	}
 
@@ -152,7 +149,7 @@ function getTypes(
 				break;
 
 			case isPlainObject(value):
-				types.push(...getProperties(value, join([prefix, key], '.'), fromType));
+				types.push(getProperties(value, join([prefix, key], '.'), fromType));
 				break;
 
 			case isSchematic(value):
@@ -165,14 +162,20 @@ function getTypes(
 
 			default:
 				throw new SchematicError(
-					MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE.replace(TEMPLATE_PATTERN, join([prefix, key], '.')),
+					SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE.replace(
+						TEMPLATE_PATTERN,
+						join([prefix, key], '.'),
+					),
 				);
 		}
 	}
 
 	if (types.length === 0) {
 		throw new SchematicError(
-			MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE.replace(TEMPLATE_PATTERN, join([prefix, key], '.')),
+			SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE.replace(
+				TEMPLATE_PATTERN,
+				join([prefix, key], '.'),
+			),
 		);
 	}
 
@@ -187,7 +190,7 @@ function getValidators(original: unknown): ValidatedPropertyValidators {
 	}
 
 	if (!isPlainObject(original)) {
-		throw new TypeError(MESSAGE_VALIDATOR_INVALID_TYPE);
+		throw new TypeError(SCHEMATIC_MESSAGE_VALIDATOR_INVALID_TYPE);
 	}
 
 	const keys = Object.keys(original);
@@ -197,17 +200,19 @@ function getValidators(original: unknown): ValidatedPropertyValidators {
 		const key = keys[index];
 
 		if (!VALIDATABLE_TYPES.has(key as never)) {
-			throw new TypeError(MESSAGE_VALIDATOR_INVALID_KEY.replace(TEMPLATE_PATTERN, key));
+			throw new TypeError(SCHEMATIC_MESSAGE_VALIDATOR_INVALID_KEY.replace(TEMPLATE_PATTERN, key));
 		}
 
 		const value = (original as PlainObject)[key];
 
-		validators[key as ValueName] = (Array.isArray(value) ? value : [value]).filter(item => {
+		validators[key as ValueName] = (Array.isArray(value) ? value : [value]).map(item => {
 			if (typeof item !== 'function') {
-				throw new TypeError(MESSAGE_VALIDATOR_INVALID_VALUE.replace(TEMPLATE_PATTERN, key));
+				throw new TypeError(
+					SCHEMATIC_MESSAGE_VALIDATOR_INVALID_VALUE.replace(TEMPLATE_PATTERN, key),
+				);
 			}
 
-			return true;
+			return item;
 		});
 	}
 

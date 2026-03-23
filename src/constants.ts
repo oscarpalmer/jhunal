@@ -1,49 +1,106 @@
 import type {ValueName} from './models/misc.model';
+import type {ReportingType} from './models/validation.model';
 
-export const ERROR_NAME = 'SchematicError';
+// #region Misc.
 
 export const MESSAGE_CONSTRUCTOR = 'Expected a constructor function';
 
-export const MESSAGE_SCHEMA_INVALID_EMPTY = 'Schema must have at least one property';
+// #endregion
 
-export const MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED =
-	"'<key>.<property>' property is not allowed for schemas in $type";
+// #region Names
 
-export const MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE =
-	"'<>' property must not be 'null' or 'undefined'";
+export const NAME_SCHEMATIC = 'Schematic';
 
-export const MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED = "'<>.$required' property must be a boolean";
+export const NAME_ERROR_SCHEMATIC = 'SchematicError';
 
-export const MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE = "'<>' property must be of a valid type";
+export const NAME_ERROR_VALIDATION = 'ValidationError';
 
-export const MESSAGE_SCHEMA_INVALID_TYPE = 'Schema must be an object';
+// #endregion
 
-export const MESSAGE_VALIDATOR_INVALID_KEY = "Validator '<>' does not exist";
-
-export const MESSAGE_VALIDATOR_INVALID_TYPE = 'Validators must be an object';
-
-export const MESSAGE_VALIDATOR_INVALID_VALUE =
-	"Validator '<>' must be a function or an array of functions";
+// #region Properties
 
 export const PROPERTY_REQUIRED = '$required';
+
+export const PROPERTY_SCHEMATIC = '$schematic';
 
 export const PROPERTY_TYPE = '$type';
 
 export const PROPERTY_VALIDATORS = '$validators';
 
-export const REPORTING_NONE = 'none';
+// #endregion
 
-export const REPORTING_THROW = 'throw';
+// #region Property validation
 
-export const REPORTING_TYPES = new Set([REPORTING_NONE, REPORTING_THROW]);
+export const VALIDATION_MESSAGE_INVALID_INPUT = "Expected 'object' as input but received <>";
 
-export const SCHEMATIC_NAME = '$schematic';
+export const VALIDATION_MESSAGE_INVALID_REQUIRED = "Expected <> for required property '<>'";
+
+export const VALIDATION_MESSAGE_INVALID_TYPE = "Expected <> for '<>' but received <>";
+
+export const VALIDATION_MESSAGE_INVALID_VALUE =
+	"Value does not satisfy validator for '<>' and type '<>'";
+
+export const VALIDATION_MESSAGE_INVALID_VALUE_SUFFIX = ' at index <>';
+
+// #endregion
+
+// #region Reporting
+
+export const REPORTING_ALL: ReportingType = 'all';
+
+export const REPORTING_FIRST: ReportingType = 'first';
+
+export const REPORTING_NONE: ReportingType = 'none';
+
+export const REPORTING_THROW: ReportingType = 'throw';
+
+export const REPORTING_TYPES = new Set<ReportingType>([
+	REPORTING_ALL,
+	REPORTING_FIRST,
+	REPORTING_NONE,
+	REPORTING_THROW,
+]);
+
+// #endregion
+
+// #region Schematic validation
+
+export const SCHEMATIC_MESSAGE_SCHEMA_INVALID_EMPTY = 'Schema must have at least one property';
+
+export const SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED =
+	"'<>.<>' property is not allowed for schemas in $type";
+
+export const SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE =
+	"'<>' property must not be 'null' or 'undefined'";
+
+export const SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED =
+	"'<>.$required' property must be a boolean";
+
+export const SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE =
+	"'<>' property must be of a valid type";
+
+export const SCHEMATIC_MESSAGE_SCHEMA_INVALID_TYPE = 'Schema must be an object';
+
+export const SCHEMATIC_MESSAGE_VALIDATOR_INVALID_KEY = "Validator '<>' does not exist";
+
+export const SCHEMATIC_MESSAGE_VALIDATOR_INVALID_TYPE = 'Validators must be an object';
+
+export const SCHEMATIC_MESSAGE_VALIDATOR_INVALID_VALUE =
+	"Validator '<>' must be a function or an array of functions";
+
+// #endregion
+
+// #region Templates
 
 export const TEMPLATE_PATTERN = '<>';
 
-export const TEMPLATE_PATTERN_KEY = '<key>';
+// #endregion
 
-export const TEMPLATE_PATTERN_PROPERTY = '<property>';
+// #region Types
+
+export const TYPE_ARRAY = 'array';
+
+export const TYPE_NULL = 'null';
 
 export const TYPE_OBJECT = 'object';
 
@@ -62,3 +119,5 @@ export const VALIDATABLE_TYPES = new Set<ValueName>([
 ]);
 
 export const TYPE_ALL = new Set<ValueName>([...VALIDATABLE_TYPES, 'null', TYPE_UNDEFINED]);
+
+// #endregion

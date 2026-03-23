@@ -1,6 +1,6 @@
 {
   "name": "@oscarpalmer/jhunal",
-  "version": "0.17.0",
+  "version": "0.18.0",
   "description": "Flies free beneath the glistening moons…",
   "keywords": [
     "schema",
@@ -38,7 +38,7 @@
     "watch": "npx vite build --watch"
   },
   "dependencies": {
-    "@oscarpalmer/atoms": "^0.168"
+    "@oscarpalmer/atoms": "^0.169"
   },
   "devDependencies": {
     "@types/node": "^25.5",
