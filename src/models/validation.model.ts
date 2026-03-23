@@ -116,6 +116,7 @@ export type ValidationInformation = {
 	key: ValidationInformationKey;
 	message: string;
 	validator?: GenericCallback;
+	value: unknown;
 };
 
 export type ValidationInformationKey = ValidatedPropertyKey;

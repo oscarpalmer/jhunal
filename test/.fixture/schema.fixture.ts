@@ -81,7 +81,7 @@ basic.values = [
 	...values,
 	{...basicValue, array: 'not an array'},
 	{...basicValue, bigint: 'not a bigint'},
-	{...basicValue, boolean: 'not a boolean'},
+	{...basicValue, boolean: 'not a boolean', number: true, object: undefined},
 	{...basicValue, date: 'not a date'},
 	{...basicValue, function: 'not a function'},
 	{...basicValue, null: 'not null'},

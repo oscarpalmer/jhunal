@@ -1,5 +1,6 @@
 import {isPlainObject} from '@oscarpalmer/atoms/is';
 import type {GenericCallback} from '@oscarpalmer/atoms/models';
+import {TYPE_OBJECT} from '../constants';
 import {
 	getInvalidInputMessage,
 	getInvalidMissingMessage,
@@ -39,6 +40,7 @@ function validateNamed(
 
 		if (!validator(value)) {
 			validation.push({
+				value,
 				key: {...property.key},
 				message: getInvalidValidatorMessage(property, name, index, length),
 				validator: validator as GenericCallback,
@@ -55,20 +57,25 @@ export function validateObject(
 	obj: unknown,
 	properties: ValidatedProperty[],
 	reporting: ReportingInformation,
+	property?: ValidatedProperty,
 	validation?: ValidationInformation[],
-): boolean {
+): boolean | ValidationInformation[] {
 	if (!isPlainObject(obj)) {
-		if (reporting.throw && validation == null) {
-			throw new ValidationError([
-				{
-					key: {full: '', short: ''},
-					message: getInvalidInputMessage(obj),
-				},
-			]);
+		const information = {
+			key: {full: '', short: ''},
+			message:
+				property == null ? getInvalidInputMessage(obj) : getInvalidTypeMessage(property, obj),
+			value: obj,
+		};
+
+		if (reporting.throw) {
+			throw new ValidationError([information]);
 		}
 
-		return false;
+		return reporting.none ? false : [information];
 	}
+
+	const allInformation: ValidationInformation[] = [];
 
 	const propertiesLength = properties.length;
 
@@ -81,6 +88,7 @@ export function validateObject(
 
 		if (value === undefined && required) {
 			const information: ValidationInformation = {
+				value,
 				key: {...key},
 				message: getInvalidMissingMessage(property),
 			};
@@ -93,7 +101,13 @@ export function validateObject(
 				validation.push(information);
 			}
 
-			return false;
+			if (reporting.all) {
+				allInformation.push(information);
+
+				continue;
+			}
+
+			return reporting.none ? false : [information];
 		}
 
 		const typesLength = types.length;
@@ -108,25 +122,30 @@ export function validateObject(
 			}
 		}
 
+		if (information.length === 0) {
+			information.push({
+				value,
+				key: {...key},
+				message: getInvalidTypeMessage(property, value),
+			});
+		}
+
 		if (reporting.throw && validation == null) {
-			throw new ValidationError(
-				information.length === 0
-					? [
-							{
-								key: {...key},
-								message: getInvalidTypeMessage(property, value),
-							},
-						]
-					: information,
-			);
+			throw new ValidationError(information);
 		}
 
 		validation?.push(...information);
 
-		return false;
+		if (reporting.all) {
+			allInformation.push(...information);
+
+			continue;
+		}
+
+		return reporting.none ? false : information;
 	}
 
-	return true;
+	return reporting.none ? true : allInformation.length === 0 ? true : allInformation;
 }
 
 function validateValue(
@@ -136,27 +155,21 @@ function validateValue(
 	reporting: ReportingInformation,
 	validation: ValidationInformation[],
 ): boolean {
-	let result: boolean;
-
 	switch (true) {
 		case typeof type === 'function':
-			result = (type as GenericCallback)(value);
-			break;
+			return (type as GenericCallback)(value);
 
-		case Array.isArray(type):
-			result = validateObject(value, type, reporting, validation);
-			break;
+		case Array.isArray(type): {
+			const nested = validateObject(value, type, reporting, property, validation);
+			return typeof nested !== 'boolean' ? false : nested;
+		}
 
 		case isSchematic(type):
-			result = type.is(value, reporting as never) as unknown as boolean;
-			break;
+			return type.is(value, reporting as never) as unknown as boolean;
 
 		default:
-			result = validateNamed(property, type as ValueName, value, validation);
-			break;
+			return validateNamed(property, type as ValueName, value, validation);
 	}
-
-	return result;
 }
 
 //
@@ -169,7 +182,7 @@ const validators: Record<ValueName, (value: unknown) => boolean> = {
 	function: value => typeof value === 'function',
 	null: value => value === null,
 	number: value => typeof value === 'number',
-	object: value => typeof value === 'object' && value !== null,
+	object: value => typeof value === TYPE_OBJECT && value !== null,
 	string: value => typeof value === 'string',
 	symbol: value => typeof value === 'symbol',
 	undefined: value => value === undefined,
