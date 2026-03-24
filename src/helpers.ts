@@ -1,6 +1,11 @@
 import {isConstructor, isPlainObject} from '@oscarpalmer/atoms/is';
 import type {Constructor} from '@oscarpalmer/atoms/models';
 import {
+	COMMA,
+	CONJUNCTION_AND,
+	CONJUNCTION_AND_COMMA,
+	CONJUNCTION_OR,
+	CONJUNCTION_OR_COMMA,
 	MESSAGE_CONSTRUCTOR,
 	NAME_SCHEMATIC,
 	PROPERTY_SCHEMATIC,
@@ -19,6 +24,7 @@ import {
 	VALIDATION_MESSAGE_INVALID_TYPE,
 	VALIDATION_MESSAGE_INVALID_VALUE,
 	VALIDATION_MESSAGE_INVALID_VALUE_SUFFIX,
+	VALIDATION_MESSAGE_UNKNOWN_KEYS,
 } from './constants';
 import type {ValueName} from './models/misc.model';
 import type {
@@ -73,6 +79,29 @@ export function getInvalidValidatorMessage(
 	return message;
 }
 
+export function getOptions(input: unknown) {
+	if (typeof input === 'boolean') {
+		return {
+			reporting: getReporting(REPORTING_NONE),
+			strict: input,
+		};
+	}
+
+	if (REPORTING_TYPES.has(input as ReportingType)) {
+		return {
+			reporting: getReporting(input as ReportingType),
+			strict: false,
+		};
+	}
+
+	const options = isPlainObject(input) ? input : {};
+
+	return {
+		reporting: getReporting(options.errors),
+		strict: typeof options.strict === 'boolean' ? options.strict : false,
+	};
+}
+
 function getPropertyType(original: ValidatedPropertyType): string {
 	if (typeof original === 'function') {
 		return 'a validated value';
@@ -95,11 +124,16 @@ export function getReporting(value: unknown): ReportingInformation {
 		: REPORTING_NONE;
 
 	return {
+		type,
 		[REPORTING_ALL]: type === REPORTING_ALL,
 		[REPORTING_FIRST]: type === REPORTING_FIRST,
 		[REPORTING_NONE]: type === REPORTING_NONE,
 		[REPORTING_THROW]: type === REPORTING_THROW,
 	} as ReportingInformation;
+}
+
+export function getUnknownKeysMessage(keys: string[]): string {
+	return VALIDATION_MESSAGE_UNKNOWN_KEYS.replace(TEMPLATE_PATTERN, renderKeys(keys));
 }
 
 function getValueType(value: unknown): string {
@@ -161,6 +195,32 @@ export function isSchematic(value: unknown): value is Schematic<never> {
 	);
 }
 
+function renderKeys(keys: string[]): string {
+	return renderParts(keys.map(key => `'${key}'`), CONJUNCTION_AND, CONJUNCTION_AND_COMMA);
+}
+
+function renderParts(parts: string[], delimiterShort: string, delimiterLong: string): string {
+	const {length} = parts;
+
+	if (length === 1) {
+		return parts[0];
+	}
+
+	let rendered = '';
+
+	for (let index = 0; index < length; index += 1) {
+		rendered += parts[index];
+
+		if (index < length - 2) {
+			rendered += COMMA;
+		} else if (index === length - 2) {
+			rendered += parts.length > 2 ? delimiterLong : delimiterShort;
+		}
+	}
+
+	return rendered;
+}
+
 function renderTypes(types: ValidatedPropertyType[]): string {
 	const unique = new Set<string>();
 	const parts: string[] = [];
@@ -176,19 +236,5 @@ function renderTypes(types: ValidatedPropertyType[]): string {
 		parts.push(rendered);
 	}
 
-	const {length} = parts;
-
-	let rendered = '';
-
-	for (let index = 0; index < length; index += 1) {
-		rendered += parts[index];
-
-		if (index < length - 2) {
-			rendered += ', ';
-		} else if (index === length - 2) {
-			rendered += parts.length > 2 ? ', or ' : ' or ';
-		}
-	}
-
-	return rendered;
+	return renderParts(parts, CONJUNCTION_OR, CONJUNCTION_OR_COMMA);
 }

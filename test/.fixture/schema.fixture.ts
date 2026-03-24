@@ -6,6 +6,7 @@ import {
 	getInvalidInputMessage,
 	getInvalidMissingMessage,
 	getInvalidTypeMessage,
+	getUnknownKeysMessage,
 } from '../../src/helpers';
 import {Schema} from '../../src/models/schema.plain.model';
 import {schematic} from '../../src/schematic';
@@ -379,25 +380,108 @@ export const complex = {
 
 // #endregion
 
-// #region Typed ---
+// #region Schematics
 
-const Inner = schematic<InnerSchema>({
+const schematicsInner = schematic({
+	message: 'string',
+});
+
+const schematicsMiddle = schematic({
+	inner: schematicsInner,
+});
+
+const schematicsOuter = schematic({
+	middle: schematicsMiddle,
+});
+
+const schematicsError = getInvalidTypeMessage(
+	getProperty('middle.inner.message', ['string']),
+	123456789,
+);
+
+const schematicsInput = {
+	middle: {
+		inner: {
+			message: 123456789,
+		},
+	},
+};
+
+export const schematics = {
+	cases: {
+		all: {
+			error: schematicsError,
+			input: schematicsInput,
+			ok: false,
+		},
+		first: {
+			error: schematicsError,
+			input: schematicsInput,
+			ok: false,
+		},
+		none: {
+			input: schematicsInput,
+			result: false,
+		},
+	},
+	instance: schematicsOuter,
+};
+
+// #endregion
+
+// #region Strictness
+
+export const strictness = {
+	cases: {
+		basic: {
+			error: getUnknownKeysMessage(['unknown']),
+			input: {
+				nested: {
+					message: 'hello, world!',
+				},
+				unknown: 'i should not be here',
+			},
+			ok: false,
+		},
+		nested: {
+			error: getUnknownKeysMessage(['nested.unknown']),
+			input: {
+				nested: {
+					message: 'hello, world!',
+					unknown: 'i should not be here',
+				},
+			},
+			ok: false,
+		},
+	},
+	instance: schematic({
+		nested: {
+			message: 'string',
+		},
+	}),
+};
+
+// #endregion
+
+// #region Typed
+
+const typedInner = schematic<InnerSchema>({
 	message: 'string',
 	test: value => value instanceof TestItem,
 });
 
 export const typed = {
-	inner: Inner,
+	inner: typedInner,
 	cases: [
 		{
 			input: {},
 			ok: false,
-			error: getInvalidMissingMessage(getProperty('inner', [Inner])),
+			error: getInvalidMissingMessage(getProperty('inner', [typedInner])),
 		},
 		{
 			input: {inner: 'not matching inner schema'},
 			ok: false,
-			error: getInvalidTypeMessage(getProperty('inner', [Inner]), 'not matching inner schema'),
+			error: getInvalidTypeMessage(getProperty('inner', [typedInner]), 'not matching inner schema'),
 		},
 		{
 			input: {

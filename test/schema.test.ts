@@ -2,7 +2,14 @@ import {Err} from '@oscarpalmer/atoms/result/models';
 import {expect, test} from 'vitest';
 import {ValidationInformation} from '../src/models/validation.model';
 import {schematic} from '../src/schematic';
-import {basic, complex, typed, type OuterSchema} from './.fixture/schema.fixture';
+import {
+	basic,
+	complex,
+	schematics,
+	strictness,
+	typed,
+	type OuterSchema,
+} from './.fixture/schema.fixture';
 
 test('basic', () => {
 	const instance = schematic(basic.schema);
@@ -118,6 +125,59 @@ test('complex: throw', () => {
 			},
 		} as never),
 	).toThrow(complex.errors[0]);
+});
+
+test('schematics', () => {
+	const all = schematics.instance.is(schematics.cases.all.input, 'all');
+
+	expect(all.ok).toBe(schematics.cases.all.ok);
+
+	const errors = (all as Err<ValidationInformation[]>).error;
+
+	expect(errors).toHaveLength(1);
+	expect(errors[0].message).toBe(schematics.cases.all.error);
+
+	const first = schematics.instance.is(schematics.cases.first.input, 'first');
+
+	expect(first.ok).toBe(schematics.cases.first.ok);
+
+	const error = (first as Err<ValidationInformation>).error;
+
+	expect(error.message).toBe(schematics.cases.first.error);
+
+	expect(schematics.instance.is(schematics.cases.none.input)).toBe(schematics.cases.none.result);
+});
+
+test('strictness', () => {
+	expect(
+		strictness.instance.is(strictness.cases.basic.input, true),
+	).toEqual(false);
+
+	const basic = strictness.instance.is(strictness.cases.basic.input, {
+		errors: 'first',
+		strict: true,
+	});
+
+	expect(basic.ok).toBe(strictness.cases.basic.ok);
+
+	const basicError = (basic as Err<ValidationInformation>).error;
+
+	expect(basicError.message).toBe(strictness.cases.basic.error);
+
+	const nested = strictness.instance.is(strictness.cases.nested.input, {
+		errors: 'first',
+		strict: true,
+	});
+
+	expect(nested.ok).toBe(strictness.cases.nested.ok);
+
+	const nestedError = (nested as Err<ValidationInformation>).error;
+
+	expect(nestedError.message).toBe(strictness.cases.nested.error);
+
+	expect(() =>
+		strictness.instance.is(strictness.cases.basic.input, {strict: true, errors: 'throw'}),
+	).toThrow(strictness.cases.basic.error);
 });
 
 test('typed', () => {

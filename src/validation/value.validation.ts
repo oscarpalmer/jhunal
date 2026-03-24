@@ -1,21 +1,24 @@
 import {isPlainObject} from '@oscarpalmer/atoms/is';
 import type {GenericCallback} from '@oscarpalmer/atoms/models';
+import {join} from '@oscarpalmer/atoms/string';
 import {TYPE_OBJECT} from '../constants';
 import {
 	getInvalidInputMessage,
 	getInvalidMissingMessage,
 	getInvalidTypeMessage,
 	getInvalidValidatorMessage,
+	getUnknownKeysMessage,
 	isSchematic,
 } from '../helpers';
 import type {ValueName} from '../models/misc.model';
 import {
 	ValidationError,
-	type ReportingInformation,
 	type ValidatedProperty,
 	type ValidatedPropertyType,
 	type ValidationInformation,
+	type ValidationOptionsExtended,
 } from '../models/validation.model';
+import {schematicProperties, type Schematic} from '../schematic';
 
 function validateNamed(
 	property: ValidatedProperty,
@@ -56,23 +59,61 @@ function validateNamed(
 export function validateObject(
 	obj: unknown,
 	properties: ValidatedProperty[],
-	reporting: ReportingInformation,
-	property?: ValidatedProperty,
+	options: ValidationOptionsExtended,
+	origin?: ValidatedProperty,
 	validation?: ValidationInformation[],
 ): boolean | ValidationInformation[] {
 	if (!isPlainObject(obj)) {
+		const key = origin == null ? {full: '', short: ''} : {...origin.key};
+
 		const information = {
-			key: {full: '', short: ''},
+			key,
 			message:
-				property == null ? getInvalidInputMessage(obj) : getInvalidTypeMessage(property, obj),
+				origin == null
+					? getInvalidInputMessage(obj)
+					: getInvalidTypeMessage(
+							{
+								...origin,
+								key,
+							},
+							obj,
+						),
 			value: obj,
 		};
 
-		if (reporting.throw) {
+		if (options.reporting.throw) {
 			throw new ValidationError([information]);
 		}
 
-		return reporting.none ? false : [information];
+		validation?.push(information);
+
+		return options.reporting.none ? false : [information];
+	}
+
+	if (options.strict) {
+		const objKeys = Object.keys(obj);
+
+		const propertiesKeys = new Set(properties.map(property => property.key.short));
+
+		const unknownKeys = objKeys.filter(key => !propertiesKeys.has(key));
+
+		if (unknownKeys.length > 0) {
+			const key = origin == null ? {full: '', short: ''} : {...origin.key};
+
+			const information: ValidationInformation = {
+				key,
+				message: getUnknownKeysMessage(unknownKeys.map(key => join([origin?.key.full, key], '.'))),
+				value: obj,
+			};
+
+			if (options.reporting.throw) {
+				throw new ValidationError([information]);
+			}
+
+			validation?.push(information);
+
+			return options.reporting.none ? false : [information];
+		}
 	}
 
 	const allInformation: ValidationInformation[] = [];
@@ -80,7 +121,15 @@ export function validateObject(
 	const propertiesLength = properties.length;
 
 	outer: for (let propertyIndex = 0; propertyIndex < propertiesLength; propertyIndex += 1) {
-		const property = properties[propertyIndex];
+		let property = properties[propertyIndex];
+
+		property = {
+			...property,
+			key: {
+				full: join([origin?.key.full, property.key.short], '.'),
+				short: property.key.short,
+			},
+		};
 
 		const {key, required, types} = property;
 
@@ -93,7 +142,7 @@ export function validateObject(
 				message: getInvalidMissingMessage(property),
 			};
 
-			if (reporting.throw && validation == null) {
+			if (options.reporting.throw && validation == null) {
 				throw new ValidationError([information]);
 			}
 
@@ -101,13 +150,13 @@ export function validateObject(
 				validation.push(information);
 			}
 
-			if (reporting.all) {
+			if (options.reporting.all) {
 				allInformation.push(information);
 
 				continue;
 			}
 
-			return reporting.none ? false : [information];
+			return options.reporting.none ? false : [information];
 		}
 
 		const typesLength = types.length;
@@ -117,7 +166,7 @@ export function validateObject(
 		for (let typeIndex = 0; typeIndex < typesLength; typeIndex += 1) {
 			const type = types[typeIndex];
 
-			if (validateValue(type, property, value, reporting, information)) {
+			if (validateValue(type, property, value, options, information)) {
 				continue outer;
 			}
 		}
@@ -130,29 +179,43 @@ export function validateObject(
 			});
 		}
 
-		if (reporting.throw && validation == null) {
+		if (options.reporting.throw && validation == null) {
 			throw new ValidationError(information);
 		}
 
 		validation?.push(...information);
 
-		if (reporting.all) {
+		if (options.reporting.all) {
 			allInformation.push(...information);
 
 			continue;
 		}
 
-		return reporting.none ? false : information;
+		return options.reporting.none ? false : information;
 	}
 
-	return reporting.none ? true : allInformation.length === 0 ? true : allInformation;
+	return options.reporting.none || allInformation.length === 0 ? true : allInformation;
+}
+
+function validateSchematic(
+	property: ValidatedProperty,
+	schematic: Schematic<unknown>,
+	value: unknown,
+	options: ValidationOptionsExtended,
+	validation: ValidationInformation[],
+): boolean {
+	const properties = schematicProperties.get(schematic)!;
+
+	const result = validateObject(value, properties, options, property, validation);
+
+	return typeof result === 'boolean' ? result : result.length === 0;
 }
 
 function validateValue(
 	type: ValidatedPropertyType,
 	property: ValidatedProperty,
 	value: unknown,
-	reporting: ReportingInformation,
+	options: ValidationOptionsExtended,
 	validation: ValidationInformation[],
 ): boolean {
 	switch (true) {
@@ -160,12 +223,13 @@ function validateValue(
 			return (type as GenericCallback)(value);
 
 		case Array.isArray(type): {
-			const nested = validateObject(value, type, reporting, property, validation);
-			return typeof nested !== 'boolean' ? false : nested;
+			const validated = validateObject(value, type, options, property, validation);
+
+			return typeof validated === 'boolean' ? validated : false;
 		}
 
 		case isSchematic(type):
-			return type.is(value, reporting as never) as unknown as boolean;
+			return validateSchematic(property, type, value, options, validation);
 
 		default:
 			return validateNamed(property, type as ValueName, value, validation);

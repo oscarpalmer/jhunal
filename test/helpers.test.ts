@@ -1,8 +1,8 @@
 import {expect, test} from 'vitest';
 import {MESSAGE_CONSTRUCTOR} from '../src/constants';
-import {getInvalidTypeMessage, instanceOf, isSchematic} from '../src/helpers';
+import {getInvalidTypeMessage, getOptions, instanceOf, isSchematic} from '../src/helpers';
 import {schematic} from '../src/schematic';
-import {cases, length, values} from './.fixture/helpers.fixture';
+import {cases, length, options, values} from './.fixture/helpers.fixture';
 import {TestItem} from './.fixture/models.fixture';
 
 test('getInvalidTypeMessage', () => {
@@ -19,6 +19,17 @@ test('getInvalidTypeMessage', () => {
 			),
 		).toBe(item.expected);
 	}
+});
+
+test('getOptions', () => {
+	expect(getOptions(options.errors.invalid.input)).toEqual(options.errors.invalid.result);
+	expect(getOptions(options.errors.valid.input)).toEqual(options.errors.valid.result);
+
+	expect(getOptions(options.object.invalid.input)).toEqual(options.object.invalid.result);
+	expect(getOptions(options.object.valid.input)).toEqual(options.object.valid.result);
+
+	expect(getOptions(options.strict.invalid.input)).toEqual(options.strict.invalid.result);
+	expect(getOptions(options.strict.valid.input)).toEqual(options.strict.valid.result);
 });
 
 test('instanceOf', () => {

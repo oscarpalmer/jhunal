@@ -1,6 +1,20 @@
 import type {ValueName} from './models/misc.model';
 import type {ReportingType} from './models/validation.model';
 
+// #region Grammar
+
+export const COMMA = ', ';
+
+export const CONJUNCTION_OR = ' or ';
+
+export const CONJUNCTION_OR_COMMA = ', or ';
+
+export const CONJUNCTION_AND = ' and ';
+
+export const CONJUNCTION_AND_COMMA = ', and ';
+
+// #endregion
+
 // #region Misc.
 
 export const MESSAGE_CONSTRUCTOR = 'Expected a constructor function';
@@ -41,6 +55,8 @@ export const VALIDATION_MESSAGE_INVALID_VALUE =
 	"Value does not satisfy validator for '<>' and type '<>'";
 
 export const VALIDATION_MESSAGE_INVALID_VALUE_SUFFIX = ' at index <>';
+
+export const VALIDATION_MESSAGE_UNKNOWN_KEYS = 'Found keys that are not defined in the schema: <>';
 
 // #endregion
 

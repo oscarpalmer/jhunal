@@ -9,7 +9,9 @@ import type {ValueName} from './misc.model';
 /**
  * Maps each {@link ReportingType} to a boolean flag
  */
-export type ReportingInformation = Record<ReportingType, boolean>;
+export type ReportingInformation = Record<ReportingType, boolean> & {
+	type: ReportingType;
+};
 
 /**
  * Controls how validation failures are reported
@@ -140,5 +142,24 @@ export type ValidationInformation = {
  * Same shape as {@link ValidatedPropertyKey}; the key path of a failed property
  */
 export type ValidationInformationKey = ValidatedPropertyKey;
+
+/**
+ * Options for validation
+ */
+export type ValidationOptions<Errors extends ReportingType> = {
+	/**
+	 * How should validation failures be reported; see {@link ReportingType} _(defaults to `'none'`)_
+	 */
+	errors?: Errors;
+	/**
+	 * Validate if unknown keys are present in the object? _(defaults to `false`)_
+	 */
+	strict?: boolean;
+};
+
+export type ValidationOptionsExtended = {
+	reporting: ReportingInformation;
+	strict: boolean;
+};
 
 // #endregion

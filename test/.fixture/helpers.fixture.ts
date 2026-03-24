@@ -35,6 +35,80 @@ export const values = [
 
 export const length = values.length;
 
+const defaultReporting = {
+	all: false,
+	first: false,
+	none: true,
+	throw: false,
+	type: 'none',
+};
+
+export const options = {
+	errors: {
+		invalid: {
+			input: 'not a valid input',
+			result: {
+				reporting: {...defaultReporting},
+				strict: false,
+			},
+		},
+		valid: {
+			input: 'all',
+			result: {
+				reporting: {
+					all: true,
+					first: false,
+					none: false,
+					throw: false,
+					type: 'all',
+				},
+				strict: false,
+			},
+		},
+	},
+	object: {
+		invalid: {
+			input: 'not a valid object',
+			result: {
+				reporting: {...defaultReporting},
+				strict: false,
+			},
+		},
+		valid: {
+			input: {
+				errors: 'first',
+				strict: true,
+			},
+			result: {
+				reporting: {
+					all: false,
+					first: true,
+					none: false,
+					throw: false,
+					type: 'first',
+				},
+				strict: true,
+			},
+		},
+	},
+	strict: {
+		invalid: {
+			input: 'not a valid input',
+			result: {
+				reporting: {...defaultReporting},
+				strict: false,
+			},
+		},
+		valid: {
+			input: true,
+			result: {
+				reporting: {...defaultReporting},
+				strict: true,
+			},
+		},
+	},
+};
+
 const property = {
 	key: {
 		full: 'nested.property',
@@ -65,10 +139,13 @@ export const cases = [
 	})),
 	{
 		property,
-		expected: getInvalidTypeMessage({
-			...property,
-			types: ['a Schematic'],
-		} as never, Simple),
+		expected: getInvalidTypeMessage(
+			{
+				...property,
+				types: ['a Schematic'],
+			} as never,
+			Simple,
+		),
 		types: ['a Schematic'],
 		value: Simple,
 	},
