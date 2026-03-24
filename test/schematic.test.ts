@@ -1,11 +1,11 @@
 import {expect, test} from 'vitest';
 import {isSchematic} from '../src/helpers';
 import {schematic} from '../src/schematic';
-import {errors, length, schema, values} from './.fixture/schematic.fixture';
+import {cases, schema} from './.fixture/schematic.fixture';
 
 test('errors', () => {
-	for (let index = 0; index < length; index += 1) {
-		expect(() => schematic(values[index] as never)).toThrow(errors[index]);
+	for (let index = 0; index < cases.length; index += 1) {
+		expect(() => schematic(cases[index].schema as never)).toThrow(cases[index].error);
 	}
 });
 

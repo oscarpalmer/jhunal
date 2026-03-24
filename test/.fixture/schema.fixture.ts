@@ -2,9 +2,17 @@ import {
 	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED,
 	TEMPLATE_PATTERN,
 } from '../../src/constants';
+import {
+	getInvalidInputMessage,
+	getInvalidMissingMessage,
+	getInvalidTypeMessage,
+} from '../../src/helpers';
 import {Schema} from '../../src/models/schema.plain.model';
-import {values} from './helpers.fixture';
+import {schematic} from '../../src/schematic';
+import {values as typeValues} from './helpers.fixture';
 import {TestItem} from './models.fixture';
+
+// #region Types
 
 export type InnerSchema = {
 	message: string;
@@ -15,25 +23,31 @@ export type OuterSchema = {
 	inner: InnerSchema;
 };
 
-export const basic = {
-	schema: {
-		array: 'array',
-		bigint: 'bigint',
-		boolean: 'boolean',
-		date: 'date',
-		function: 'function',
-		null: 'null',
-		number: 'number',
-		object: 'object',
-		string: 'string',
-		symbol: 'symbol',
-		undefined: 'undefined',
-	} satisfies Schema,
-	keys: [] as unknown[] as string[],
-	length: -1,
-	types: [] as unknown[] as unknown[][],
-	values: [] as unknown[],
-};
+// #endregion
+
+// #region Helpers
+
+function getProperty(full: string, types: unknown[], short = full) {
+	return {key: {full, short}, types} as never;
+}
+
+// #endregion
+
+// #region Basic
+
+const basicSchema = {
+	array: 'array',
+	bigint: 'bigint',
+	boolean: 'boolean',
+	date: 'date',
+	function: 'function',
+	null: 'null',
+	number: 'number',
+	object: 'object',
+	string: 'string',
+	symbol: 'symbol',
+	undefined: 'undefined',
+} satisfies Schema;
 
 const basicValue = {
 	array: [],
@@ -49,110 +63,173 @@ const basicValue = {
 	undefined: undefined,
 };
 
-basic.keys = [
-	'array',
-	'bigint',
-	'boolean',
-	'date',
-	'function',
-	'null',
-	'number',
-	'object',
-	'string',
-	'symbol',
-	'undefined',
-];
+const basicKeys = Object.keys(basicSchema).sort();
 
-basic.types = [
-	['array', 'a'],
-	['bigint', 'b'],
-	['boolean', 'c'],
-	['date', 'd'],
-	['function', 'e'],
-	['null', 'f'],
-	['number', 'g'],
-	['object', 'h'],
-	['string', 123],
-	['symbol', 'j'],
-	['undefined', 'k'],
-];
+export const basic = {
+	schema: basicSchema,
+	cases: [
+		...typeValues.slice(0, typeValues.length - 1).map(value => ({
+			input: value,
+			ok: false,
+			error: getInvalidInputMessage(value),
+			errors: [getInvalidInputMessage(value)],
+		})),
+		{
+			input: {},
+			ok: false,
+			error: getInvalidMissingMessage(getProperty('array', ['array'])),
+			// 'undefined' is not reported missing since {}.undefined === undefined satisfies the type
+			errors: basicKeys
+				.filter(key => key !== 'undefined')
+				.map(key => getInvalidMissingMessage(getProperty(key, [key]))),
+		},
+		{
+			input: {...basicValue, array: 'a'},
+			ok: false,
+			error: getInvalidTypeMessage(getProperty('array', ['array']), 'a'),
+			errors: [getInvalidTypeMessage(getProperty('array', ['array']), 'a')],
+		},
+		{
+			input: {...basicValue, bigint: 'b'},
+			ok: false,
+			error: getInvalidTypeMessage(getProperty('bigint', ['bigint']), 'b'),
+			errors: [getInvalidTypeMessage(getProperty('bigint', ['bigint']), 'b')],
+		},
+		{
+			input: {...basicValue, boolean: 'not a boolean', number: true, object: undefined},
+			ok: false,
+			error: getInvalidTypeMessage(getProperty('boolean', ['boolean']), 'not a boolean'),
+			errors: [
+				getInvalidTypeMessage(getProperty('boolean', ['boolean']), 'not a boolean'),
+				getInvalidTypeMessage(getProperty('number', ['number']), true),
+				getInvalidMissingMessage(getProperty('object', ['object'])),
+			],
+		},
+		{
+			input: {...basicValue, date: 'd'},
+			ok: false,
+			error: getInvalidTypeMessage(getProperty('date', ['date']), 'd'),
+			errors: [getInvalidTypeMessage(getProperty('date', ['date']), 'd')],
+		},
+		{
+			input: {...basicValue, function: 'e'},
+			ok: false,
+			error: getInvalidTypeMessage(getProperty('function', ['function']), 'e'),
+			errors: [getInvalidTypeMessage(getProperty('function', ['function']), 'e')],
+		},
+		{
+			input: {...basicValue, null: 'f'},
+			ok: false,
+			error: getInvalidTypeMessage(getProperty('null', ['null']), 'f'),
+			errors: [getInvalidTypeMessage(getProperty('null', ['null']), 'f')],
+		},
+		{
+			input: {...basicValue, number: 'g'},
+			ok: false,
+			error: getInvalidTypeMessage(getProperty('number', ['number']), 'g'),
+			errors: [getInvalidTypeMessage(getProperty('number', ['number']), 'g')],
+		},
+		{
+			input: {...basicValue, object: 'h'},
+			ok: false,
+			error: getInvalidTypeMessage(getProperty('object', ['object']), 'h'),
+			errors: [getInvalidTypeMessage(getProperty('object', ['object']), 'h')],
+		},
+		{
+			input: {...basicValue, string: 123456789},
+			ok: false,
+			error: getInvalidTypeMessage(getProperty('string', ['string']), 123456789),
+			errors: [getInvalidTypeMessage(getProperty('string', ['string']), 123456789)],
+		},
+		{
+			input: {...basicValue, symbol: 'j'},
+			ok: false,
+			error: getInvalidTypeMessage(getProperty('symbol', ['symbol']), 'j'),
+			errors: [getInvalidTypeMessage(getProperty('symbol', ['symbol']), 'j')],
+		},
+		{
+			input: {...basicValue, undefined: 'k'},
+			ok: false,
+			error: getInvalidTypeMessage(getProperty('undefined', ['undefined']), 'k'),
+			errors: [getInvalidTypeMessage(getProperty('undefined', ['undefined']), 'k')],
+		},
+		{
+			input: basicValue,
+			ok: true,
+		},
+	],
+	nested: {
+		all: {
+			input: {a: {b: {c: 'not a number', d: 1}}},
+			ok: false,
+			errors: [
+				getInvalidTypeMessage(getProperty('a.b.c', ['number'], 'c'), 'not a number'),
+				getInvalidTypeMessage(getProperty('a.b.d', ['string'], 'd'), 1),
+				getInvalidMissingMessage(getProperty('a.b.e', ['boolean'], 'e')),
+			],
+		},
+		first: {
+			input: {a: {b: {c: 123, e: true}}},
+			ok: false,
+			error: getInvalidMissingMessage(getProperty('a.b.d', ['string'], 'd')),
+		},
+		schema: {
+			a: {
+				b: {
+					c: 'number',
+					d: 'string',
+					e: 'boolean',
+				},
+			},
+		},
+	},
+};
 
-basic.values = [
-	...values,
-	{...basicValue, array: 'not an array'},
-	{...basicValue, bigint: 'not a bigint'},
-	{...basicValue, boolean: 'not a boolean', number: true, object: undefined},
-	{...basicValue, date: 'not a date'},
-	{...basicValue, function: 'not a function'},
-	{...basicValue, null: 'not null'},
-	{...basicValue, number: 'not a number'},
-	{...basicValue, object: 'not an object'},
-	{...basicValue, string: 123456789},
-	{...basicValue, symbol: 'not a symbol'},
-	{...basicValue, undefined: 'not undefined'},
-	basicValue,
-];
+// #endregion
 
-basic.length = basic.values.length;
+// #region Complex
 
-export const complex = {
-	errors: [SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED.replace(TEMPLATE_PATTERN, 'n')],
-	keys: [] as string[],
-	length: -1,
-	schema: {
-		arrayOrBigInt: ['array', 'bigint'],
-		booleanOrDate: ['boolean', 'date'],
-		functionOrNull: ['function', 'null'],
-		instance: TestItem,
-		n: {
-			$required: false,
-			$type: {
-				e: {
-					s: {
-						t: {
-							e: {
-								d: 'number',
-							},
+const complexSchema = {
+	arrayOrBigInt: ['array', 'bigint'],
+	booleanOrDate: ['boolean', 'date'],
+	functionOrNull: ['function', 'null'],
+	instance: TestItem,
+	n: {
+		$required: false,
+		$type: {
+			e: {
+				s: {
+					t: {
+						e: {
+							d: 'number',
 						},
 					},
 				},
 			},
 		},
-		numberOrObject: {
-			$type: [
-				'number',
-				{
-					error: Error,
-				},
-				{
-					message: 'string',
-				},
-			],
-		},
-		object: 'object',
-		stringOrSymbol: ['string', 'symbol'],
-		undefinedOrArray: ['undefined', 'array'],
-	} satisfies Schema,
-	types: [] as unknown[][],
-	values: [] as unknown[],
-};
+	},
+	numberOrObject: {
+		$type: [
+			'number',
+			{
+				error: Error,
+			},
+			{
+				message: 'string',
+			},
+		],
+	},
+	object: 'object',
+	stringOrSymbol: ['string', 'symbol'],
+	undefinedOrArray: ['undefined', 'array'],
+} satisfies Schema;
 
 const firstComplex = {
 	arrayOrBigInt: [],
 	booleanOrDate: true,
 	functionOrNull: () => {},
 	instance: new TestItem(),
-	n: {
-		e: {
-			s: {
-				t: {
-					e: {
-						d: 123,
-					},
-				},
-			},
-		},
-	},
+	n: {e: {s: {t: {e: {d: 123}}}}},
 	numberOrObject: 1,
 	object: {},
 	stringOrSymbol: 'string',
@@ -164,9 +241,7 @@ const secondComplex = {
 	booleanOrDate: new Date(),
 	functionOrNull: null,
 	instance: new TestItem(),
-	numberOrObject: {
-		message: 'hello',
-	},
+	numberOrObject: {message: 'hello'},
 	object: [],
 	stringOrSymbol: Symbol('symbol'),
 	undefinedOrArray: [],
@@ -174,65 +249,166 @@ const secondComplex = {
 
 const thirdComplex = {
 	...secondComplex,
-	numberOrObject: {
-		error: new Error(),
-	},
+	numberOrObject: {error: new Error()},
 	object: new Map(),
 };
 
-complex.keys = [
-	'arrayOrBigInt',
-	'booleanOrDate',
-	'functionOrNull',
-	'instance',
-	'n',
-	'numberOrObject',
-	'object',
-	'stringOrSymbol',
-	'undefinedOrArray',
-];
+const complexValues = {
+	arrayOrBigint: {
+		key: 'arrayOrBigInt',
+		value: 'not an array or bigint',
+	},
+	booleanOrDate: {
+		key: 'booleanOrDate',
+		value: 'not a boolean or date',
+	},
+	functionOrNull: {
+		key: 'functionOrNull',
+		value: 'not a function or null',
+	},
+	instance: {
+		key: 'instance',
+		value: 'not an instance of TestItem',
+	},
+	n: {
+		key: 'n',
+		types: ['object', 'undefined'],
+		value: 'not an object or undefined',
+	},
+	numberOrObject: {
+		key: 'numberOrObject',
+		types: ['number', 'object'],
+		value: 'not a number or object',
+	},
+	object: {
+		key: 'object',
+		types: ['object'],
+		value: 'not an object',
+	},
+	stringOrSymbol: {
+		key: 'stringOrSymbol',
+		value: 123456789,
+	},
+	undefinedOrArray: {
+		key: 'undefinedOrArray',
+		value: 'not undefined or array',
+	},
+};
 
-complex.types = [
-	[complex.schema.arrayOrBigInt, 'not an array or bigint'],
-	[complex.schema.booleanOrDate, 'not a boolean or date'],
-	[complex.schema.functionOrNull, 'not a function or null'],
-	[[() => {}], 'not an instance of TestItem'],
-	[['object', 'undefined'], 'not an object or undefined'],
-	[['number', 'object'], 'not a number or object'],
-	[['object'], 'not an object'],
-	[complex.schema.stringOrSymbol, 123456789],
-	[complex.schema.undefinedOrArray, 'not undefined or array'],
-];
-
-complex.values = [
-	{...firstComplex, arrayOrBigInt: complex.types[0][1]},
-	{...firstComplex, booleanOrDate: complex.types[1][1]},
-	{...firstComplex, functionOrNull: complex.types[2][1]},
-	{...firstComplex, instance: complex.types[3][1]},
-	{...firstComplex, n: complex.types[4][1]},
-	{...firstComplex, numberOrObject: complex.types[5][1]},
-	{...firstComplex, object: complex.types[6][1]},
-	{...firstComplex, stringOrSymbol: complex.types[7][1]},
-	{...firstComplex, undefinedOrArray: complex.types[8][1]},
-	firstComplex,
-	secondComplex,
-	thirdComplex,
-];
-
-complex.length = complex.values.length;
-
-export const typed = {
-	length: 3,
-	values: [
-		{},
+export const complex = {
+	schema: complexSchema,
+	errors: [SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED.replace(TEMPLATE_PATTERN, 'n')],
+	cases: [
 		{
-			inner: 'not matching inner schema',
+			input: {...firstComplex, arrayOrBigInt: complexValues.arrayOrBigint.value},
+			ok: false,
+			error: getInvalidTypeMessage(
+				getProperty(complexValues.arrayOrBigint.key, complexSchema.arrayOrBigInt),
+				complexValues.arrayOrBigint.value,
+			),
 		},
 		{
-			inner: {
-				message: 'This matches the inner schema',
-				test: new TestItem(),
+			input: {...firstComplex, booleanOrDate: complexValues.booleanOrDate.value},
+			ok: false,
+			error: getInvalidTypeMessage(
+				getProperty(complexValues.booleanOrDate.key, complexSchema.booleanOrDate),
+				complexValues.booleanOrDate.value,
+			),
+		},
+		{
+			input: {...firstComplex, functionOrNull: complexValues.functionOrNull.value},
+			ok: false,
+			error: getInvalidTypeMessage(
+				getProperty(complexValues.functionOrNull.key, complexSchema.functionOrNull),
+				complexValues.functionOrNull.value,
+			),
+		},
+		{
+			input: {...firstComplex, instance: complexValues.instance.value},
+			ok: false,
+			error: getInvalidTypeMessage(
+				getProperty(complexValues.instance.key, [() => {}]),
+				complexValues.instance.value,
+			),
+		},
+		{
+			input: {...firstComplex, n: complexValues.n.value},
+			ok: false,
+			error: getInvalidTypeMessage(
+				getProperty(complexValues.n.key, complexValues.n.types),
+				complexValues.n.value,
+			),
+		},
+		{
+			input: {...firstComplex, numberOrObject: complexValues.numberOrObject.value},
+			ok: false,
+			error: getInvalidTypeMessage(
+				getProperty(complexValues.numberOrObject.key, complexValues.numberOrObject.types),
+				complexValues.numberOrObject.value,
+			),
+		},
+		{
+			input: {...firstComplex, object: complexValues.object.value},
+			ok: false,
+			error: getInvalidTypeMessage(
+				getProperty(complexValues.object.key, complexValues.object.types),
+				complexValues.object.value,
+			),
+		},
+		{
+			input: {...firstComplex, stringOrSymbol: complexValues.stringOrSymbol.value},
+			ok: false,
+			error: getInvalidTypeMessage(
+				getProperty(complexValues.stringOrSymbol.key, complexSchema.stringOrSymbol),
+				complexValues.stringOrSymbol.value,
+			),
+		},
+		{
+			input: {...firstComplex, undefinedOrArray: complexValues.undefinedOrArray.value},
+			ok: false,
+			error: getInvalidTypeMessage(
+				getProperty(complexValues.undefinedOrArray.key, complexSchema.undefinedOrArray),
+				complexValues.undefinedOrArray.value,
+			),
+		},
+		{input: firstComplex, ok: true},
+		{input: secondComplex, ok: true},
+		{input: thirdComplex, ok: true},
+	],
+};
+
+// #endregion
+
+// #region Typed ---
+
+const Inner = schematic<InnerSchema>({
+	message: 'string',
+	test: value => value instanceof TestItem,
+});
+
+export const typed = {
+	inner: Inner,
+	cases: [
+		{
+			input: {},
+			ok: false,
+			error: getInvalidMissingMessage(getProperty('inner', [Inner])),
+		},
+		{
+			input: {inner: 'not matching inner schema'},
+			ok: false,
+			error: getInvalidTypeMessage(getProperty('inner', [Inner]), 'not matching inner schema'),
+		},
+		{
+			input: {
+				inner: {
+					message: 'This matches the inner schema',
+					test: new TestItem(),
+				},
 			},
+			ok: true,
 		},
 	],
 };
+
+// #endregion

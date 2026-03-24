@@ -1,30 +1,20 @@
 import {expect, test} from 'vitest';
 import {schematic} from '../src';
-import {errors, run} from './.fixture/validators.fixture';
-import {getInvalidValidatorMessage} from '../src/helpers';
+import {run, setup} from './.fixture/validators.fixture';
 
 test('errors: run', () => {
 	const first = schematic(run.schemas[0]);
 
-	for (let index = 0; index < run.items.length - 1; index += 1) {
-		const key = run.keys[index];
+	const invalidCases = run.cases.filter(item => !item.ok);
 
-		expect(() => first.is(run.items[index], 'throw')).toThrow(
-			getInvalidValidatorMessage(
-				{
-					key: {full: key, short: key},
-				} as never,
-				run.types[index] as never,
-				run.indices[index],
-				run.lengths[index],
-			),
-		);
+	for (let index = 0; index < invalidCases.length; index += 1) {
+		expect(() => first.is(invalidCases[index].input, 'throw')).toThrow(invalidCases[index].error);
 	}
 });
 
 test('error: setup', () => {
-	for (let index = 0; index < errors.length; index += 1) {
-		expect(() => schematic(errors.schemas[index] as never)).toThrow(errors.messages[index]);
+	for (let index = 0; index < setup.cases.length; index += 1) {
+		expect(() => schematic(setup.cases[index].schema as never)).toThrow(setup.cases[index].error);
 	}
 });
 
@@ -32,8 +22,8 @@ test('run', () => {
 	const first = schematic(run.schemas[0]);
 	const second = schematic(run.schemas[1]);
 
-	for (let index = 0; index < run.items.length; index += 1) {
-		expect(first.is(run.items[index])).toBe(run.results[index]);
-		expect(second.is(run.items[index])).toBe(true);
+	for (let index = 0; index < run.cases.length; index += 1) {
+		expect(first.is(run.cases[index].input)).toBe(run.cases[index].ok);
+		expect(second.is(run.cases[index].input)).toBe(true);
 	}
 });

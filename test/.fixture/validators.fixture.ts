@@ -4,81 +4,95 @@ import {
 	SCHEMATIC_MESSAGE_VALIDATOR_INVALID_VALUE,
 	TEMPLATE_PATTERN,
 } from '../../src/constants';
+import {getInvalidValidatorMessage} from '../../src/helpers';
 import {Schema} from '../../src/models/schema.plain.model';
 
+function getProperty(value: string): never {
+	return {
+		key: {full: value, short: value},
+	} as never;
+}
+
 const invalidKey = 'invalid';
+
 const invalidValidators = 'number';
 
-export const errors = {
-	length: 4,
-	messages: [
-		SCHEMATIC_MESSAGE_VALIDATOR_INVALID_TYPE,
-		SCHEMATIC_MESSAGE_VALIDATOR_INVALID_KEY.replace(TEMPLATE_PATTERN, invalidKey),
-		SCHEMATIC_MESSAGE_VALIDATOR_INVALID_VALUE.replace(TEMPLATE_PATTERN, invalidValidators),
-		SCHEMATIC_MESSAGE_VALIDATOR_INVALID_VALUE.replace(TEMPLATE_PATTERN, invalidValidators),
-	],
-	schemas: [
+const tpl = TEMPLATE_PATTERN;
+
+export const setup = {
+	cases: [
 		{
-			property: {
-				$type: 'number',
-				$validators: 123,
-			},
-		},
-		{
-			property: {
-				$type: 'number',
-				$validators: {
-					[invalidKey]: null,
+			schema: {
+				property: {
+					$type: 'number',
+					$validators: 123,
 				},
 			},
+			error: SCHEMATIC_MESSAGE_VALIDATOR_INVALID_TYPE,
 		},
 		{
-			property: {
-				$type: 'number',
-				$validators: {
-					[invalidValidators]: 'blah',
+			schema: {
+				property: {
+					$type: 'number',
+					$validators: {
+						[invalidKey]: null,
+					},
 				},
 			},
+			error: SCHEMATIC_MESSAGE_VALIDATOR_INVALID_KEY.replace(tpl, invalidKey),
 		},
 		{
-			property: {
-				$type: 'number',
-				$validators: {
-					[invalidValidators]: ['blah'],
+			schema: {
+				property: {
+					$type: 'number',
+					$validators: {
+						[invalidValidators]: 'blah',
+					},
 				},
 			},
+			error: SCHEMATIC_MESSAGE_VALIDATOR_INVALID_VALUE.replace(tpl, invalidValidators),
+		},
+		{
+			schema: {
+				property: {
+					$type: 'number',
+					$validators: {
+						[invalidValidators]: ['blah'],
+					},
+				},
+			},
+			error: SCHEMATIC_MESSAGE_VALIDATOR_INVALID_VALUE.replace(tpl, invalidValidators),
 		},
 	],
 };
 
 export const run = {
-	indices: [0, 1, 0, 0],
-	items: [
+	cases: [
 		{
-			age: -5,
-			name: 'Test',
+			input: {age: -5, name: 'Test'},
+			ok: false,
+			error: getInvalidValidatorMessage(getProperty('age'), 'number', 0, 2),
 		},
 		{
-			age: 200,
-			name: 'Test',
+			input: {age: 200, name: 'Test'},
+			ok: false,
+			error: getInvalidValidatorMessage(getProperty('age'), 'number', 1, 2),
 		},
 		{
-			age: 25,
-			name: '',
+			input: {age: 25, name: ''},
+			ok: false,
+			error: getInvalidValidatorMessage(getProperty('name'), 'string', 0, 1),
 		},
 		{
-			age: 25,
-			name: 'Test Test Test',
+			input: {age: 25, name: 'Test Test Test'},
+			ok: false,
+			error: getInvalidValidatorMessage(getProperty('name'), 'string', 0, 1),
 		},
 		{
-			age: 25,
-			name: 'Test',
+			input: {age: 25, name: 'Test'},
+			ok: true,
 		},
 	],
-	keys: ['age', 'age', 'name', 'name'],
-	length: 5,
-	lengths: [2, 2, 1, 1],
-	results: [false, false, false, false, true],
 	schemas: [
 		{
 			age: {
@@ -105,5 +119,4 @@ export const run = {
 			},
 		} satisfies Schema,
 	],
-	types: ['number', 'number', 'string', 'string'],
 };
