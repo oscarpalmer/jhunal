@@ -6,8 +6,19 @@ import type {ValueName} from './misc.model';
 
 // #region Reporting
 
+/**
+ * Maps each {@link ReportingType} to a boolean flag
+ */
 export type ReportingInformation = Record<ReportingType, boolean>;
 
+/**
+ * Controls how validation failures are reported
+ *
+ * - `'none'` — returns a boolean _(default)_
+ * - `'first'` — returns the first failure as a `Result`
+ * - `'all'` — returns all failures as a `Result` _(from same level)_
+ * - `'throw'` — throws a {@link ValidationError} on failure
+ */
 export type ReportingType = 'all' | 'first' | 'none' | 'throw';
 
 // #endregion
@@ -15,7 +26,7 @@ export type ReportingType = 'all' | 'first' | 'none' | 'throw';
 // #region Schematic validation
 
 /**
- * A custom error class for schematic validation failures
+ * Thrown when a schema definition is invalid
  */
 export class SchematicError extends Error {
 	constructor(message: string) {
@@ -62,16 +73,12 @@ export type ValidatedProperty = {
 };
 
 /**
- * Property name in schema
+ * The full and short forms of a property's key path
+ *
+ * For a nested property `address.street`: `full` is `'address.street'`, `short` is `'street'`
  */
 export type ValidatedPropertyKey = {
-	/**
-	 * Full property key, including parent keys for nested properties _(e.g., `address.street`)_
-	 */
 	full: string;
-	/**
-	 * The last segment of the property key _(e.g., `street` for `address.street`)_
-	 */
 	short: string;
 };
 
@@ -99,6 +106,9 @@ export type ValidatedPropertyValidators = {
 
 // #region Property validation
 
+/**
+ * Thrown in `'throw'` mode when one or more properties fail validation; `information` holds all failures
+ */
 export class ValidationError extends Error {
 	constructor(readonly information: ValidationInformation[]) {
 		super(
@@ -112,13 +122,23 @@ export class ValidationError extends Error {
 	}
 }
 
+/**
+ * Describes a single validation failure
+ */
 export type ValidationInformation = {
+	/** The key path of the property that failed */
 	key: ValidationInformationKey;
+	/** Human-readable description of the failure */
 	message: string;
+	/** The validator function that failed, if the failure was from a `$validators` entry */
 	validator?: GenericCallback;
+	/** The value that was provided */
 	value: unknown;
 };
 
+/**
+ * Same shape as {@link ValidatedPropertyKey}; the key path of a failed property
+ */
 export type ValidationInformationKey = ValidatedPropertyKey;
 
 // #endregion

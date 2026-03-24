@@ -6,7 +6,7 @@ import type {PlainSchema, Schema, SchemaProperty} from './schema.plain.model';
 /**
  * Infers the TypeScript type from a {@link Schema} definition
  *
- * @template Model - Schema to infer types from
+ * @template Model Schema to infer types from
  *
  * @example
  * ```ts
@@ -38,20 +38,20 @@ export type InferOptionalKeys<Model extends Schema> = keyof {
 };
 
 /**
- * Infers the TypeScript type of a {@link SchemaProperty}'s `$type` field, unwrapping arrays to infer their item type
+ * Infers the TypeScript type from a {@link SchemaProperty}'s `$type` field
  *
- * @template Value - `$type` value _(single or array)_
+ * @template Value `$type` value _(single or array)_
  */
 export type InferPropertyType<Value> = Value extends (infer Item)[]
 	? InferPropertyValue<Item>
 	: InferPropertyValue<Value>;
 
 /**
- * Maps a single type definition to its TypeScript equivalent
+ * Maps a single `$type` definition to its TypeScript equivalent
  *
- * Resolves, in order: {@link Constructor} instances, {@link Schematic} models, {@link ValueName} strings, and nested {@link Schema} objects
+ * Resolves, in order: {@link Constructor} instances, {@link Schematic} models, {@link ValueName} strings, and nested {@link PlainSchema} objects
  *
- * @template Value - single type definition
+ * @template Value single type definition
  */
 export type InferPropertyValue<Value> =
 	Value extends Constructor<infer Instance>
@@ -67,27 +67,27 @@ export type InferPropertyValue<Value> =
 /**
  * Extracts keys from a {@link Schema} whose entries are required _(i.e., `$required` is not `false`)_
  *
- * @template Model - Schema to extract required keys from
+ * @template Model Schema to extract required keys from
  */
 export type InferRequiredKeys<Model extends Schema> = keyof {
 	[Key in keyof Model as IsOptionalProperty<Model[Key]> extends true ? never : Key]: never;
 };
 
 /**
- * Infers the type for a top-level {@link Schema} entry, unwrapping arrays to infer their item type
+ * Infers the TypeScript type from a top-level {@link Schema} entry
  *
- * @template Value - Schema entry value _(single or array)_
+ * @template Value Schema entry value _(single or array)_
  */
 export type InferSchemaEntry<Value> = Value extends (infer Item)[]
 	? InferSchemaEntryValue<Item>
 	: InferSchemaEntryValue<Value>;
 
 /**
- * Resolves a single schema entry to its TypeScript type
+ * Maps a single top-level schema entry to its TypeScript type
  *
- * Handles, in order: {@link Constructor} instances, {@link Schematic} models, {@link SchemaProperty} objects, {@link NestedSchema} objects, {@link ValueName} strings, and plain {@link Schema} objects
+ * Resolves, in order: {@link Constructor} instances, {@link Schematic} models, {@link SchemaProperty} objects, {@link PlainSchema} objects, and {@link ValueName} strings
  *
- * @template Value - single schema entry
+ * @template Value single schema entry
  */
 export type InferSchemaEntryValue<Value> =
 	Value extends Constructor<infer Instance>

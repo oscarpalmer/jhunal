@@ -3,7 +3,7 @@ import type {Schematic} from '../schematic';
 import type {ExtractValueNames, ValueName, Values} from './misc.model';
 
 /**
- * A generic schema allowing {@link NestedSchema}, {@link SchemaEntry}, or arrays of {@link SchemaEntry} as values
+ * A generic schema allowing nested schemas, {@link SchemaEntry} values, or arrays of {@link SchemaEntry} as values
  */
 export type PlainSchema = {
 	[key: string]: PlainSchema | SchemaEntry | SchemaEntry[] | undefined;
@@ -30,7 +30,7 @@ export type Schema = SchemaIndex;
 /**
  * A union of all valid types for a single schema entry
  *
- * Can be a {@link Constructor}, nested {@link Schema}, {@link SchemaProperty}, {@link Schematic}, {@link ValueName} string, or a custom validator function
+ * Can be a {@link Constructor}, {@link PlainSchema}, {@link SchemaProperty}, {@link Schematic}, {@link ValueName} string, or a custom validator function
  */
 export type SchemaEntry =
 	| Constructor
@@ -41,7 +41,7 @@ export type SchemaEntry =
 	| ((value: unknown) => boolean);
 
 /**
- * Index signature interface backing {@link Schema}, allowing string-keyed entries of {@link NestedSchema}, {@link SchemaEntry}, or arrays of {@link SchemaEntry}
+ * Index signature interface backing {@link Schema}, allowing string-keyed entries of {@link PlainSchema}, {@link SchemaEntry}, or arrays of {@link SchemaEntry}
  */
 export interface SchemaIndex {
 	[key: string]: PlainSchema | SchemaEntry | SchemaEntry[];
@@ -94,7 +94,7 @@ export type SchemaPropertyType =
  *
  * Each key may hold a single validator or an array of validators that receive the typed value
  *
- * @template Value - `$type` value(s) to derive validator keys from
+ * @template Value `$type` value(s) to derive validator keys from
  *
  * @example
  * ```ts

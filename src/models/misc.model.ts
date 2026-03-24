@@ -3,8 +3,8 @@ import type {SchemaProperty} from './schema.plain.model';
 /**
  * Removes duplicate types from a tuple, preserving first occurrence order
  *
- * @template Value - Tuple to deduplicate
- * @template Seen - Accumulator for already-seen types _(internal)_
+ * @template Value Tuple to deduplicate
+ * @template Seen Accumulator for already-seen types _(internal)_
  *
  * @example
  * ```ts
@@ -24,7 +24,7 @@ export type DeduplicateTuple<Value extends unknown[], Seen extends unknown[] = [
 /**
  * Recursively extracts {@link ValueName} strings from a type, unwrapping arrays and readonly arrays
  *
- * @template Value - Type to extract value names from
+ * @template Value Type to extract value names from
  *
  * @example
  * ```ts
@@ -43,9 +43,9 @@ export type ExtractValueNames<Value> = Value extends ValueName
 /**
  * Determines whether a schema entry is optional
  *
- * Returns `true` if the entry is a {@link SchemaProperty} or {@link NestedSchema} with `$required` set to `false`; otherwise returns `false`
+ * Returns `true` if the entry is a {@link SchemaProperty} with `$required` set to `false`; otherwise returns `false`
  *
- * @template Value - Schema entry to check
+ * @template Value Schema entry to check
  */
 export type IsOptionalProperty<Value> = Value extends SchemaProperty
 	? Value['$required'] extends false
@@ -54,9 +54,9 @@ export type IsOptionalProperty<Value> = Value extends SchemaProperty
 	: false;
 
 /**
- * Extracts the last member from a union type by leveraging intersection of function return types
+ * Extracts the last member from a union type by leveraging contravariance of function parameter types
  *
- * @template Value - Union type
+ * @template Value Union type
  */
 export type LastOfUnion<Value> =
 	UnionToIntersection<Value extends unknown ? () => Value : never> extends () => infer Item
@@ -66,7 +66,7 @@ export type LastOfUnion<Value> =
 /**
  * Extracts keys from an object type that are optional
  *
- * @template Value - Object type to inspect
+ * @template Value Object type to inspect
  */
 export type OptionalKeys<Value> = {
 	[Key in keyof Value]-?: {} extends Pick<Value, Key> ? Key : never;
@@ -75,7 +75,7 @@ export type OptionalKeys<Value> = {
 /**
  * Extracts keys from an object type that are required _(i.e., not optional)_
  *
- * @template Value - Object type to inspect
+ * @template Value Object type to inspect
  */
 export type RequiredKeys<Value> = Exclude<keyof Value, OptionalKeys<Value>>;
 
@@ -84,8 +84,8 @@ export type RequiredKeys<Value> = Exclude<keyof Value, OptionalKeys<Value>>;
  *
  * Used by {@link UnwrapSingle} to allow schema types in any order for small tuples _(length ≤ 5)_
  *
- * @template Tuple - Tuple to permute
- * @template Elput - Accumulator for the current permutation _(internal; name is Tuple backwards)_
+ * @template Tuple Tuple to permute
+ * @template Elput Accumulator for the current permutation _(internal; name is Tuple backwards)_
  *
  * @example
  * ```ts
@@ -110,9 +110,9 @@ export type TuplePermutations<
  *
  * Used internally by {@link TuplePermutations}
  *
- * @template Items - Tuple to remove from
- * @template Item - Stringified index to remove
- * @template Prefix - Accumulator for elements before the target _(internal)_
+ * @template Items Tuple to remove from
+ * @template Item Index as a string literal
+ * @template Prefix Accumulator for elements before the target _(internal)_
  */
 export type TupleRemoveAt<
 	Items extends unknown[],
@@ -129,7 +129,7 @@ export type TupleRemoveAt<
  *
  * Uses the contravariance of function parameter types to collapse a union into an intersection
  *
- * @template Value - Union type to convert
+ * @template Value Union type to convert
  *
  * @example
  * ```ts
@@ -148,8 +148,8 @@ export type UnionToIntersection<Value> = (
  *
  * Repeatedly extracts the {@link LastOfUnion} member and prepends it to the accumulator
  *
- * @template Value - Union type to convert
- * @template Items - Accumulator for the resulting tuple _(internal)_
+ * @template Value Union type to convert
+ * @template Items Accumulator for the resulting tuple _(internal)_
  *
  * @example
  * ```ts
@@ -166,7 +166,7 @@ export type UnionToTuple<Value, Items extends unknown[] = []> = [Value] extends 
  *
  * For tuples of length 2–5, returns all {@link TuplePermutations} to allow types in any order. Longer tuples are returned as-is
  *
- * @template Value - Tuple to potentially unwrap
+ * @template Value Tuple to potentially unwrap
  *
  * @example
  * ```ts
@@ -181,21 +181,12 @@ export type UnwrapSingle<Value extends unknown[]> = Value extends [infer Only]
 		: Value;
 
 /**
- * Basic value types
+ * A union of valid type name strings, e.g. `'string'`, `'number'`, `'date'`
  */
 export type ValueName = keyof Values;
 
 /**
- * Maps type name strings to their TypeScript equivalents
- *
- * Used by the type system to resolve {@link ValueName} strings into actual types
- *
- * @example
- * ```ts
- * // Values['string']  => string
- * // Values['date']    => Date
- * // Values['null']    => null
- * ```
+ * Maps {@link ValueName} strings to their TypeScript equivalents
  */
 export type Values = {
 	array: unknown[];

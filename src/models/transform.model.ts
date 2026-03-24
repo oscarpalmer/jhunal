@@ -6,7 +6,7 @@ import type {TypedSchema} from './schema.typed.model';
 /**
  * Maps each element of a tuple through {@link ToValueType}
  *
- * @template Value - Tuple of types to map
+ * @template Value Tuple of types to map
  */
 export type MapToValueTypes<Value extends unknown[]> = Value extends [infer Head, ...infer Tail]
 	? [ToValueType<Head>, ...MapToValueTypes<Tail>]
@@ -15,7 +15,7 @@ export type MapToValueTypes<Value extends unknown[]> = Value extends [infer Head
 /**
  * Maps each element of a tuple through {@link ToSchemaPropertyTypeEach}
  *
- * @template Value - Tuple of types to map
+ * @template Value Tuple of types to map
  */
 export type MapToSchemaPropertyTypes<Value extends unknown[]> = Value extends [
 	infer Head,
@@ -25,11 +25,9 @@ export type MapToSchemaPropertyTypes<Value extends unknown[]> = Value extends [
 	: [];
 
 /**
- * Converts a type into its corresponding {@link SchemaPropertyType}-representation
+ * Converts a TypeScript type to its {@link SchemaPropertyType} representation, suitable for use in a typed schema
  *
- * Deduplicates and unwraps single-element tuples via {@link UnwrapSingle}
- *
- * @template Value - type to convert
+ * @template Value Type to convert
  */
 export type ToSchemaPropertyType<Value> = UnwrapSingle<
 	DeduplicateTuple<MapToSchemaPropertyTypes<UnionToTuple<Value>>>
@@ -38,20 +36,18 @@ export type ToSchemaPropertyType<Value> = UnwrapSingle<
 /**
  * Converts a single type to its schema property equivalent
  *
- * {@link NestedSchema} values have `$required` stripped, plain objects become {@link TypedSchema}, and primitives go through {@link ToValueType}
+ * Plain objects become {@link TypedSchema}; primitives go through {@link ToValueType}
  *
- * @template Value - type to convert
+ * @template Value Type to convert
  */
 export type ToSchemaPropertyTypeEach<Value> = Value extends PlainObject
 	? TypedSchema<Value>
 	: ToValueType<Value>;
 
 /**
- * Converts a type into its corresponding {@link ValueName}-representation
+ * Converts a TypeScript type to its {@link ValueName} representation, suitable for use as a top-level schema entry
  *
- * Deduplicates and unwraps single-element tuples via {@link UnwrapSingle}
- *
- * @template Value - type to convert
+ * @template Value Type to convert
  */
 export type ToSchemaType<Value> = UnwrapSingle<
 	DeduplicateTuple<MapToValueTypes<UnionToTuple<Value>>>
@@ -62,7 +58,7 @@ export type ToSchemaType<Value> = UnwrapSingle<
  *
  * Resolves {@link Schematic} types as-is, then performs a reverse-lookup against {@link Values} _(excluding `'object'`)_ to find a matching key. If no match is found, `object` types resolve to `'object'` or a type-guard function, and all other unrecognised types resolve to a type-guard function
  *
- * @template Value - type to map
+ * @template Value Type to map
  *
  * @example
  * ```ts
