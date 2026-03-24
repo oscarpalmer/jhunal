@@ -70,13 +70,14 @@ export function getProperties(
 
 	for (let keyIndex = 0; keyIndex < keysLength; keyIndex += 1) {
 		const key = keys[keyIndex];
-
-		const prefixed = join([prefix, key], '.');
 		const value = original[key];
 
 		if (value == null) {
 			throw new SchematicError(
-				SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE.replace(TEMPLATE_PATTERN, prefixed),
+				SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE.replace(
+					TEMPLATE_PATTERN,
+					join([prefix, key], '.'),
+				),
 			);
 		}
 
@@ -101,12 +102,9 @@ export function getProperties(
 		}
 
 		properties.push({
+			key,
 			types,
 			validators,
-			key: {
-				full: prefixed,
-				short: key,
-			},
 			required: required && !types.includes(TYPE_UNDEFINED),
 		});
 	}

@@ -43,11 +43,12 @@ const defaultReporting = {
 	type: 'none',
 };
 
-export const options = {
+export const parameters = {
 	errors: {
 		invalid: {
 			input: 'not a valid input',
 			result: {
+				output: {},
 				reporting: {...defaultReporting},
 				strict: false,
 			},
@@ -55,6 +56,7 @@ export const options = {
 		valid: {
 			input: 'all',
 			result: {
+				output: {},
 				reporting: {
 					all: true,
 					first: false,
@@ -70,6 +72,7 @@ export const options = {
 		invalid: {
 			input: 'not a valid object',
 			result: {
+				output: {},
 				reporting: {...defaultReporting},
 				strict: false,
 			},
@@ -80,6 +83,7 @@ export const options = {
 				strict: true,
 			},
 			result: {
+				output: {},
 				reporting: {
 					all: false,
 					first: true,
@@ -95,6 +99,7 @@ export const options = {
 		invalid: {
 			input: 'not a valid input',
 			result: {
+				output: {},
 				reporting: {...defaultReporting},
 				strict: false,
 			},
@@ -102,6 +107,7 @@ export const options = {
 		valid: {
 			input: true,
 			result: {
+				output: {},
 				reporting: {...defaultReporting},
 				strict: true,
 			},
@@ -110,10 +116,7 @@ export const options = {
 };
 
 const property = {
-	key: {
-		full: 'nested.property',
-		short: 'property',
-	},
+	key: 'nested.property',
 };
 
 const properties = {
@@ -126,44 +129,36 @@ const Simple = schematic({property: 'number'});
 
 export const cases = [
 	...values.map((value, index) => ({
-		property,
 		value,
-		expected: getInvalidTypeMessage(
-			{
-				...property,
-				types: [types[index]],
-			} as never,
-			value,
-		),
+		expected: getInvalidTypeMessage(property.key, [types[index]] as never, value),
+		key: property.key,
 		types: [types[index]],
 	})),
 	{
-		property,
-		expected: getInvalidTypeMessage(
-			{
-				...property,
-				types: ['a Schematic'],
-			} as never,
-			Simple,
-		),
+		expected: getInvalidTypeMessage(property.key, ['a Schematic'] as never, Simple),
+		key: property.key,
 		types: ['a Schematic'],
 		value: Simple,
 	},
 	{
-		property,
-		expected: getInvalidTypeMessage(properties.one as never, values[0]),
+		expected: getInvalidTypeMessage(properties.one.key, properties.one.types as never, values[0]),
+		key: properties.one.key,
 		types: properties.one.types,
 		value: values[0],
 	},
 	{
-		property,
-		expected: getInvalidTypeMessage(properties.two as never, values[0]),
+		expected: getInvalidTypeMessage(properties.two.key, properties.two.types as never, values[0]),
+		key: properties.two.key,
 		types: properties.two.types,
 		value: values[0],
 	},
 	{
-		property,
-		expected: getInvalidTypeMessage(properties.three as never, values[0]),
+		expected: getInvalidTypeMessage(
+			properties.three.key,
+			properties.three.types as never,
+			values[0],
+		),
+		key: properties.three.key,
 		types: properties.three.types,
 		value: values[0],
 	},

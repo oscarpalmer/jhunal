@@ -32,6 +32,7 @@ import type {
 	ReportingType,
 	ValidatedProperty,
 	ValidatedPropertyType,
+	ValidationParameters,
 } from './models/validation.model';
 import type {Schematic} from './schematic';
 
@@ -39,36 +40,34 @@ export function getInvalidInputMessage(actual: unknown): string {
 	return VALIDATION_MESSAGE_INVALID_INPUT.replace(TEMPLATE_PATTERN, getValueType(actual));
 }
 
-export function getInvalidMissingMessage(property: ValidatedProperty): string {
-	let message = VALIDATION_MESSAGE_INVALID_REQUIRED.replace(
-		TEMPLATE_PATTERN,
-		renderTypes(property.types),
-	);
+export function getInvalidMissingMessage(key: string, types: ValidatedPropertyType[]): string {
+	let message = VALIDATION_MESSAGE_INVALID_REQUIRED.replace(TEMPLATE_PATTERN, renderTypes(types));
 
-	message = message.replace(TEMPLATE_PATTERN, property.key.full);
+	message = message.replace(TEMPLATE_PATTERN, key);
 
 	return message;
 }
 
-export function getInvalidTypeMessage(property: ValidatedProperty, actual: unknown): string {
-	let message = VALIDATION_MESSAGE_INVALID_TYPE.replace(
-		TEMPLATE_PATTERN,
-		renderTypes(property.types),
-	);
+export function getInvalidTypeMessage(
+	key: string,
+	types: ValidatedPropertyType[],
+	actual: unknown,
+): string {
+	let message = VALIDATION_MESSAGE_INVALID_TYPE.replace(TEMPLATE_PATTERN, renderTypes(types));
 
-	message = message.replace(TEMPLATE_PATTERN, property.key.full);
+	message = message.replace(TEMPLATE_PATTERN, key);
 	message = message.replace(TEMPLATE_PATTERN, getValueType(actual));
 
 	return message;
 }
 
 export function getInvalidValidatorMessage(
-	property: ValidatedProperty,
+	key: string,
 	type: ValueName,
 	index: number,
 	length: number,
 ): string {
-	let message = VALIDATION_MESSAGE_INVALID_VALUE.replace(TEMPLATE_PATTERN, property.key.full);
+	let message = VALIDATION_MESSAGE_INVALID_VALUE.replace(TEMPLATE_PATTERN, key);
 
 	message = message.replace(TEMPLATE_PATTERN, type);
 
@@ -79,9 +78,10 @@ export function getInvalidValidatorMessage(
 	return message;
 }
 
-export function getOptions(input: unknown) {
+export function getParameters(input?: unknown): ValidationParameters {
 	if (typeof input === 'boolean') {
 		return {
+			output: {},
 			reporting: getReporting(REPORTING_NONE),
 			strict: input,
 		};
@@ -89,6 +89,7 @@ export function getOptions(input: unknown) {
 
 	if (REPORTING_TYPES.has(input as ReportingType)) {
 		return {
+			output: {},
 			reporting: getReporting(input as ReportingType),
 			strict: false,
 		};
@@ -97,6 +98,7 @@ export function getOptions(input: unknown) {
 	const options = isPlainObject(input) ? input : {};
 
 	return {
+		output: {},
 		reporting: getReporting(options.errors),
 		strict: typeof options.strict === 'boolean' ? options.strict : false,
 	};
@@ -196,7 +198,11 @@ export function isSchematic(value: unknown): value is Schematic<never> {
 }
 
 function renderKeys(keys: string[]): string {
-	return renderParts(keys.map(key => `'${key}'`), CONJUNCTION_AND, CONJUNCTION_AND_COMMA);
+	return renderParts(
+		keys.map(key => `'${key}'`),
+		CONJUNCTION_AND,
+		CONJUNCTION_AND_COMMA,
+	);
 }
 
 function renderParts(parts: string[], delimiterShort: string, delimiterLong: string): string {

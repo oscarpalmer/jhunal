@@ -9,9 +9,9 @@ import {
 	strictness,
 	typed,
 	type OuterSchema,
-} from './.fixture/schema.fixture';
+} from './.fixture/schema.is.fixture';
 
-test('basic', () => {
+test('is basic', () => {
 	const instance = schematic(basic.schema);
 
 	for (let index = 0; index < basic.cases.length; index += 1) {
@@ -27,7 +27,7 @@ test('basic', () => {
 	}
 });
 
-test('basic: all', () => {
+test('is basic: all', () => {
 	const instance = schematic(basic.schema);
 
 	const invalidCases = basic.cases.filter(item => !item.ok && item.errors != null);
@@ -40,7 +40,7 @@ test('basic: all', () => {
 	}
 });
 
-test('basic: all, nested', () => {
+test('is basic: all, nested', () => {
 	const instance = schematic(basic.nested.schema as never);
 
 	const result = instance.is(basic.nested.all.input, 'all') as Err<ValidationInformation[]>;
@@ -49,7 +49,7 @@ test('basic: all, nested', () => {
 	expect(result.error.map(info => info.message)).toEqual(basic.nested.all.errors);
 });
 
-test('basic: first', () => {
+test('is basic: first', () => {
 	const instance = schematic(basic.schema);
 
 	const invalidCases = basic.cases.filter(item => !item.ok && item.error != null);
@@ -62,7 +62,7 @@ test('basic: first', () => {
 	}
 });
 
-test('basic: first, nested', () => {
+test('is basic: first, nested', () => {
 	const instance = schematic(basic.nested.schema as never);
 
 	const result = instance.is(basic.nested.first.input, 'first') as Err<ValidationInformation>;
@@ -71,7 +71,7 @@ test('basic: first, nested', () => {
 	expect(result.error.message).toBe(basic.nested.first.error);
 });
 
-test('basic: throw', () => {
+test('is basic: throw', () => {
 	const instance = schematic(basic.schema);
 
 	const invalidCases = basic.cases.filter(item => !item.ok && item.error != null);
@@ -83,7 +83,7 @@ test('basic: throw', () => {
 	}
 });
 
-test('complex', () => {
+test('is complex', () => {
 	const instance = schematic(complex.schema);
 
 	for (let index = 0; index < complex.cases.length; index += 1) {
@@ -103,7 +103,7 @@ test('complex', () => {
 	).toThrow(complex.errors[0]);
 });
 
-test('complex: throw', () => {
+test('is complex: throw', () => {
 	const instance = schematic(complex.schema);
 
 	const invalidCases = complex.cases.filter(item => !item.ok);
@@ -127,7 +127,7 @@ test('complex: throw', () => {
 	).toThrow(complex.errors[0]);
 });
 
-test('schematics', () => {
+test('is schematics', () => {
 	const all = schematics.instance.is(schematics.cases.all.input, 'all');
 
 	expect(all.ok).toBe(schematics.cases.all.ok);
@@ -148,10 +148,8 @@ test('schematics', () => {
 	expect(schematics.instance.is(schematics.cases.none.input)).toBe(schematics.cases.none.result);
 });
 
-test('strictness', () => {
-	expect(
-		strictness.instance.is(strictness.cases.basic.input, true),
-	).toEqual(false);
+test('is strictness', () => {
+	expect(strictness.instance.is(strictness.cases.basic.input, true)).toEqual(false);
 
 	const basic = strictness.instance.is(strictness.cases.basic.input, {
 		errors: 'first',
@@ -180,7 +178,7 @@ test('strictness', () => {
 	).toThrow(strictness.cases.basic.error);
 });
 
-test('typed', () => {
+test('is typed', () => {
 	const outer = schematic<OuterSchema>({inner: typed.inner});
 
 	for (let index = 0; index < typed.cases.length; index += 1) {
@@ -188,7 +186,7 @@ test('typed', () => {
 	}
 });
 
-test('typed: throw', () => {
+test('is typed: throw', () => {
 	const outer = schematic<OuterSchema>({inner: typed.inner});
 
 	const invalidCases = typed.cases.filter(item => !item.ok);

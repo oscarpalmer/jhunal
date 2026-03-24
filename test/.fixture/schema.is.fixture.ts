@@ -78,81 +78,81 @@ export const basic = {
 		{
 			input: {},
 			ok: false,
-			error: getInvalidMissingMessage(getProperty('array', ['array'])),
+			error: getInvalidMissingMessage('array', ['array']),
 			// 'undefined' is not reported missing since {}.undefined === undefined satisfies the type
 			errors: basicKeys
 				.filter(key => key !== 'undefined')
-				.map(key => getInvalidMissingMessage(getProperty(key, [key]))),
+				.map(key => getInvalidMissingMessage(key, [key] as never)),
 		},
 		{
 			input: {...basicValue, array: 'a'},
 			ok: false,
-			error: getInvalidTypeMessage(getProperty('array', ['array']), 'a'),
-			errors: [getInvalidTypeMessage(getProperty('array', ['array']), 'a')],
+			error: getInvalidTypeMessage('array', ['array'], 'a'),
+			errors: [getInvalidTypeMessage('array', ['array'], 'a')],
 		},
 		{
 			input: {...basicValue, bigint: 'b'},
 			ok: false,
-			error: getInvalidTypeMessage(getProperty('bigint', ['bigint']), 'b'),
-			errors: [getInvalidTypeMessage(getProperty('bigint', ['bigint']), 'b')],
+			error: getInvalidTypeMessage('bigint', ['bigint'], 'b'),
+			errors: [getInvalidTypeMessage('bigint', ['bigint'], 'b')],
 		},
 		{
 			input: {...basicValue, boolean: 'not a boolean', number: true, object: undefined},
 			ok: false,
-			error: getInvalidTypeMessage(getProperty('boolean', ['boolean']), 'not a boolean'),
+			error: getInvalidTypeMessage('boolean', ['boolean'], 'not a boolean'),
 			errors: [
-				getInvalidTypeMessage(getProperty('boolean', ['boolean']), 'not a boolean'),
-				getInvalidTypeMessage(getProperty('number', ['number']), true),
-				getInvalidMissingMessage(getProperty('object', ['object'])),
+				getInvalidTypeMessage('boolean', ['boolean'], 'not a boolean'),
+				getInvalidTypeMessage('number', ['number'], true),
+				getInvalidMissingMessage('object', ['object']),
 			],
 		},
 		{
 			input: {...basicValue, date: 'd'},
 			ok: false,
-			error: getInvalidTypeMessage(getProperty('date', ['date']), 'd'),
-			errors: [getInvalidTypeMessage(getProperty('date', ['date']), 'd')],
+			error: getInvalidTypeMessage('date', ['date'], 'd'),
+			errors: [getInvalidTypeMessage('date', ['date'], 'd')],
 		},
 		{
 			input: {...basicValue, function: 'e'},
 			ok: false,
-			error: getInvalidTypeMessage(getProperty('function', ['function']), 'e'),
-			errors: [getInvalidTypeMessage(getProperty('function', ['function']), 'e')],
+			error: getInvalidTypeMessage('function', ['function'], 'e'),
+			errors: [getInvalidTypeMessage('function', ['function'], 'e')],
 		},
 		{
 			input: {...basicValue, null: 'f'},
 			ok: false,
-			error: getInvalidTypeMessage(getProperty('null', ['null']), 'f'),
-			errors: [getInvalidTypeMessage(getProperty('null', ['null']), 'f')],
+			error: getInvalidTypeMessage('null', ['null'], 'f'),
+			errors: [getInvalidTypeMessage('null', ['null'], 'f')],
 		},
 		{
 			input: {...basicValue, number: 'g'},
 			ok: false,
-			error: getInvalidTypeMessage(getProperty('number', ['number']), 'g'),
-			errors: [getInvalidTypeMessage(getProperty('number', ['number']), 'g')],
+			error: getInvalidTypeMessage('number', ['number'], 'g'),
+			errors: [getInvalidTypeMessage('number', ['number'], 'g')],
 		},
 		{
 			input: {...basicValue, object: 'h'},
 			ok: false,
-			error: getInvalidTypeMessage(getProperty('object', ['object']), 'h'),
-			errors: [getInvalidTypeMessage(getProperty('object', ['object']), 'h')],
+			error: getInvalidTypeMessage('object', ['object'], 'h'),
+			errors: [getInvalidTypeMessage('object', ['object'], 'h')],
 		},
 		{
 			input: {...basicValue, string: 123456789},
 			ok: false,
-			error: getInvalidTypeMessage(getProperty('string', ['string']), 123456789),
-			errors: [getInvalidTypeMessage(getProperty('string', ['string']), 123456789)],
+			error: getInvalidTypeMessage('string', ['string'], 123456789),
+			errors: [getInvalidTypeMessage('string', ['string'], 123456789)],
 		},
 		{
 			input: {...basicValue, symbol: 'j'},
 			ok: false,
-			error: getInvalidTypeMessage(getProperty('symbol', ['symbol']), 'j'),
-			errors: [getInvalidTypeMessage(getProperty('symbol', ['symbol']), 'j')],
+			error: getInvalidTypeMessage('symbol', ['symbol'], 'j'),
+			errors: [getInvalidTypeMessage('symbol', ['symbol'], 'j')],
 		},
 		{
 			input: {...basicValue, undefined: 'k'},
 			ok: false,
-			error: getInvalidTypeMessage(getProperty('undefined', ['undefined']), 'k'),
-			errors: [getInvalidTypeMessage(getProperty('undefined', ['undefined']), 'k')],
+			error: getInvalidTypeMessage('undefined', ['undefined'], 'k'),
+			errors: [getInvalidTypeMessage('undefined', ['undefined'], 'k')],
 		},
 		{
 			input: basicValue,
@@ -164,15 +164,15 @@ export const basic = {
 			input: {a: {b: {c: 'not a number', d: 1}}},
 			ok: false,
 			errors: [
-				getInvalidTypeMessage(getProperty('a.b.c', ['number'], 'c'), 'not a number'),
-				getInvalidTypeMessage(getProperty('a.b.d', ['string'], 'd'), 1),
-				getInvalidMissingMessage(getProperty('a.b.e', ['boolean'], 'e')),
+				getInvalidTypeMessage('a.b.c', ['number'], 'not a number'),
+				getInvalidTypeMessage('a.b.d', ['string'], 1),
+				getInvalidMissingMessage('a.b.e', ['boolean']),
 			],
 		},
 		first: {
 			input: {a: {b: {c: 123, e: true}}},
 			ok: false,
-			error: getInvalidMissingMessage(getProperty('a.b.d', ['string'], 'd')),
+			error: getInvalidMissingMessage('a.b.d', ['string']),
 		},
 		schema: {
 			a: {
@@ -304,7 +304,8 @@ export const complex = {
 			input: {...firstComplex, arrayOrBigInt: complexValues.arrayOrBigint.value},
 			ok: false,
 			error: getInvalidTypeMessage(
-				getProperty(complexValues.arrayOrBigint.key, complexSchema.arrayOrBigInt),
+				complexValues.arrayOrBigint.key,
+				complexSchema.arrayOrBigInt,
 				complexValues.arrayOrBigint.value,
 			),
 		},
@@ -312,7 +313,8 @@ export const complex = {
 			input: {...firstComplex, booleanOrDate: complexValues.booleanOrDate.value},
 			ok: false,
 			error: getInvalidTypeMessage(
-				getProperty(complexValues.booleanOrDate.key, complexSchema.booleanOrDate),
+				complexValues.booleanOrDate.key,
+				complexSchema.booleanOrDate,
 				complexValues.booleanOrDate.value,
 			),
 		},
@@ -320,7 +322,8 @@ export const complex = {
 			input: {...firstComplex, functionOrNull: complexValues.functionOrNull.value},
 			ok: false,
 			error: getInvalidTypeMessage(
-				getProperty(complexValues.functionOrNull.key, complexSchema.functionOrNull),
+				complexValues.functionOrNull.key,
+				complexSchema.functionOrNull,
 				complexValues.functionOrNull.value,
 			),
 		},
@@ -328,7 +331,8 @@ export const complex = {
 			input: {...firstComplex, instance: complexValues.instance.value},
 			ok: false,
 			error: getInvalidTypeMessage(
-				getProperty(complexValues.instance.key, [() => {}]),
+				complexValues.instance.key,
+				[() => {}],
 				complexValues.instance.value,
 			),
 		},
@@ -336,7 +340,8 @@ export const complex = {
 			input: {...firstComplex, n: complexValues.n.value},
 			ok: false,
 			error: getInvalidTypeMessage(
-				getProperty(complexValues.n.key, complexValues.n.types),
+				complexValues.n.key,
+				complexValues.n.types as never,
 				complexValues.n.value,
 			),
 		},
@@ -344,7 +349,8 @@ export const complex = {
 			input: {...firstComplex, numberOrObject: complexValues.numberOrObject.value},
 			ok: false,
 			error: getInvalidTypeMessage(
-				getProperty(complexValues.numberOrObject.key, complexValues.numberOrObject.types),
+				complexValues.numberOrObject.key,
+				complexValues.numberOrObject.types as never,
 				complexValues.numberOrObject.value,
 			),
 		},
@@ -352,7 +358,8 @@ export const complex = {
 			input: {...firstComplex, object: complexValues.object.value},
 			ok: false,
 			error: getInvalidTypeMessage(
-				getProperty(complexValues.object.key, complexValues.object.types),
+				complexValues.object.key,
+				complexValues.object.types as never,
 				complexValues.object.value,
 			),
 		},
@@ -360,7 +367,8 @@ export const complex = {
 			input: {...firstComplex, stringOrSymbol: complexValues.stringOrSymbol.value},
 			ok: false,
 			error: getInvalidTypeMessage(
-				getProperty(complexValues.stringOrSymbol.key, complexSchema.stringOrSymbol),
+				complexValues.stringOrSymbol.key,
+				complexSchema.stringOrSymbol,
 				complexValues.stringOrSymbol.value,
 			),
 		},
@@ -368,7 +376,8 @@ export const complex = {
 			input: {...firstComplex, undefinedOrArray: complexValues.undefinedOrArray.value},
 			ok: false,
 			error: getInvalidTypeMessage(
-				getProperty(complexValues.undefinedOrArray.key, complexSchema.undefinedOrArray),
+				complexValues.undefinedOrArray.key,
+				complexSchema.undefinedOrArray,
 				complexValues.undefinedOrArray.value,
 			),
 		},
@@ -394,10 +403,7 @@ const schematicsOuter = schematic({
 	middle: schematicsMiddle,
 });
 
-const schematicsError = getInvalidTypeMessage(
-	getProperty('middle.inner.message', ['string']),
-	123456789,
-);
+const schematicsError = getInvalidTypeMessage('middle.inner.message', ['string'], 123456789);
 
 const schematicsInput = {
 	middle: {
@@ -476,12 +482,12 @@ export const typed = {
 		{
 			input: {},
 			ok: false,
-			error: getInvalidMissingMessage(getProperty('inner', [typedInner])),
+			error: getInvalidMissingMessage('inner', [typedInner]),
 		},
 		{
 			input: {inner: 'not matching inner schema'},
 			ok: false,
-			error: getInvalidTypeMessage(getProperty('inner', [typedInner]), 'not matching inner schema'),
+			error: getInvalidTypeMessage('inner', [typedInner], 'not matching inner schema'),
 		},
 		{
 			input: {

@@ -7,12 +7,6 @@ import {
 import {getInvalidValidatorMessage} from '../../src/helpers';
 import {Schema} from '../../src/models/schema.plain.model';
 
-function getProperty(value: string): never {
-	return {
-		key: {full: value, short: value},
-	} as never;
-}
-
 const invalidKey = 'invalid';
 
 const invalidValidators = 'number';
@@ -71,22 +65,22 @@ export const run = {
 		{
 			input: {age: -5, name: 'Test'},
 			ok: false,
-			error: getInvalidValidatorMessage(getProperty('age'), 'number', 0, 2),
+			error: getInvalidValidatorMessage('age', 'number', 0, 2),
 		},
 		{
 			input: {age: 200, name: 'Test'},
 			ok: false,
-			error: getInvalidValidatorMessage(getProperty('age'), 'number', 1, 2),
+			error: getInvalidValidatorMessage('age', 'number', 1, 2),
 		},
 		{
 			input: {age: 25, name: ''},
 			ok: false,
-			error: getInvalidValidatorMessage(getProperty('name'), 'string', 0, 1),
+			error: getInvalidValidatorMessage('name', 'string', 0, 1),
 		},
 		{
 			input: {age: 25, name: 'Test Test Test'},
 			ok: false,
-			error: getInvalidValidatorMessage(getProperty('name'), 'string', 0, 1),
+			error: getInvalidValidatorMessage('name', 'string', 0, 1),
 		},
 		{
 			input: {age: 25, name: 'Test'},

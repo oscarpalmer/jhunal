@@ -1,4 +1,4 @@
-import type {GenericCallback} from '@oscarpalmer/atoms/models';
+import type {GenericCallback, PlainObject} from '@oscarpalmer/atoms/models';
 import {join} from '@oscarpalmer/atoms/string';
 import {NAME_ERROR_SCHEMATIC, NAME_ERROR_VALIDATION} from '../constants';
 import type {Schematic} from '../schematic';
@@ -59,7 +59,7 @@ export type ValidatedProperty = {
 	/**
 	 * The property name in the schema
 	 */
-	key: ValidatedPropertyKey;
+	key: string;
 	/**
 	 * Whether the property is required
 	 */
@@ -72,16 +72,6 @@ export type ValidatedProperty = {
 	 * Custom validators grouped by {@link ValueName}
 	 */
 	validators: ValidatedPropertyValidators;
-};
-
-/**
- * The full and short forms of a property's key path
- *
- * For a nested property `address.street`: `full` is `'address.street'`, `short` is `'street'`
- */
-export type ValidatedPropertyKey = {
-	full: string;
-	short: string;
 };
 
 /**
@@ -139,9 +129,12 @@ export type ValidationInformation = {
 };
 
 /**
- * Same shape as {@link ValidatedPropertyKey}; the key path of a failed property
+ * 
  */
-export type ValidationInformationKey = ValidatedPropertyKey;
+export type ValidationInformationKey = {
+	full: string;
+	short: string;
+};
 
 /**
  * Options for validation
@@ -157,7 +150,11 @@ export type ValidationOptions<Errors extends ReportingType> = {
 	strict?: boolean;
 };
 
-export type ValidationOptionsExtended = {
+export type ValidationParameters = {
+	information?: ValidationInformation[];
+	origin?: ValidatedProperty;
+	output: PlainObject;
+	prefix?: string;
 	reporting: ReportingInformation;
 	strict: boolean;
 };
