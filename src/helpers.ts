@@ -30,9 +30,8 @@ import type {ValueName} from './models/misc.model';
 import type {
 	ReportingInformation,
 	ReportingType,
-	ValidatedProperty,
-	ValidatedPropertyType,
-	ValidationParameters,
+	ValidatorParameters,
+	ValidatorType,
 } from './models/validation.model';
 import type {Schematic} from './schematic';
 
@@ -40,7 +39,7 @@ export function getInvalidInputMessage(actual: unknown): string {
 	return VALIDATION_MESSAGE_INVALID_INPUT.replace(TEMPLATE_PATTERN, getValueType(actual));
 }
 
-export function getInvalidMissingMessage(key: string, types: ValidatedPropertyType[]): string {
+export function getInvalidMissingMessage(key: string, types: ValidatorType[]): string {
 	let message = VALIDATION_MESSAGE_INVALID_REQUIRED.replace(TEMPLATE_PATTERN, renderTypes(types));
 
 	message = message.replace(TEMPLATE_PATTERN, key);
@@ -50,7 +49,7 @@ export function getInvalidMissingMessage(key: string, types: ValidatedPropertyTy
 
 export function getInvalidTypeMessage(
 	key: string,
-	types: ValidatedPropertyType[],
+	types: ValidatorType[],
 	actual: unknown,
 ): string {
 	let message = VALIDATION_MESSAGE_INVALID_TYPE.replace(TEMPLATE_PATTERN, renderTypes(types));
@@ -78,7 +77,7 @@ export function getInvalidValidatorMessage(
 	return message;
 }
 
-export function getParameters(input?: unknown): ValidationParameters {
+export function getParameters(input?: unknown): ValidatorParameters {
 	if (typeof input === 'boolean') {
 		return {
 			output: {},
@@ -104,12 +103,16 @@ export function getParameters(input?: unknown): ValidationParameters {
 	};
 }
 
-function getPropertyType(original: ValidatedPropertyType): string {
+function getPropertyType(original: ValidatorType): string {
 	if (typeof original === 'function') {
 		return 'a validated value';
 	}
 
 	if (Array.isArray(original)) {
+		return `'array'`;
+	}
+
+	if (isPlainObject(original)) {
 		return `'${TYPE_OBJECT}'`;
 	}
 
@@ -227,7 +230,7 @@ function renderParts(parts: string[], delimiterShort: string, delimiterLong: str
 	return rendered;
 }
 
-function renderTypes(types: ValidatedPropertyType[]): string {
+function renderTypes(types: ValidatorType[]): string {
 	const unique = new Set<string>();
 	const parts: string[] = [];
 

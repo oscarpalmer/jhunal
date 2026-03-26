@@ -9,12 +9,11 @@ import type {Schema} from './models/schema.plain.model';
 import type {TypedSchema} from './models/schema.typed.model';
 import {
 	SchematicError,
-	type ValidatedProperty,
 	type ValidationInformation,
 	type ValidationOptions,
+	type Validator,
 } from './models/validation.model';
-import {getProperties} from './validation/property.validation';
-import {validateObject} from './validation/value.validation';
+import {getObjectValidator} from './validation';
 
 /**
  * A schematic for validating objects
@@ -22,16 +21,16 @@ import {validateObject} from './validation/value.validation';
 export class Schematic<Model> {
 	declare private readonly $schematic: true;
 
-	#properties: ValidatedProperty[];
+	#validator: Validator;
 
-	constructor(properties: ValidatedProperty[]) {
+	constructor(validator: Validator) {
 		Object.defineProperty(this, PROPERTY_SCHEMATIC, {
 			value: true,
 		});
 
-		this.#properties = properties;
+		this.#validator = validator;
 
-		schematicProperties.set(this, properties);
+		schematicValidator.set(this, validator);
 	}
 
 	/**
@@ -107,14 +106,14 @@ export class Schematic<Model> {
 	get(value: unknown, options?: unknown): unknown {
 		const parameters = getParameters(options);
 
-		const result = validateObject(value, this.#properties, parameters, true);
+		const result = this.#validator(value, parameters, true);
 
-		if (result == null) {
-			return;
-		}
-
-		if (!Array.isArray(result)) {
-			return parameters.reporting.none ? result : ok(result);
+		if (typeof result === 'boolean') {
+			return parameters.reporting.none
+				? result
+					? parameters.output
+					: undefined
+				: ok(parameters.output);
 		}
 
 		return error(parameters.reporting.all ? result : result[0]);
@@ -193,14 +192,10 @@ export class Schematic<Model> {
 	is(value: unknown, options?: unknown): unknown {
 		const parameters = getParameters(options);
 
-		const result = validateObject(value, this.#properties, parameters, false);
+		const result = this.#validator(value, parameters, false);
 
-		if (result == null) {
-			return false;
-		}
-
-		if (!Array.isArray(result)) {
-			return parameters.reporting.none ? true : ok(true);
+		if (typeof result === 'boolean') {
+			return parameters.reporting.none ? result : ok(result);
 		}
 
 		return error(parameters.reporting.all ? result : result[0]);
@@ -234,7 +229,7 @@ export function schematic<Model extends Schema>(schema: Model): Schematic<Model>
 		throw new SchematicError(SCHEMATIC_MESSAGE_SCHEMA_INVALID_TYPE);
 	}
 
-	return new Schematic<Model>(getProperties(schema));
+	return new Schematic<Model>(getObjectValidator(schema));
 }
 
-export const schematicProperties = new WeakMap<Schematic<unknown>, ValidatedProperty[]>();
+export const schematicValidator = new WeakMap<Schematic<unknown>, Validator>();

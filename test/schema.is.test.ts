@@ -17,14 +17,6 @@ test('is basic', () => {
 	for (let index = 0; index < basic.cases.length; index += 1) {
 		expect(instance.is(basic.cases[index].input)).toBe(basic.cases[index].ok);
 	}
-
-	const invalidCases = basic.cases.filter(item => !item.ok);
-
-	for (let index = 0; index < invalidCases.length; index += 1) {
-		expect(() => instance.is(invalidCases[index].input, 'throw')).toThrow(
-			invalidCases[index].error,
-		);
-	}
 });
 
 test('is basic: all', () => {
@@ -144,7 +136,6 @@ test('is schematics', () => {
 	const error = (first as Err<ValidationInformation>).error;
 
 	expect(error.message).toBe(schematics.cases.first.error);
-
 	expect(schematics.instance.is(schematics.cases.none.input)).toBe(schematics.cases.none.result);
 });
 

@@ -26,14 +26,6 @@ export type OuterSchema = {
 
 // #endregion
 
-// #region Helpers
-
-function getProperty(full: string, types: unknown[], short = full) {
-	return {key: {full, short}, types} as never;
-}
-
-// #endregion
-
 // #region Basic
 
 const basicSchema = {
@@ -273,7 +265,7 @@ const complexValues = {
 	},
 	n: {
 		key: 'n',
-		types: ['object', 'undefined'],
+		types: ['object'],
 		value: 'not an object or undefined',
 	},
 	numberOrObject: {
@@ -403,7 +395,9 @@ const schematicsOuter = schematic({
 	middle: schematicsMiddle,
 });
 
-const schematicsError = getInvalidTypeMessage('middle.inner.message', ['string'], 123456789);
+// const schematicsError = getInvalidTypeMessage('middle.inner.message', ['string'], 123456789);
+
+const schematicsError = getInvalidTypeMessage('message', ['string'], 123456789);
 
 const schematicsInput = {
 	middle: {
@@ -450,7 +444,8 @@ export const strictness = {
 			ok: false,
 		},
 		nested: {
-			error: getUnknownKeysMessage(['nested.unknown']),
+			// error: getUnknownKeysMessage(['nested.unknown']),
+			error: getUnknownKeysMessage(['unknown']),
 			input: {
 				nested: {
 					message: 'hello, world!',

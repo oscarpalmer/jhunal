@@ -25,7 +25,7 @@ export type PlainSchema = {
  * };
  * ```
  */
-export type Schema = SchemaIndex;
+export type Schema = PlainSchema;
 
 /**
  * A union of all valid types for a single schema entry
@@ -39,13 +39,6 @@ export type SchemaEntry =
 	| Schematic<unknown>
 	| ValueName
 	| ((value: unknown) => boolean);
-
-/**
- * Index signature interface backing {@link Schema}, allowing string-keyed entries of {@link PlainSchema}, {@link SchemaEntry}, or arrays of {@link SchemaEntry}
- */
-export interface SchemaIndex {
-	[key: string]: PlainSchema | SchemaEntry | SchemaEntry[];
-}
 
 /**
  * A property definition with explicit type(s), an optional requirement flag, and optional validators
