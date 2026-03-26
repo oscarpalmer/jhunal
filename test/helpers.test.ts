@@ -1,6 +1,8 @@
 import {expect, test} from 'vitest';
+import {instanceOf, isSchematic} from '../src';
 import {MESSAGE_CONSTRUCTOR} from '../src/constants';
-import {getInvalidTypeMessage, getParameters, instanceOf, isSchematic} from '../src/helpers';
+import {getInvalidTypeMessage} from '../src/helpers/message.helper';
+import {getParameters} from '../src/helpers/misc.helper';
 import {schematic} from '../src/schematic';
 import {cases, length, parameters, values} from './.fixture/helpers.fixture';
 import {TestItem} from './.fixture/models.fixture';

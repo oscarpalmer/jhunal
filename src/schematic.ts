@@ -3,7 +3,7 @@ import type {PlainObject} from '@oscarpalmer/atoms/models';
 import {error, ok} from '@oscarpalmer/atoms/result/misc';
 import type {Result} from '@oscarpalmer/atoms/result/models';
 import {PROPERTY_SCHEMATIC, SCHEMATIC_MESSAGE_SCHEMA_INVALID_TYPE} from './constants';
-import {getParameters, isSchematic} from './helpers';
+import {getParameters, isSchematic} from './helpers/misc.helper';
 import type {Infer} from './models/infer.model';
 import type {Schema} from './models/schema.plain.model';
 import type {TypedSchema} from './models/schema.typed.model';
@@ -13,7 +13,7 @@ import {
 	type ValidationOptions,
 	type Validator,
 } from './models/validation.model';
-import {getObjectValidator} from './validation';
+import {getObjectValidator} from './validator/object.validator';
 
 /**
  * A schematic for validating objects

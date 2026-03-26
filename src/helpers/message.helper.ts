@@ -1,19 +1,11 @@
-import {isConstructor, isPlainObject} from '@oscarpalmer/atoms/is';
-import type {Constructor} from '@oscarpalmer/atoms/models';
+import {isPlainObject} from '@oscarpalmer/atoms/is';
 import {
 	COMMA,
 	CONJUNCTION_AND,
 	CONJUNCTION_AND_COMMA,
 	CONJUNCTION_OR,
 	CONJUNCTION_OR_COMMA,
-	MESSAGE_CONSTRUCTOR,
 	NAME_SCHEMATIC,
-	PROPERTY_SCHEMATIC,
-	REPORTING_ALL,
-	REPORTING_FIRST,
-	REPORTING_NONE,
-	REPORTING_THROW,
-	REPORTING_TYPES,
 	TEMPLATE_PATTERN,
 	TYPE_ARRAY,
 	TYPE_NULL,
@@ -25,15 +17,10 @@ import {
 	VALIDATION_MESSAGE_INVALID_VALUE,
 	VALIDATION_MESSAGE_INVALID_VALUE_SUFFIX,
 	VALIDATION_MESSAGE_UNKNOWN_KEYS,
-} from './constants';
-import type {ValueName} from './models/misc.model';
-import type {
-	ReportingInformation,
-	ReportingType,
-	ValidatorParameters,
-	ValidatorType,
-} from './models/validation.model';
-import type {Schematic} from './schematic';
+} from '../constants';
+import type {ValueName} from '../models/misc.model';
+import type {ValidatorType} from '../models/validation.model';
+import {isSchematic} from './misc.helper';
 
 export function getInvalidInputMessage(actual: unknown): string {
 	return VALIDATION_MESSAGE_INVALID_INPUT.replace(TEMPLATE_PATTERN, getValueType(actual));
@@ -77,32 +64,6 @@ export function getInvalidValidatorMessage(
 	return message;
 }
 
-export function getParameters(input?: unknown): ValidatorParameters {
-	if (typeof input === 'boolean') {
-		return {
-			output: {},
-			reporting: getReporting(REPORTING_NONE),
-			strict: input,
-		};
-	}
-
-	if (REPORTING_TYPES.has(input as ReportingType)) {
-		return {
-			output: {},
-			reporting: getReporting(input as ReportingType),
-			strict: false,
-		};
-	}
-
-	const options = isPlainObject(input) ? input : {};
-
-	return {
-		output: {},
-		reporting: getReporting(options.errors),
-		strict: typeof options.strict === 'boolean' ? options.strict : false,
-	};
-}
-
 function getPropertyType(original: ValidatorType): string {
 	if (typeof original === 'function') {
 		return 'a validated value';
@@ -121,20 +82,6 @@ function getPropertyType(original: ValidatorType): string {
 	}
 
 	return `'${String(original)}'`;
-}
-
-export function getReporting(value: unknown): ReportingInformation {
-	const type = REPORTING_TYPES.has(value as ReportingType)
-		? (value as ReportingType)
-		: REPORTING_NONE;
-
-	return {
-		type,
-		[REPORTING_ALL]: type === REPORTING_ALL,
-		[REPORTING_FIRST]: type === REPORTING_FIRST,
-		[REPORTING_NONE]: type === REPORTING_NONE,
-		[REPORTING_THROW]: type === REPORTING_THROW,
-	} as ReportingInformation;
 }
 
 export function getUnknownKeysMessage(keys: string[]): string {
@@ -166,38 +113,6 @@ function getValueType(value: unknown): string {
 		default:
 			return value.constructor.name;
 	}
-}
-
-/**
- * Creates a validator function for a given constructor
- * @param constructor - Constructor to check against
- * @throws Will throw a `TypeError` if the provided argument is not a valid constructor
- * @returns Validator function that checks if a value is an instance of the constructor
- */
-export function instanceOf<Instance>(
-	constructor: Constructor<Instance>,
-): (value: unknown) => value is Instance {
-	if (!isConstructor(constructor)) {
-		throw new TypeError(MESSAGE_CONSTRUCTOR);
-	}
-
-	return (value: unknown): value is Instance => {
-		return value instanceof constructor;
-	};
-}
-
-/**
- * Is the value a schematic?
- * @param value Value to check
- * @returns `true` if the value is a schematic, `false` otherwise
- */
-export function isSchematic(value: unknown): value is Schematic<never> {
-	return (
-		typeof value === 'object' &&
-		value !== null &&
-		PROPERTY_SCHEMATIC in value &&
-		value[PROPERTY_SCHEMATIC] === true
-	);
 }
 
 function renderKeys(keys: string[]): string {

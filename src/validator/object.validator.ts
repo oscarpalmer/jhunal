@@ -1,5 +1,6 @@
-import {join, type PlainObject} from '@oscarpalmer/atoms';
-import {isConstructor, isPlainObject} from '@oscarpalmer/atoms/is';
+import {isPlainObject} from '@oscarpalmer/atoms/is';
+import type {PlainObject} from '@oscarpalmer/atoms/models';
+import {join} from '@oscarpalmer/atoms/string';
 import {clone} from '@oscarpalmer/atoms/value/clone';
 import {
 	PROPERTY_REQUIRED,
@@ -10,35 +11,32 @@ import {
 	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE,
 	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED,
 	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE,
-	SCHEMATIC_MESSAGE_VALIDATOR_INVALID_KEY,
-	SCHEMATIC_MESSAGE_VALIDATOR_INVALID_TYPE,
-	SCHEMATIC_MESSAGE_VALIDATOR_INVALID_VALUE,
 	TEMPLATE_PATTERN,
 	TYPE_ALL,
-	TYPE_OBJECT,
 	TYPE_UNDEFINED,
-} from './constants';
+} from '../constants';
 import {
 	getInvalidInputMessage,
 	getInvalidMissingMessage,
 	getInvalidTypeMessage,
-	getInvalidValidatorMessage,
 	getUnknownKeysMessage,
-	instanceOf,
-	isSchematic,
-} from './helpers';
-import type {ValueName} from './models/misc.model';
+} from '../helpers/message.helper';
+import {isSchematic} from '../helpers/misc.helper';
+import type {ValueName} from '../models/misc.model';
 import {
+	type NamedValidatorHandlers,
 	SchematicError,
 	ValidationError,
-	type NamedValidatorHandlers,
-	type NamedValidators,
 	type ValidationInformation,
 	type ValidationInformationKey,
 	type Validator,
 	type ValidatorType,
-} from './models/validation.model';
-import {schematicValidator, type Schematic} from './schematic';
+} from '../models/validation.model';
+import {getBaseValidator} from './base.validator';
+import {getFunctionValidator} from './function.validator';
+import {getNamedHandlers} from './named.handler';
+import {getNamedValidator} from './named.validator';
+import {getSchematicValidator} from './schematic.validator';
 
 function getDisallowedProperty(obj: PlainObject): string | undefined {
 	if (PROPERTY_REQUIRED in obj) {
@@ -52,90 +50,6 @@ function getDisallowedProperty(obj: PlainObject): string | undefined {
 	if (PROPERTY_VALIDATORS in obj) {
 		return PROPERTY_VALIDATORS;
 	}
-}
-
-function getFunctionValidator(fn: Function): Validator {
-	const validator = isConstructor(fn) ? instanceOf(fn) : fn;
-
-	return input => validator(input) === true;
-}
-
-function getNamedValidator(
-	key: ValidationInformationKey,
-	name: ValueName,
-	handlers: NamedValidatorHandlers,
-): Validator {
-	const validator = namedValidators[name];
-
-	const named = handlers[name] ?? [];
-	const {length} = named;
-
-	return (input, parameters) => {
-		if (!validator(input)) {
-			return false;
-		}
-
-		for (let index = 0; index < length; index += 1) {
-			const handler = named[index];
-
-			if (handler(input) === true) {
-				continue;
-			}
-
-			const information: ValidationInformation = {
-				key,
-				validator,
-				message: getInvalidValidatorMessage(key.full, name, index, length),
-				value: input,
-			};
-
-			parameters.information?.push(information);
-
-			return parameters.reporting.none ? false : [information];
-		}
-
-		return true;
-	};
-}
-
-function getNamedHandlers(original: unknown, prefix: string): NamedValidatorHandlers {
-	const handlers: NamedValidatorHandlers = {};
-
-	if (original == null) {
-		return handlers;
-	}
-
-	if (!isPlainObject(original)) {
-		throw new TypeError(SCHEMATIC_MESSAGE_VALIDATOR_INVALID_TYPE);
-	}
-
-	const keys = Object.keys(original);
-	const {length} = keys;
-
-	for (let index = 0; index < length; index += 1) {
-		const key = keys[index];
-
-		if (!TYPE_ALL.has(key as never)) {
-			throw new TypeError(SCHEMATIC_MESSAGE_VALIDATOR_INVALID_KEY.replace(TEMPLATE_PATTERN, key));
-		}
-
-		const value = (original as PlainObject)[key];
-
-		handlers[key as ValueName] = (Array.isArray(value) ? value : [value]).map(item => {
-			if (typeof item !== 'function') {
-				throw new TypeError(
-					SCHEMATIC_MESSAGE_VALIDATOR_INVALID_VALUE.replace(TEMPLATE_PATTERN, key).replace(
-						TEMPLATE_PATTERN,
-						prefix,
-					),
-				);
-			}
-
-			return item;
-		});
-	}
-
-	return handlers;
 }
 
 export function getObjectValidator(
@@ -263,7 +177,7 @@ export function getObjectValidator(
 			types,
 			key: fullKey,
 			required: required && !types.includes(TYPE_UNDEFINED),
-			validator: getValidator(validators),
+			validator: getBaseValidator(validators),
 		});
 	}
 
@@ -428,71 +342,3 @@ function getRequired(key: string, obj: PlainObject): boolean | undefined {
 
 	return obj[PROPERTY_REQUIRED];
 }
-
-function getSchematicValidator(schematic: Schematic<unknown>): Validator {
-	const validator = schematicValidator.get(schematic)!;
-
-	return (input, parameters, get) => {
-		let result: ReturnType<Validator> = false;
-
-		if (isPlainObject(input)) {
-			result = validator(input, parameters, get);
-		}
-
-		if (typeof result === 'boolean') {
-			return result;
-		}
-
-		parameters.information?.push(...result);
-
-		return result.length === 0 ? true : result;
-	};
-}
-
-function getValidator(validators: Validator[]): Validator {
-	const {length} = validators;
-
-	return (input, parameters, get) => {
-		const allInformation: ValidationInformation[] = [];
-
-		for (let index = 0; index < length; index += 1) {
-			const previousInformation = parameters.information;
-
-			const nextInformation: ValidationInformation[] = [];
-
-			parameters.information = nextInformation;
-
-			const result = validators[index](input, parameters, get);
-
-			parameters.information = previousInformation;
-
-			if (result === false) {
-				continue;
-			}
-
-			if (result === true) {
-				return true;
-			}
-
-			parameters.information?.push(...result);
-
-			allInformation.push(...result);
-		}
-
-		return allInformation;
-	};
-}
-
-const namedValidators: NamedValidators = {
-	array: Array.isArray,
-	bigint: value => typeof value === 'bigint',
-	boolean: value => typeof value === 'boolean',
-	date: value => value instanceof Date,
-	function: value => typeof value === 'function',
-	null: value => value === null,
-	number: value => typeof value === 'number',
-	object: value => typeof value === TYPE_OBJECT && value !== null,
-	string: value => typeof value === 'string',
-	symbol: value => typeof value === 'symbol',
-	undefined: value => value === undefined,
-};

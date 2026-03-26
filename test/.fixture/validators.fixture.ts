@@ -4,7 +4,7 @@ import {
 	SCHEMATIC_MESSAGE_VALIDATOR_INVALID_VALUE,
 	TEMPLATE_PATTERN,
 } from '../../src/constants';
-import {getInvalidValidatorMessage} from '../../src/helpers';
+import {getInvalidValidatorMessage} from '../../src/helpers/message.helper';
 import {Schema} from '../../src/models/schema.plain.model';
 
 const invalidKey = 'invalid';

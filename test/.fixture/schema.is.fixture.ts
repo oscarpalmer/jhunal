@@ -7,7 +7,7 @@ import {
 	getInvalidMissingMessage,
 	getInvalidTypeMessage,
 	getUnknownKeysMessage,
-} from '../../src/helpers';
+} from '../../src/helpers/message.helper';
 import {Schema} from '../../src/models/schema.plain.model';
 import {schematic} from '../../src/schematic';
 import {values as typeValues} from './helpers.fixture';

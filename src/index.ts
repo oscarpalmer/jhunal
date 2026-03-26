@@ -1,4 +1,4 @@
-export {instanceOf, isSchematic} from './helpers';
+export {instanceOf, isSchematic} from './helpers/misc.helper';
 export type {Schema} from './models/schema.plain.model';
 export type {TypedSchema} from './models/schema.typed.model';
 export {

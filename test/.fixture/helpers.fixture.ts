@@ -1,5 +1,5 @@
 import {schematic} from '../../src';
-import {getInvalidTypeMessage} from '../../src/helpers';
+import {getInvalidTypeMessage} from '../../src/helpers/message.helper';
 
 export const types = [
 	"'null'",

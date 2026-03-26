@@ -1,5 +1,5 @@
 import {expect, test} from 'vitest';
-import {isSchematic} from '../src/helpers';
+import {isSchematic} from '../src/helpers/misc.helper';
 import {schematic} from '../src/schematic';
 import {cases, schema} from './.fixture/schematic.fixture';
 
