@@ -5,5 +5,5 @@ import type {Validator} from '../models/validation.model';
 export function getFunctionValidator(fn: Function): Validator {
 	const validator = isConstructor(fn) ? instanceOf(fn) : fn;
 
-	return input => validator(input) === true;
+	return input => (validator(input) ? true : []);
 }

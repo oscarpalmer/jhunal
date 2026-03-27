@@ -25,6 +25,8 @@ export const MESSAGE_CONSTRUCTOR = 'Expected a constructor function';
 
 export const NAME_SCHEMATIC = 'Schematic';
 
+export const NAME_SCHEMATIC_PREFIXED = 'a Schematic';
+
 export const NAME_ERROR_SCHEMATIC = 'SchematicError';
 
 export const NAME_ERROR_VALIDATION = 'ValidationError';
@@ -45,7 +47,7 @@ export const PROPERTY_VALIDATORS = '$validators';
 
 // #region Property validation
 
-export const VALIDATION_MESSAGE_INVALID_INPUT = "Expected 'object' as input but received <>";
+export const VALIDATION_MESSAGE_INVALID_INPUT = 'Expected an object as input but received <>';
 
 export const VALIDATION_MESSAGE_INVALID_REQUIRED = "Expected <> for required property '<>'";
 
@@ -116,24 +118,54 @@ export const TEMPLATE_PATTERN = '<>';
 
 export const TYPE_ARRAY = 'array';
 
+const TYPE_BIGINT = 'bigint';
+
+const TYPE_BOOLEAN = 'boolean';
+
+const TYPE_DATE = 'date';
+
+export const TYPE_FUNCTION = 'function';
+
+export const TYPE_FUNCTION_RESULT = 'a validated value';
+
 export const TYPE_NULL = 'null';
 
+const TYPE_NUMBER = 'number';
+
 export const TYPE_OBJECT = 'object';
+
+const TYPE_STRING = 'string';
+
+const TYPE_SYMBOL = 'symbol';
 
 export const TYPE_UNDEFINED = 'undefined';
 
 export const VALIDATABLE_TYPES = new Set<ValueName>([
-	'array',
-	'bigint',
-	'boolean',
-	'date',
-	'function',
-	'number',
-	'string',
-	'symbol',
+	TYPE_ARRAY,
+	TYPE_BIGINT,
+	TYPE_BOOLEAN,
+	TYPE_DATE,
+	TYPE_FUNCTION,
+	TYPE_NUMBER,
 	TYPE_OBJECT,
+	TYPE_STRING,
+	TYPE_SYMBOL,
 ]);
 
-export const TYPE_ALL = new Set<ValueName>([...VALIDATABLE_TYPES, 'null', TYPE_UNDEFINED]);
+export const TYPE_ALL = new Set<ValueName>([...VALIDATABLE_TYPES, TYPE_NULL, TYPE_UNDEFINED]);
+
+export const PREFIXED_TYPES: Record<ValueName, string> = {
+	[TYPE_ARRAY]: `an ${TYPE_ARRAY}`,
+	[TYPE_BIGINT]: `a ${TYPE_BIGINT}`,
+	[TYPE_BOOLEAN]: `a ${TYPE_BOOLEAN}`,
+	[TYPE_DATE]: `a ${TYPE_DATE}`,
+	[TYPE_FUNCTION]: `a ${TYPE_FUNCTION}`,
+	[TYPE_NULL]: TYPE_NULL,
+	[TYPE_NUMBER]: `a ${TYPE_NUMBER}`,
+	[TYPE_STRING]: `a ${TYPE_STRING}`,
+	[TYPE_SYMBOL]: `a ${TYPE_SYMBOL}`,
+	[TYPE_OBJECT]: `an ${TYPE_OBJECT}`,
+	[TYPE_UNDEFINED]: TYPE_UNDEFINED,
+};
 
 // #endregion

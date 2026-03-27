@@ -1,16 +1,18 @@
-import {isPlainObject} from '@oscarpalmer/atoms/is';
+import {isConstructor, isPlainObject} from '@oscarpalmer/atoms/is';
 import {
 	COMMA,
 	CONJUNCTION_AND,
 	CONJUNCTION_AND_COMMA,
 	CONJUNCTION_OR,
 	CONJUNCTION_OR_COMMA,
-	NAME_SCHEMATIC,
+	PREFIXED_TYPES,
 	TEMPLATE_PATTERN,
+	TYPE_ALL,
 	TYPE_ARRAY,
+	TYPE_FUNCTION,
+	TYPE_FUNCTION_RESULT,
 	TYPE_NULL,
 	TYPE_OBJECT,
-	TYPE_UNDEFINED,
 	VALIDATION_MESSAGE_INVALID_INPUT,
 	VALIDATION_MESSAGE_INVALID_REQUIRED,
 	VALIDATION_MESSAGE_INVALID_TYPE,
@@ -20,7 +22,6 @@ import {
 } from '../constants';
 import type {ValueName} from '../models/misc.model';
 import type {ValidatorType} from '../models/validation.model';
-import {isSchematic} from './misc.helper';
 
 export function getInvalidInputMessage(actual: unknown): string {
 	return VALIDATION_MESSAGE_INVALID_INPUT.replace(TEMPLATE_PATTERN, getValueType(actual));
@@ -64,24 +65,17 @@ export function getInvalidValidatorMessage(
 	return message;
 }
 
-function getPropertyType(original: ValidatorType): string {
-	if (typeof original === 'function') {
-		return 'a validated value';
-	}
+function getPropertyType(type: ValidatorType): string {
+	switch (true) {
+		case typeof type === 'function':
+			return isConstructor(type) ? type.name : TYPE_FUNCTION_RESULT;
 
-	if (Array.isArray(original)) {
-		return `'array'`;
-	}
+		case TYPE_ALL.has(type as ValueName):
+			return PREFIXED_TYPES[type as ValueName];
 
-	if (isPlainObject(original)) {
-		return `'${TYPE_OBJECT}'`;
+		default:
+			return PREFIXED_TYPES[TYPE_OBJECT];
 	}
-
-	if (isSchematic(original)) {
-		return `a ${NAME_SCHEMATIC}`;
-	}
-
-	return `'${String(original)}'`;
 }
 
 export function getUnknownKeysMessage(keys: string[]): string {
@@ -93,25 +87,19 @@ function getValueType(value: unknown): string {
 
 	switch (true) {
 		case value === null:
-			return `'${TYPE_NULL}'`;
-
-		case value === undefined:
-			return `'${TYPE_UNDEFINED}'`;
-
-		case valueType !== TYPE_OBJECT:
-			return `'${valueType}'`;
+			return TYPE_NULL;
 
 		case Array.isArray(value):
-			return `'${TYPE_ARRAY}'`;
+			return PREFIXED_TYPES[TYPE_ARRAY];
 
 		case isPlainObject(value):
-			return `'${TYPE_OBJECT}'`;
+			return PREFIXED_TYPES[TYPE_OBJECT];
 
-		case isSchematic(value):
-			return `a ${NAME_SCHEMATIC}`;
+		case valueType !== TYPE_OBJECT:
+			return PREFIXED_TYPES[valueType as ValueName];
 
 		default:
-			return value.constructor.name;
+			return (value as object).constructor.name;
 	}
 }
 

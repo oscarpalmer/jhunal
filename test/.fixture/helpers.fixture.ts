@@ -1,36 +1,84 @@
 import {schematic} from '../../src';
-import {getInvalidTypeMessage} from '../../src/helpers/message.helper';
+import {TEMPLATE_PATTERN, VALIDATION_MESSAGE_INVALID_TYPE} from '../../src/constants';
+
+function getFakeInvalidTypeMessage(key: string, type: string, actual: string): string {
+	return VALIDATION_MESSAGE_INVALID_TYPE.replace(TEMPLATE_PATTERN, type)
+		.replace(TEMPLATE_PATTERN, key)
+		.replace(TEMPLATE_PATTERN, actual);
+}
+
+const aBoolean = 'a boolean';
+
+const aBigInt = 'a bigint';
+
+const aNumber = 'a number';
+
+const anObject = 'an object';
 
 export const types = [
-	"'null'",
-	"'undefined'",
-	"'boolean'",
-	"'boolean'",
-	"'number'",
-	"'bigint'",
-	"'string'",
-	"'symbol'",
-	"'array'",
-	'Map',
-	'Set',
-	"'function'",
-	"'object'",
+	{
+		original: 'null',
+		rendered: 'null',
+	},
+	{
+		original: 'undefined',
+		rendered: 'undefined',
+	},
+	{
+		original: 'boolean',
+		rendered: aBoolean,
+	},
+	{
+		original: 'bigint',
+		rendered: aBigInt,
+	},
+	{
+		original: 'function',
+		rendered: 'a function',
+	},
+	{
+		original: 'number',
+		rendered: aNumber,
+	},
+	{
+		original: 'string',
+		rendered: 'a string',
+	},
+	{
+		original: 'symbol',
+		rendered: 'a symbol',
+	},
+	{
+		original: 'array',
+		rendered: 'an array',
+	},
+	{
+		original: Map,
+		rendered: 'Map',
+	},
+	{
+		original: Set,
+		rendered: 'Set',
+	},
+	{
+		original: {},
+		rendered: anObject,
+	},
 ];
 
 export const values = [
 	null,
 	undefined,
 	false,
-	true,
+	123n,
+	() => {},
 	123,
-	BigInt(123),
-	'hello',
-	Symbol('sym'),
-	[1, 2, 3],
+	'',
+	Symbol(''),
+	[],
 	new Map(),
 	new Set(),
-	() => {},
-	{key: 'value'},
+	{},
 ];
 
 export const length = values.length;
@@ -48,6 +96,7 @@ export const parameters = {
 		invalid: {
 			input: 'not a valid input',
 			result: {
+				clone: true,
 				output: {},
 				reporting: {...defaultReporting},
 				strict: false,
@@ -56,6 +105,7 @@ export const parameters = {
 		valid: {
 			input: 'all',
 			result: {
+				clone: true,
 				output: {},
 				reporting: {
 					all: true,
@@ -72,6 +122,7 @@ export const parameters = {
 		invalid: {
 			input: 'not a valid object',
 			result: {
+				clone: true,
 				output: {},
 				reporting: {...defaultReporting},
 				strict: false,
@@ -83,6 +134,7 @@ export const parameters = {
 				strict: true,
 			},
 			result: {
+				clone: true,
 				output: {},
 				reporting: {
 					all: false,
@@ -99,6 +151,7 @@ export const parameters = {
 		invalid: {
 			input: 'not a valid input',
 			result: {
+				clone: true,
 				output: {},
 				reporting: {...defaultReporting},
 				strict: false,
@@ -107,6 +160,7 @@ export const parameters = {
 		valid: {
 			input: true,
 			result: {
+				clone: true,
 				output: {},
 				reporting: {...defaultReporting},
 				strict: true,
@@ -120,9 +174,9 @@ const property = {
 };
 
 const properties = {
-	one: {...property, types: ['fake']},
-	three: {...property, types: ['one', 'two', 'three']},
-	two: {...property, types: ['one', 'two']},
+	one: {...property, types: ['boolean']},
+	three: {...property, types: ['boolean', 'bigint', 'number']},
+	two: {...property, types: ['boolean', 'bigint']},
 };
 
 const Simple = schematic({property: 'number'});
@@ -130,36 +184,59 @@ const Simple = schematic({property: 'number'});
 export const cases = [
 	...values.map((value, index) => ({
 		value,
-		expected: getInvalidTypeMessage(property.key, [types[index]] as never, value),
+		expected: getFakeInvalidTypeMessage(property.key, types[index].rendered, types[index].rendered),
 		key: property.key,
-		types: [types[index]],
+		types: [types[index].original],
 	})),
 	{
-		expected: getInvalidTypeMessage(property.key, ['a Schematic'] as never, Simple),
+		expected: getFakeInvalidTypeMessage(property.key, anObject, types[0].rendered),
 		key: property.key,
-		types: ['a Schematic'],
-		value: Simple,
+		types: [Simple],
+		value: values[0],
 	},
 	{
-		expected: getInvalidTypeMessage(properties.one.key, properties.one.types as never, values[0]),
+		expected: getFakeInvalidTypeMessage(properties.one.key, aBoolean, types[0].rendered),
 		key: properties.one.key,
 		types: properties.one.types,
 		value: values[0],
 	},
 	{
-		expected: getInvalidTypeMessage(properties.two.key, properties.two.types as never, values[0]),
+		expected: getFakeInvalidTypeMessage(
+			properties.two.key,
+			`${aBoolean} or ${aBigInt}`,
+			types[0].rendered,
+		),
 		key: properties.two.key,
 		types: properties.two.types,
 		value: values[0],
 	},
 	{
-		expected: getInvalidTypeMessage(
+		expected: getFakeInvalidTypeMessage(
 			properties.three.key,
-			properties.three.types as never,
-			values[0],
+			`${aBoolean}, ${aBigInt}, or ${aNumber}`,
+			types[0].rendered,
 		),
 		key: properties.three.key,
 		types: properties.three.types,
 		value: values[0],
 	},
 ];
+
+const validatorKey = 'validator';
+
+const validatorType = {
+	original: () => true,
+	rendered: 'a validated value',
+};
+
+const validatorValue = {
+	original: () => true,
+	rendered: 'a function',
+};
+
+export const validatorCase = {
+	key: validatorKey,
+	message: getFakeInvalidTypeMessage(validatorKey, validatorType.rendered, validatorValue.rendered),
+	type: validatorType,
+	value: validatorValue,
+};

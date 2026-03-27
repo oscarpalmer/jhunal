@@ -4,7 +4,7 @@ export type {TypedSchema} from './models/schema.typed.model';
 export {
 	SchematicError,
 	ValidationError,
-	type ValidationInformation,
-	type ValidationOptions,
+	type GetOptions,
+	type IsOptions,
 } from './models/validation.model';
 export {schematic, type Schematic} from './schematic';

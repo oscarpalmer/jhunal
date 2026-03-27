@@ -176,6 +176,7 @@ export const basic = {
 			},
 		},
 	},
+	valid: {...basicValue},
 };
 
 // #endregion
@@ -324,7 +325,7 @@ export const complex = {
 			ok: false,
 			error: getInvalidTypeMessage(
 				complexValues.instance.key,
-				[() => {}],
+				[TestItem],
 				complexValues.instance.value,
 			),
 		},

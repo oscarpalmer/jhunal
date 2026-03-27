@@ -1,4 +1,4 @@
-import {Err} from '@oscarpalmer/atoms/result/models';
+import {Err, Ok} from '@oscarpalmer/atoms/result/models';
 import {expect, test} from 'vitest';
 import {ValidationInformation} from '../src/models/validation.model';
 import {schematic} from '../src/schematic';
@@ -17,6 +17,8 @@ test('is basic', () => {
 	for (let index = 0; index < basic.cases.length; index += 1) {
 		expect(instance.is(basic.cases[index].input)).toBe(basic.cases[index].ok);
 	}
+
+	expect(instance.is(basic.valid)).toBe(true);
 });
 
 test('is basic: all', () => {
@@ -30,6 +32,11 @@ test('is basic: all', () => {
 		expect(result.ok).toBe(false);
 		expect(result.error.map(info => info.message)).toEqual(invalidCases[index].errors);
 	}
+
+	const result = instance.is(basic.valid, 'all') as Ok<true>;
+
+	expect(result.ok).toBe(true);
+	expect(result.value).toBe(true);
 });
 
 test('is basic: all, nested', () => {
@@ -52,6 +59,11 @@ test('is basic: first', () => {
 		expect(result.ok).toBe(false);
 		expect(result.error.message).toBe(invalidCases[index].error);
 	}
+
+	const result = instance.is(basic.valid, 'first') as Ok<true>;
+
+	expect(result.ok).toBe(true);
+	expect(result.value).toBe(true);
 });
 
 test('is basic: first, nested', () => {
@@ -73,6 +85,8 @@ test('is basic: throw', () => {
 			invalidCases[index].error,
 		);
 	}
+
+	expect(instance.is(basic.valid, 'throw')).toBe(true);
 });
 
 test('is complex', () => {

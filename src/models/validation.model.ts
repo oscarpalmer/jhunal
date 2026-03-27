@@ -91,19 +91,31 @@ export type ValidationInformationKey = {
 
 // #region Options
 
-/**
- * Options for validation
- */
-export type ValidationOptions<Errors extends ReportingType> = {
+type BaseOptions<Errors extends ReportingType> = {
 	/**
 	 * How should validation failures be reported; see {@link ReportingType} _(defaults to `'none'`)_
 	 */
-	errors?: Errors;
+	errors: Errors;
 	/**
 	 * Validate if unknown keys are present in the object? _(defaults to `false`)_
 	 */
 	strict?: boolean;
 };
+
+/**
+ * Options for validating and getting a value from an input
+ */
+export type GetOptions<Errors extends ReportingType> = BaseOptions<Errors> & {
+	/**
+	 * Get a deeply cloned version of the input? _(defaults to `true`)_
+	 */
+	clone?: boolean;
+};
+
+/**
+ * Options for validation an input value
+ */
+export type IsOptions<Errors extends ReportingType> = BaseOptions<Errors>;
 
 // #endregion
 
@@ -113,9 +125,10 @@ export type Validator = (
 	input: unknown,
 	parameters: ValidatorParameters,
 	get: boolean,
-) => boolean | ValidationInformation[];
+) => true | ValidationInformation[];
 
 export type ValidatorParameters = {
+	clone: boolean;
 	information?: ValidationInformation[];
 	output: PlainObject;
 	reporting: ReportingInformation;

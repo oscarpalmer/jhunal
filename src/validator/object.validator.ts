@@ -186,7 +186,7 @@ export function getObjectValidator(
 	return (input, parameters, get) => {
 		if (!isPlainObject(input)) {
 			if (origin != null) {
-				return false;
+				return [];
 			}
 
 			const information: ValidationInformation = {
@@ -204,7 +204,7 @@ export function getObjectValidator(
 
 			parameters.information?.push(information);
 
-			return parameters.reporting.none ? false : [information];
+			return [information];
 		}
 
 		if (parameters.strict) {
@@ -227,7 +227,7 @@ export function getObjectValidator(
 
 				parameters.information?.push(information);
 
-				return parameters.reporting.none ? false : [information];
+				return [information];
 			}
 		}
 
@@ -242,7 +242,7 @@ export function getObjectValidator(
 			if (value === undefined) {
 				if (required) {
 					if (parameters.reporting.none) {
-						return false;
+						return [];
 					}
 
 					const information: ValidationInformation = {
@@ -277,20 +277,16 @@ export function getObjectValidator(
 
 			parameters.output = previousOutput;
 
-			if (result === false) {
-				continue;
-			}
-
 			if (result === true) {
-				if (get) {
-					output[key.short] = clone(value);
+				if (get && !isPlainObject(value)) {
+					output[key.short] = parameters.clone ? clone(value) : value;
 				}
 
 				continue;
 			}
 
 			if (parameters.reporting.none) {
-				return false;
+				return [];
 			}
 
 			const information: ValidationInformation[] =
@@ -325,7 +321,7 @@ export function getObjectValidator(
 			}
 		}
 
-		return parameters.reporting.none || allInformation.length === 0 ? true : allInformation;
+		return allInformation.length === 0 ? true : allInformation;
 	};
 }
 

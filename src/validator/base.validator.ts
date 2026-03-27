@@ -17,10 +17,6 @@ export function getBaseValidator(validators: Validator[]): Validator {
 
 			parameters.information = previousInformation;
 
-			if (result === false) {
-				continue;
-			}
-
 			if (result === true) {
 				return true;
 			}

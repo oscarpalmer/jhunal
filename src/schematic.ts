@@ -9,8 +9,9 @@ import type {Schema} from './models/schema.plain.model';
 import type {TypedSchema} from './models/schema.typed.model';
 import {
 	SchematicError,
+	type GetOptions,
+	type IsOptions,
 	type ValidationInformation,
-	type ValidationOptions,
 	type Validator,
 } from './models/validation.model';
 import {getObjectValidator} from './validator/object.validator';
@@ -41,7 +42,7 @@ export class Schematic<Model> {
 	 * @param options Validation options
 	 * @returns Deeply cloned version of the value if it matches the schema, otherwise throws an error
 	 */
-	get(value: unknown, options: ValidationOptions<'throw'>): Model;
+	get(value: unknown, options: GetOptions<'throw'>): Model;
 
 	/**
 	 * Parse a value according to the schema
@@ -61,7 +62,7 @@ export class Schematic<Model> {
 	 * @param options Validation options
 	 * @returns Result holding deeply cloned value or all validation information
 	 */
-	get(value: unknown, options: ValidationOptions<'all'>): Result<Model, ValidationInformation[]>;
+	get(value: unknown, options: GetOptions<'all'>): Result<Model, ValidationInformation[]>;
 
 	/**
 	 * Parse a value according to the schema
@@ -81,7 +82,7 @@ export class Schematic<Model> {
 	 * @param options Validation options
 	 * @returns Result holding deeply cloned value or all validation information
 	 */
-	get(value: unknown, options: ValidationOptions<'first'>): Result<Model, ValidationInformation>;
+	get(value: unknown, options: GetOptions<'first'>): Result<Model, ValidationInformation>;
 
 	/**
 	 * Parse a value according to the schema
@@ -98,6 +99,16 @@ export class Schematic<Model> {
 	 *
 	 * Returns a deeply cloned version of the value or `undefined` if the value does not match the schema
 	 * @param value Value to parse
+	 * @param options Validation options
+	 * @returns Deeply cloned value, or `undefined` if it's invalid
+	 */
+	get(value: unknown, options: GetOptions<'none'>): Model | undefined;
+
+	/**
+	 * Parse a value according to the schema
+	 *
+	 * Returns a deeply cloned version of the value or `undefined` if the value does not match the schema
+	 * @param value Value to parse
 	 * @param strict Validate if unknown keys are present in the object? _(defaults to `false`)_
 	 * @returns Deeply cloned value, or `undefined` if it's invalid
 	 */
@@ -108,12 +119,14 @@ export class Schematic<Model> {
 
 		const result = this.#validator(value, parameters, true);
 
-		if (typeof result === 'boolean') {
-			return parameters.reporting.none
-				? result
-					? parameters.output
-					: undefined
+		if (result === true) {
+			return parameters.reporting.none || parameters.reporting.throw
+				? parameters.output
 				: ok(parameters.output);
+		}
+
+		if (parameters.reporting.none) {
+			return;
 		}
 
 		return error(parameters.reporting.all ? result : result[0]);
@@ -127,7 +140,7 @@ export class Schematic<Model> {
 	 * @param options Validation options
 	 * @returns `true` if the value matches the schema, otherwise throws an error
 	 */
-	is(value: unknown, options: ValidationOptions<'throw'>): asserts value is Model;
+	is(value: unknown, options: IsOptions<'throw'>): asserts value is Model;
 
 	/**
 	 * Does the value match the schema?
@@ -147,7 +160,7 @@ export class Schematic<Model> {
 	 * @param options Validation options
 	 * @returns Result holding `true` or all validation information
 	 */
-	is(value: unknown, options: ValidationOptions<'all'>): Result<true, ValidationInformation[]>;
+	is(value: unknown, options: IsOptions<'all'>): Result<true, ValidationInformation[]>;
 
 	/**
 	 * Does the value match the schema?
@@ -167,7 +180,7 @@ export class Schematic<Model> {
 	 * @param options Validation options
 	 * @returns `true` if the value matches the schema, otherwise `false`
 	 */
-	is(value: unknown, options: ValidationOptions<'first'>): Result<true, ValidationInformation>;
+	is(value: unknown, options: IsOptions<'first'>): Result<true, ValidationInformation>;
 
 	/**
 	 * Does the value match the schema?
@@ -184,6 +197,16 @@ export class Schematic<Model> {
 	 *
 	 * Will validate that the value matches the schema and return `true` or `false`, without any validation information for validation failures
 	 * @param value Value to validate
+	 * @param options Validation options
+	 * @returns `true` if the value matches the schema, otherwise `false`
+	 */
+	is(value: unknown, options: IsOptions<'none'>): value is Model;
+
+	/**
+	 * Does the value match the schema?
+	 *
+	 * Will validate that the value matches the schema and return `true` or `false`, without any validation information for validation failures
+	 * @param value Value to validate
 	 * @param strict Validate if unknown keys are present in the object? _(defaults to `false`)_
 	 * @returns `true` if the value matches the schema, otherwise `false`
 	 */
@@ -194,8 +217,12 @@ export class Schematic<Model> {
 
 		const result = this.#validator(value, parameters, false);
 
-		if (typeof result === 'boolean') {
-			return parameters.reporting.none ? result : ok(result);
+		if (result === true) {
+			return parameters.reporting.none || parameters.reporting.throw ? result : ok(result);
+		}
+
+		if (parameters.reporting.none) {
+			return false;
 		}
 
 		return error(parameters.reporting.all ? result : result[0]);

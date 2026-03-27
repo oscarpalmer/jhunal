@@ -72,3 +72,23 @@ test('get throw', () => {
 	expect(get.success.date).not.toBe(result!.date);
 	expect(get.success.date.getTime()).toBe(result!.date.getTime());
 });
+
+test('get: clone options', () => {
+	const cloned = get.schema.get(get.success, {
+		errors: 'none',
+	});
+
+	const defaulted = get.schema.get(get.success, {
+		clone: 'blah' as never,
+		errors: 'none',
+	});
+
+	const noClone = get.schema.get(get.success, {
+		clone: false,
+		errors: 'none',
+	});
+
+	expect(get.success.date).not.toBe(cloned!.date);
+	expect(get.success.date).not.toBe(defaulted!.date);
+	expect(get.success.date).toBe(noClone!.date);
+});

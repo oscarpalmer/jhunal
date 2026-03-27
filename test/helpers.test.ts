@@ -4,7 +4,7 @@ import {MESSAGE_CONSTRUCTOR} from '../src/constants';
 import {getInvalidTypeMessage} from '../src/helpers/message.helper';
 import {getParameters} from '../src/helpers/misc.helper';
 import {schematic} from '../src/schematic';
-import {cases, length, parameters, values} from './.fixture/helpers.fixture';
+import {cases, length, parameters, validatorCase, values} from './.fixture/helpers.fixture';
 import {TestItem} from './.fixture/models.fixture';
 
 test('getInvalidTypeMessage', () => {
@@ -13,6 +13,14 @@ test('getInvalidTypeMessage', () => {
 
 		expect(getInvalidTypeMessage(item.key, item.types as never, item.value)).toBe(item.expected);
 	}
+
+	expect(
+		getInvalidTypeMessage(
+			validatorCase.key,
+			[validatorCase.type.original],
+			validatorCase.value.original,
+		),
+	).toBe(validatorCase.message);
 });
 
 test('getParameters', () => {

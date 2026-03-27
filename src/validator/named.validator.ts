@@ -21,7 +21,7 @@ export function getNamedValidator(
 
 	return (input, parameters) => {
 		if (!validator(input)) {
-			return false;
+			return [];
 		}
 
 		for (let index = 0; index < length; index += 1) {
@@ -40,7 +40,7 @@ export function getNamedValidator(
 
 			parameters.information?.push(information);
 
-			return parameters.reporting.none ? false : [information];
+			return parameters.reporting.none ? [] : [information];
 		}
 
 		return true;
