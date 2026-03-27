@@ -3,25 +3,27 @@ import type {PlainObject} from '@oscarpalmer/atoms/models';
 import {join} from '@oscarpalmer/atoms/string';
 import {clone} from '@oscarpalmer/atoms/value/clone';
 import {
+	PROPERTY_DEFAULT,
 	PROPERTY_REQUIRED,
 	PROPERTY_TYPE,
 	PROPERTY_VALIDATORS,
 	SCHEMATIC_MESSAGE_SCHEMA_INVALID_EMPTY,
-	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED,
-	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE,
-	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED,
-	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE,
-	TEMPLATE_PATTERN,
 	TYPE_ALL,
 	TYPE_UNDEFINED,
 } from '../constants';
 import {
-	getInvalidInputMessage,
-	getInvalidMissingMessage,
-	getInvalidTypeMessage,
+	getDefaultRequiredMessage,
+	getDefaultTypeMessage,
+	getDisallowedMessage,
+	getInputPropertyMissingMessage,
+	getInputPropertyTypeMessage,
+	getInputTypeMessage,
+	getRequiredMessage,
+	getSchematicPropertyNullableMessage,
+	getSchematicPropertyTypeMessage,
 	getUnknownKeysMessage,
 } from '../helpers/message.helper';
-import {isSchematic} from '../helpers/misc.helper';
+import {getParameters, isSchematic} from '../helpers/misc.helper';
 import type {ValueName} from '../models/misc.model';
 import {
 	type NamedValidatorHandlers,
@@ -30,6 +32,8 @@ import {
 	type ValidationInformation,
 	type ValidationInformationKey,
 	type Validator,
+	type ValidatorDefaults,
+	type ValidatorItem,
 	type ValidatorType,
 } from '../models/validation.model';
 import {getBaseValidator} from './base.validator';
@@ -38,7 +42,29 @@ import {getNamedHandlers} from './named.handler';
 import {getNamedValidator} from './named.validator';
 import {getSchematicValidator} from './schematic.validator';
 
+function getDefaults(
+	obj: PlainObject,
+	key: string,
+	allowed: boolean,
+): ValidatorDefaults | undefined {
+	if (!(PROPERTY_DEFAULT in obj)) {
+		return;
+	}
+
+	if (!allowed) {
+		throw new SchematicError(getDisallowedMessage(key, PROPERTY_DEFAULT));
+	}
+
+	return {
+		value: obj[PROPERTY_DEFAULT],
+	};
+}
+
 function getDisallowedProperty(obj: PlainObject): string | undefined {
+	if (PROPERTY_DEFAULT in obj) {
+		return PROPERTY_DEFAULT;
+	}
+
 	if (PROPERTY_REQUIRED in obj) {
 		return PROPERTY_REQUIRED;
 	}
@@ -68,35 +94,20 @@ export function getObjectValidator(
 		const property = getDisallowedProperty(original);
 
 		if (property != null) {
-			throw new SchematicError(
-				SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED.replace(
-					TEMPLATE_PATTERN,
-					origin!.full,
-				).replace(TEMPLATE_PATTERN, property),
-			);
+			throw new SchematicError(getDisallowedMessage(origin!.full, property));
 		}
 	}
 
 	const set = new Set<string>();
 
-	const items: {
-		key: ValidationInformationKey;
-		required: boolean;
-		types: ValidatorType[];
-		validator: Validator;
-	}[] = [];
+	const items: ValidatorItem[] = [];
 
 	for (let keyIndex = 0; keyIndex < keysLength; keyIndex += 1) {
 		const key = keys[keyIndex];
 		const value = original[key];
 
 		if (value == null) {
-			throw new SchematicError(
-				SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE.replace(
-					TEMPLATE_PATTERN,
-					join([origin?.full, key], '.'),
-				),
-			);
+			throw new SchematicError(getSchematicPropertyNullableMessage(join([origin?.full, key], '.')));
 		}
 
 		const prefixedKey = origin == null ? key : join([origin.full, key], '.');
@@ -109,6 +120,9 @@ export function getObjectValidator(
 		let handlers: NamedValidatorHandlers = {};
 		let required = true;
 		let typed = false;
+
+		let defaults: ValidatorDefaults | undefined;
+
 		let types: ValidatorType[];
 
 		const validators: Validator[] = [];
@@ -118,8 +132,9 @@ export function getObjectValidator(
 
 			const type = typed ? value[PROPERTY_TYPE] : value;
 
-			handlers = getNamedHandlers(value[PROPERTY_VALIDATORS], prefixedKey);
-			required = getRequired(key, value) ?? required;
+			defaults = getDefaults(value, prefixedKey, typed);
+			handlers = getNamedHandlers(value[PROPERTY_VALIDATORS], prefixedKey, typed);
+			required = getRequired(value, prefixedKey, typed) ?? required;
 
 			types = Array.isArray(type) ? type : [type];
 		} else {
@@ -127,12 +142,7 @@ export function getObjectValidator(
 		}
 
 		if (types.length === 0) {
-			throw new SchematicError(
-				SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE.replace(
-					TEMPLATE_PATTERN,
-					prefixedKey,
-				).replace(TEMPLATE_PATTERN, String(value)),
-			);
+			throw new SchematicError(getSchematicPropertyTypeMessage(prefixedKey));
 		}
 
 		const typesLength = types.length;
@@ -160,25 +170,33 @@ export function getObjectValidator(
 					break;
 
 				default:
-					throw new SchematicError(
-						SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE.replace(
-							TEMPLATE_PATTERN,
-							prefixedKey,
-						).replace(TEMPLATE_PATTERN, String(type)),
-					);
+					throw new SchematicError(getSchematicPropertyTypeMessage(prefixedKey));
 			}
 
 			validators.push(validator);
 		}
 
-		set.add(key);
+		required = required && !types.includes(TYPE_UNDEFINED);
+
+		if (defaults != null && !required) {
+			throw new SchematicError(getDefaultRequiredMessage(prefixedKey));
+		}
+
+		const validator = getBaseValidator(validators);
+
+		if (defaults != null && Array.isArray(validator(defaults.value, getParameters(), false))) {
+			throw new SchematicError(getDefaultTypeMessage(prefixedKey, types));
+		}
 
 		items.push({
+			defaults,
+			required,
 			types,
+			validator,
 			key: fullKey,
-			required: required && !types.includes(TYPE_UNDEFINED),
-			validator: getBaseValidator(validators),
 		});
+
+		set.add(key);
 	}
 
 	const validatorsLength = items.length;
@@ -195,7 +213,7 @@ export function getObjectValidator(
 					short: '',
 				},
 				value: input,
-				message: getInvalidInputMessage(input),
+				message: getInputTypeMessage(input),
 			};
 
 			if (parameters.reporting.throw) {
@@ -235,12 +253,18 @@ export function getObjectValidator(
 		const output: PlainObject = {};
 
 		for (let validatorIndex = 0; validatorIndex < validatorsLength; validatorIndex += 1) {
-			const {key, required, types, validator} = items[validatorIndex];
+			const {defaults, key, required, types, validator} = items[validatorIndex];
 
 			const value = (input as PlainObject)[key.short];
 
 			if (value === undefined) {
 				if (required) {
+					if (get && defaults != null) {
+						output[key.short] = clone(defaults.value);
+
+						continue;
+					}
+
 					if (parameters.reporting.none) {
 						return [];
 					}
@@ -248,7 +272,7 @@ export function getObjectValidator(
 					const information: ValidationInformation = {
 						key,
 						value,
-						message: getInvalidMissingMessage(key.full, types),
+						message: getInputPropertyMissingMessage(key.full, types),
 					};
 
 					if (parameters.reporting.throw) {
@@ -296,7 +320,7 @@ export function getObjectValidator(
 							{
 								key,
 								value,
-								message: getInvalidTypeMessage(key.full, types, value),
+								message: getInputPropertyTypeMessage(key.full, types, value),
 							},
 						];
 
@@ -325,15 +349,17 @@ export function getObjectValidator(
 	};
 }
 
-function getRequired(key: string, obj: PlainObject): boolean | undefined {
+function getRequired(obj: PlainObject, key: string, allowed: boolean): boolean | undefined {
 	if (!(PROPERTY_REQUIRED in obj)) {
 		return;
 	}
 
+	if (!allowed) {
+		throw new SchematicError(getDisallowedMessage(key, PROPERTY_REQUIRED));
+	}
+
 	if (typeof obj[PROPERTY_REQUIRED] !== 'boolean') {
-		throw new SchematicError(
-			SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED.replace(TEMPLATE_PATTERN, key),
-		);
+		throw new SchematicError(getRequiredMessage(key));
 	}
 
 	return obj[PROPERTY_REQUIRED];

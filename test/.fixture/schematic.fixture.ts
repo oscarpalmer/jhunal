@@ -1,7 +1,10 @@
 import {
+	PROPERTY_DEFAULT,
 	PROPERTY_REQUIRED,
 	PROPERTY_TYPE,
 	PROPERTY_VALIDATORS,
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_REQUIRED,
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_TYPE,
 	SCHEMATIC_MESSAGE_SCHEMA_INVALID_EMPTY,
 	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED,
 	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE,
@@ -37,7 +40,7 @@ const type = PROPERTY_TYPE;
 
 const validators = PROPERTY_VALIDATORS;
 
-export const cases = [
+const basicCases = [
 	...Array.from({length: typeValues.length - 1}, (_, index) => ({
 		schema: typeValues[index],
 		error: invalidType,
@@ -49,7 +52,36 @@ export const cases = [
 	{
 		schema: {
 			property: {
+				$default: 'not allowed',
+			},
+		},
+		error: invalidDisallowed.replace(tpl, propertyShort).replace(tpl, PROPERTY_DEFAULT),
+	},
+	{
+		schema: {
+			nested: {
+				property: {
+					$type: {
+						$default: 'not allowed',
+					},
+				},
+			},
+		},
+		error: invalidDisallowed.replace(tpl, propertyFull).replace(tpl, PROPERTY_DEFAULT),
+	},
+	{
+		schema: {
+			property: {
+				$required: 'not allowed',
+			},
+		},
+		error: invalidDisallowed.replace(tpl, propertyShort).replace(tpl, required),
+	},
+	{
+		schema: {
+			property: {
 				$required: 'not a boolean',
+				$type: 'boolean',
 			},
 		},
 		error: invalidRequired.replace(tpl, propertyShort),
@@ -79,6 +111,26 @@ export const cases = [
 			},
 		},
 		error: invalidDisallowed.replace(tpl, propertyFull).replace(tpl, required),
+	},
+	{
+		schema: {
+			property: {
+				$validators: 'not allowed',
+			},
+		},
+		error: invalidDisallowed.replace(tpl, propertyShort).replace(tpl, validators),
+	},
+	{
+		schema: {
+			nested: {
+				property: {
+					$type: {
+						$validators: 'not allowed',
+					},
+				},
+			},
+		},
+		error: invalidDisallowed.replace(tpl, propertyFull).replace(tpl, validators),
 	},
 	{
 		schema: {
@@ -214,7 +266,7 @@ export const cases = [
 	},
 ];
 
-export const schema = {
+export const BasicSchema = {
 	optional: {
 		$required: false,
 		$type: 'boolean',
@@ -223,3 +275,57 @@ export const schema = {
 		$type: ['number', 'string'],
 	},
 } satisfies Schema;
+
+export const basic = {
+	cases: basicCases,
+	schema: BasicSchema,
+};
+
+const defaultsValues = [
+	null,
+	undefined,
+	123n,
+	new Date(),
+	() => true,
+	'',
+	Symbol(''),
+	[],
+	{},
+	Map,
+	Set,
+];
+
+const defaultsSchemas = [
+	{
+		property: {
+			$default: 'not allowed',
+			$required: false,
+			$type: 'boolean',
+		},
+	},
+	...defaultsValues.map(value => ({
+		property: {
+			$default: value,
+			$type: 'boolean',
+		},
+	})),
+];
+
+const defaultsProperty = 'property';
+
+const defaultsType = 'a boolean';
+
+const defaultResults = [
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_REQUIRED.replace(tpl, defaultsProperty),
+	...defaultsValues.map(() =>
+		SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_TYPE.replace(tpl, defaultsProperty).replace(
+			tpl,
+			defaultsType,
+		),
+	),
+];
+
+export const defaults = {
+	results: defaultResults,
+	schemas: defaultsSchemas,
+};

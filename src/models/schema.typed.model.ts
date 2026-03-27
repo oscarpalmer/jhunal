@@ -17,6 +17,7 @@ import type {ToSchemaPropertyType, ToSchemaType} from './transform.model';
  * ```
  */
 export type TypedPropertyOptional<Value> = {
+	$default?: never;
 	$required: false;
 	$type: ToSchemaPropertyType<Exclude<Value, undefined>>;
 	$validators?: PropertyValidators<ToSchemaPropertyType<Exclude<Value, undefined>>>;
@@ -35,6 +36,7 @@ export type TypedPropertyOptional<Value> = {
  * ```
  */
 export type TypedPropertyRequired<Value> = {
+	$default?: unknown;
 	$required?: true;
 	$type: ToSchemaPropertyType<Value>;
 	$validators?: PropertyValidators<ToSchemaPropertyType<Value>>;
@@ -61,31 +63,11 @@ export type TypedPropertyRequired<Value> = {
 export type TypedSchema<Model extends PlainObject> = Simplify<
 	{
 		[Key in RequiredKeys<Model>]: Model[Key] extends PlainObject
-			? TypedSchemaRequired<Model[Key]> | Schematic<Model[Key]>
+			? Schematic<Model[Key]>
 			: ToSchemaType<Model[Key]> | TypedPropertyRequired<Model[Key]>;
 	} & {
 		[Key in OptionalKeys<Model>]: Exclude<Model[Key], undefined> extends PlainObject
-			?
-					| TypedSchemaOptional<Exclude<Model[Key], undefined>>
-					| Schematic<Exclude<Model[Key], undefined>>
+			? Schematic<Exclude<Model[Key], undefined>>
 			: TypedPropertyOptional<Model[Key]>;
 	}
 >;
-
-/**
- * A {@link TypedSchema} variant for optional nested objects, with `$required` fixed to `false`
- *
- * @template Model Nested object type
- */
-type TypedSchemaOptional<Model extends PlainObject> = {
-	$required: false;
-} & TypedSchema<Model>;
-
-/**
- * A {@link TypedSchema} variant for required nested objects, with `$required` defaulting to `true`
- *
- * @template Model Nested object type
- */
-type TypedSchemaRequired<Model extends PlainObject> = {
-	$required?: true;
-} & TypedSchema<Model>;

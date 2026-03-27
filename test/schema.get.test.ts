@@ -2,7 +2,7 @@ import {isError, isOk} from '@oscarpalmer/atoms/result/misc';
 import {Err, Ok} from '@oscarpalmer/atoms/result/models';
 import {expect, test} from 'vitest';
 import {ValidationError, ValidationInformation} from '../src/models/validation.model';
-import {get} from './.fixture/schema.get.fixture';
+import {defaults, get} from './.fixture/schema.get.fixture';
 
 test('get all', () => {
 	for (let index = 0; index < get.length; index += 1) {
@@ -91,4 +91,9 @@ test('get: clone options', () => {
 	expect(get.success.date).not.toBe(cloned!.date);
 	expect(get.success.date).not.toBe(defaulted!.date);
 	expect(get.success.date).toBe(noClone!.date);
+});
+
+test('get: defaults', () => {
+	expect(defaults.schema.get(defaults.input.defaulted)).toEqual(defaults.result.defaulted);
+	expect(defaults.schema.get(defaults.input.ignored)).toEqual(defaults.result.ignored);
 });

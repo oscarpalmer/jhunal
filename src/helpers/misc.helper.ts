@@ -1,5 +1,5 @@
 import {isConstructor, isPlainObject} from '@oscarpalmer/atoms/is';
-import type {Constructor, PlainObject} from '@oscarpalmer/atoms/models';
+import type {Constructor} from '@oscarpalmer/atoms/models';
 import {
 	MESSAGE_CONSTRUCTOR,
 	PROPERTY_SCHEMATIC,
@@ -8,7 +8,6 @@ import {
 	REPORTING_NONE,
 	REPORTING_THROW,
 	REPORTING_TYPES,
-	TYPE_OBJECT,
 } from '../constants';
 import type {
 	ReportingInformation,
@@ -22,7 +21,7 @@ export function getParameters(input?: unknown): ValidatorParameters {
 		return {
 			clone: true,
 			output: {},
-			reporting: getReporting(REPORTING_NONE),
+			reporting: getReporting(),
 			strict: input,
 		};
 	}
@@ -46,7 +45,7 @@ export function getParameters(input?: unknown): ValidatorParameters {
 	};
 }
 
-export function getReporting(value: unknown): ReportingInformation {
+export function getReporting(value?: unknown): ReportingInformation {
 	const type = REPORTING_TYPES.has(value as ReportingType)
 		? (value as ReportingType)
 		: REPORTING_NONE;
@@ -85,9 +84,9 @@ export function instanceOf<Instance>(
  */
 export function isSchematic(value: unknown): value is Schematic<never> {
 	return (
-		typeof value === TYPE_OBJECT &&
+		typeof value === 'object' &&
 		value !== null &&
-		PROPERTY_SCHEMATIC in (value as PlainObject) &&
-		(value as PlainObject)[PROPERTY_SCHEMATIC] === true
+		PROPERTY_SCHEMATIC in value &&
+		value[PROPERTY_SCHEMATIC] === true
 	);
 }

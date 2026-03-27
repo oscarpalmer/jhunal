@@ -4,7 +4,7 @@ import {
 	SCHEMATIC_MESSAGE_VALIDATOR_INVALID_VALUE,
 	TEMPLATE_PATTERN,
 } from '../../src/constants';
-import {getInvalidValidatorMessage} from '../../src/helpers/message.helper';
+import {getInputPropertyValidatorMessage} from '../../src/helpers/message.helper';
 import {Schema} from '../../src/models/schema.plain.model';
 
 const invalidKey = 'invalid';
@@ -65,22 +65,22 @@ export const run = {
 		{
 			input: {age: -5, name: 'Test'},
 			ok: false,
-			error: getInvalidValidatorMessage('age', 'number', 0, 2),
+			error: getInputPropertyValidatorMessage('age', 'number', 0, 2),
 		},
 		{
 			input: {age: 200, name: 'Test'},
 			ok: false,
-			error: getInvalidValidatorMessage('age', 'number', 1, 2),
+			error: getInputPropertyValidatorMessage('age', 'number', 1, 2),
 		},
 		{
 			input: {age: 25, name: ''},
 			ok: false,
-			error: getInvalidValidatorMessage('name', 'string', 0, 1),
+			error: getInputPropertyValidatorMessage('name', 'string', 0, 1),
 		},
 		{
 			input: {age: 25, name: 'Test Test Test'},
 			ok: false,
-			error: getInvalidValidatorMessage('name', 'string', 0, 1),
+			error: getInputPropertyValidatorMessage('name', 'string', 0, 1),
 		},
 		{
 			input: {age: 25, name: 'Test'},

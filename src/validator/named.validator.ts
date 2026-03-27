@@ -1,5 +1,4 @@
-import {TYPE_OBJECT} from '../constants';
-import {getInvalidValidatorMessage} from '../helpers/message.helper';
+import {getInputPropertyValidatorMessage} from '../helpers/message.helper';
 import type {ValueName} from '../models/misc.model';
 import type {
 	NamedValidatorHandlers,
@@ -34,7 +33,7 @@ export function getNamedValidator(
 			const information: ValidationInformation = {
 				key,
 				validator,
-				message: getInvalidValidatorMessage(key.full, name, index, length),
+				message: getInputPropertyValidatorMessage(key.full, name, index, length),
 				value: input,
 			};
 
@@ -55,7 +54,7 @@ const namedValidators: NamedValidators = {
 	function: value => typeof value === 'function',
 	null: value => value === null,
 	number: value => typeof value === 'number',
-	object: value => typeof value === TYPE_OBJECT && value !== null,
+	object: value => typeof value === 'object' && value !== null,
 	string: value => typeof value === 'string',
 	symbol: value => typeof value === 'symbol',
 	undefined: value => value === undefined,

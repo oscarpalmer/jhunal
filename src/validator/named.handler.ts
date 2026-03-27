@@ -1,5 +1,7 @@
 import {isPlainObject} from '@oscarpalmer/atoms/is';
 import {
+	PROPERTY_VALIDATORS,
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED,
 	SCHEMATIC_MESSAGE_VALIDATOR_INVALID_KEY,
 	SCHEMATIC_MESSAGE_VALIDATOR_INVALID_TYPE,
 	SCHEMATIC_MESSAGE_VALIDATOR_INVALID_VALUE,
@@ -9,11 +11,24 @@ import {
 import type {ValueName} from '../models/misc.model';
 import type {NamedValidatorHandlers} from '../models/validation.model';
 
-export function getNamedHandlers(original: unknown, prefix: string): NamedValidatorHandlers {
+export function getNamedHandlers(
+	original: unknown,
+	prefix: string,
+	allowed: boolean,
+): NamedValidatorHandlers {
 	const handlers: NamedValidatorHandlers = {};
 
 	if (original == null) {
 		return handlers;
+	}
+
+	if (!allowed) {
+		throw new TypeError(
+			SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED.replace(
+				TEMPLATE_PATTERN,
+				prefix,
+			).replace(TEMPLATE_PATTERN, PROPERTY_VALIDATORS),
+		);
 	}
 
 	if (!isPlainObject(original)) {

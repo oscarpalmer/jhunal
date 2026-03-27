@@ -1,7 +1,7 @@
 import {values} from './helpers.fixture';
 import {schematic} from '../../src';
 
-const Schema = schematic({
+const Basic = schematic({
 	date: 'date',
 	message: 'string',
 	optional: {
@@ -13,6 +13,31 @@ const Schema = schematic({
 		set: Set,
 	},
 });
+
+const Defaults = schematic({
+	property: {
+		$default: true,
+		$type: 'boolean',
+	},
+});
+
+export const defaults = {
+	input: {
+		defaulted: {},
+		ignored: {
+			property: false,
+		},
+	},
+	result: {
+		defaulted: {
+			property: true,
+		},
+		ignored: {
+			property: false,
+		},
+	},
+	schema: Defaults,
+};
 
 const failures = [
 	...values,
@@ -47,5 +72,5 @@ export const get = {
 	success,
 	length: failures.length,
 	lengths: [...values.map((_, index) => (index === values.length - 1 ? 3 : 1)), 1, 3],
-	schema: Schema,
+	schema: Basic,
 };

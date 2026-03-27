@@ -35,6 +35,8 @@ export const NAME_ERROR_VALIDATION = 'ValidationError';
 
 // #region Properties
 
+export const PROPERTY_DEFAULT = '$default';
+
 export const PROPERTY_REQUIRED = '$required';
 
 export const PROPERTY_SCHEMATIC = '$schematic';
@@ -83,10 +85,16 @@ export const REPORTING_TYPES = new Set<ReportingType>([
 
 // #region Schematic validation
 
+export const SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_REQUIRED =
+	"'<>' has a default value but is not required";
+
+export const SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_TYPE =
+	"Expected default value for property '<>' to be <>";
+
 export const SCHEMATIC_MESSAGE_SCHEMA_INVALID_EMPTY = 'Schema must have at least one property';
 
 export const SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED =
-	"'<>.<>' property is not allowed for schemas in $type";
+	"'<>.<>' property is not allowed for plain schemas";
 
 export const SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE =
 	"'<>' property must not be 'null' or 'undefined'";
@@ -118,52 +126,40 @@ export const TEMPLATE_PATTERN = '<>';
 
 export const TYPE_ARRAY = 'array';
 
-const TYPE_BIGINT = 'bigint';
-
-const TYPE_BOOLEAN = 'boolean';
-
-const TYPE_DATE = 'date';
-
 export const TYPE_FUNCTION = 'function';
 
 export const TYPE_FUNCTION_RESULT = 'a validated value';
 
 export const TYPE_NULL = 'null';
 
-const TYPE_NUMBER = 'number';
-
 export const TYPE_OBJECT = 'object';
-
-const TYPE_STRING = 'string';
-
-const TYPE_SYMBOL = 'symbol';
 
 export const TYPE_UNDEFINED = 'undefined';
 
 export const VALIDATABLE_TYPES = new Set<ValueName>([
 	TYPE_ARRAY,
-	TYPE_BIGINT,
-	TYPE_BOOLEAN,
-	TYPE_DATE,
+	'bigint',
+	'boolean',
+	'date',
 	TYPE_FUNCTION,
-	TYPE_NUMBER,
+	'number',
 	TYPE_OBJECT,
-	TYPE_STRING,
-	TYPE_SYMBOL,
+	'string',
+	'symbol',
 ]);
 
 export const TYPE_ALL = new Set<ValueName>([...VALIDATABLE_TYPES, TYPE_NULL, TYPE_UNDEFINED]);
 
 export const PREFIXED_TYPES: Record<ValueName, string> = {
 	[TYPE_ARRAY]: `an ${TYPE_ARRAY}`,
-	[TYPE_BIGINT]: `a ${TYPE_BIGINT}`,
-	[TYPE_BOOLEAN]: `a ${TYPE_BOOLEAN}`,
-	[TYPE_DATE]: `a ${TYPE_DATE}`,
+	bigint: `a bigint`,
+	boolean: `a boolean`,
+	date: `a date`,
 	[TYPE_FUNCTION]: `a ${TYPE_FUNCTION}`,
 	[TYPE_NULL]: TYPE_NULL,
-	[TYPE_NUMBER]: `a ${TYPE_NUMBER}`,
-	[TYPE_STRING]: `a ${TYPE_STRING}`,
-	[TYPE_SYMBOL]: `a ${TYPE_SYMBOL}`,
+	number: `a number`,
+	string: `a string`,
+	symbol: `a symbol`,
 	[TYPE_OBJECT]: `an ${TYPE_OBJECT}`,
 	[TYPE_UNDEFINED]: TYPE_UNDEFINED,
 };

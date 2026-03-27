@@ -127,6 +127,18 @@ export type Validator = (
 	get: boolean,
 ) => true | ValidationInformation[];
 
+export type ValidatorDefaults = {
+	value: unknown;
+};
+
+export type ValidatorItem = {
+	defaults: ValidatorDefaults | undefined;
+	key: ValidationInformationKey;
+	required: boolean;
+	types: ValidatorType[];
+	validator: Validator;
+};
+
 export type ValidatorParameters = {
 	clone: boolean;
 	information?: ValidationInformation[];

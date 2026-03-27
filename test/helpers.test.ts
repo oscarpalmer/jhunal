@@ -1,7 +1,7 @@
 import {expect, test} from 'vitest';
 import {instanceOf, isSchematic} from '../src';
 import {MESSAGE_CONSTRUCTOR} from '../src/constants';
-import {getInvalidTypeMessage} from '../src/helpers/message.helper';
+import {getInputPropertyTypeMessage} from '../src/helpers/message.helper';
 import {getParameters} from '../src/helpers/misc.helper';
 import {schematic} from '../src/schematic';
 import {cases, length, parameters, validatorCase, values} from './.fixture/helpers.fixture';
@@ -11,11 +11,13 @@ test('getInvalidTypeMessage', () => {
 	for (let index = 0; index < cases.length; index += 1) {
 		const item = cases[index];
 
-		expect(getInvalidTypeMessage(item.key, item.types as never, item.value)).toBe(item.expected);
+		expect(getInputPropertyTypeMessage(item.key, item.types as never, item.value)).toBe(
+			item.expected,
+		);
 	}
 
 	expect(
-		getInvalidTypeMessage(
+		getInputPropertyTypeMessage(
 			validatorCase.key,
 			[validatorCase.type.original],
 			validatorCase.value.original,

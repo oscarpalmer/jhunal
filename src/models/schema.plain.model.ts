@@ -8,6 +8,7 @@ import type {ExtractValueNames, ValueName, Values} from './misc.model';
 export type PlainSchema = {
 	[key: string]: PlainSchema | SchemaEntry | SchemaEntry[] | undefined;
 } & {
+	$default?: never;
 	$required?: never;
 	$type?: never;
 	$validators?: never;
@@ -56,6 +57,7 @@ export type SchemaEntry =
  * ```
  */
 export type SchemaProperty = {
+	$default?: unknown;
 	/**
 	 * Whether the property is required _(defaults to `true`)_
 	 */

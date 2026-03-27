@@ -6,10 +6,15 @@ import {
 	CONJUNCTION_OR,
 	CONJUNCTION_OR_COMMA,
 	PREFIXED_TYPES,
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_REQUIRED,
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_TYPE,
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED,
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE,
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED,
+	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE,
 	TEMPLATE_PATTERN,
 	TYPE_ALL,
 	TYPE_ARRAY,
-	TYPE_FUNCTION,
 	TYPE_FUNCTION_RESULT,
 	TYPE_NULL,
 	TYPE_OBJECT,
@@ -23,11 +28,41 @@ import {
 import type {ValueName} from '../models/misc.model';
 import type {ValidatorType} from '../models/validation.model';
 
-export function getInvalidInputMessage(actual: unknown): string {
+// #region Defaults
+
+export function getDefaultRequiredMessage(key: string): string {
+	return SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_REQUIRED.replace(TEMPLATE_PATTERN, key);
+}
+
+export function getDefaultTypeMessage(key: string, types: ValidatorType[]): string {
+	let message = SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_TYPE.replace(TEMPLATE_PATTERN, key);
+
+	message = message.replace(TEMPLATE_PATTERN, renderTypes(types));
+
+	return message;
+}
+
+// #endregion
+
+// #region Disallowed
+
+export function getDisallowedMessage(key: string, property: string): string {
+	let message = SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED.replace(TEMPLATE_PATTERN, key);
+
+	message = message.replace(TEMPLATE_PATTERN, property);
+
+	return message;
+}
+
+// #endregion
+
+// #region Input
+
+export function getInputTypeMessage(actual: unknown): string {
 	return VALIDATION_MESSAGE_INVALID_INPUT.replace(TEMPLATE_PATTERN, getValueType(actual));
 }
 
-export function getInvalidMissingMessage(key: string, types: ValidatorType[]): string {
+export function getInputPropertyMissingMessage(key: string, types: ValidatorType[]): string {
 	let message = VALIDATION_MESSAGE_INVALID_REQUIRED.replace(TEMPLATE_PATTERN, renderTypes(types));
 
 	message = message.replace(TEMPLATE_PATTERN, key);
@@ -35,7 +70,7 @@ export function getInvalidMissingMessage(key: string, types: ValidatorType[]): s
 	return message;
 }
 
-export function getInvalidTypeMessage(
+export function getInputPropertyTypeMessage(
 	key: string,
 	types: ValidatorType[],
 	actual: unknown,
@@ -48,7 +83,7 @@ export function getInvalidTypeMessage(
 	return message;
 }
 
-export function getInvalidValidatorMessage(
+export function getInputPropertyValidatorMessage(
 	key: string,
 	type: ValueName,
 	index: number,
@@ -65,6 +100,22 @@ export function getInvalidValidatorMessage(
 	return message;
 }
 
+// #endregion
+
+// #region Schematic
+
+export function getSchematicPropertyNullableMessage(key: string): string {
+	return SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE.replace(TEMPLATE_PATTERN, key);
+}
+
+export function getSchematicPropertyTypeMessage(key: string): string {
+	return SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE.replace(TEMPLATE_PATTERN, key);
+}
+
+// #endregion
+
+// #region Misc.
+
 function getPropertyType(type: ValidatorType): string {
 	switch (true) {
 		case typeof type === 'function':
@@ -76,10 +127,6 @@ function getPropertyType(type: ValidatorType): string {
 		default:
 			return PREFIXED_TYPES[TYPE_OBJECT];
 	}
-}
-
-export function getUnknownKeysMessage(keys: string[]): string {
-	return VALIDATION_MESSAGE_UNKNOWN_KEYS.replace(TEMPLATE_PATTERN, renderKeys(keys));
 }
 
 function getValueType(value: unknown): string {
@@ -150,3 +197,21 @@ function renderTypes(types: ValidatorType[]): string {
 
 	return renderParts(parts, CONJUNCTION_OR, CONJUNCTION_OR_COMMA);
 }
+
+// #endregion
+
+// #region Required
+
+export function getRequiredMessage(key: string): string {
+	return SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED.replace(TEMPLATE_PATTERN, key);
+}
+
+// #endregion
+
+// #region Strictness
+
+export function getUnknownKeysMessage(keys: string[]): string {
+	return VALIDATION_MESSAGE_UNKNOWN_KEYS.replace(TEMPLATE_PATTERN, renderKeys(keys));
+}
+
+// #endregion
