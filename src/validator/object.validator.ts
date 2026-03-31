@@ -23,7 +23,7 @@ import {
 	getSchematicPropertyTypeMessage,
 	getUnknownKeysMessage,
 } from '../helpers/message.helper';
-import {getParameters, isSchematic} from '../helpers/misc.helper';
+import {getParameters, isSchema} from '../helpers/misc.helper';
 import type {ValueName} from '../models/misc.model';
 import {
 	type NamedValidatorHandlers,
@@ -40,7 +40,7 @@ import {getBaseValidator} from './base.validator';
 import {getFunctionValidator} from './function.validator';
 import {getNamedHandlers} from './named.handler';
 import {getNamedValidator} from './named.validator';
-import {getSchematicValidator} from './schematic.validator';
+import {getSchemaValidator} from './schematic.validator';
 
 function getDefaults(
 	obj: PlainObject,
@@ -161,8 +161,8 @@ export function getObjectValidator(
 					validator = getObjectValidator(type, fullKey, typed);
 					break;
 
-				case isSchematic(type):
-					validator = getSchematicValidator(type);
+				case isSchema(type):
+					validator = getSchemaValidator(type);
 					break;
 
 				case TYPE_ALL.has(type as ValueName):

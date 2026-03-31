@@ -2,11 +2,11 @@ import {isPlainObject} from '@oscarpalmer/atoms/is';
 import type {PlainObject} from '@oscarpalmer/atoms/models';
 import {error, ok} from '@oscarpalmer/atoms/result/misc';
 import type {Result} from '@oscarpalmer/atoms/result/models';
-import {PROPERTY_SCHEMATIC, SCHEMATIC_MESSAGE_SCHEMA_INVALID_TYPE} from './constants';
-import {getParameters, isSchematic} from './helpers/misc.helper';
+import {PROPERTY_SCHEMA, SCHEMATIC_MESSAGE_SCHEMA_INVALID_TYPE} from './constants';
+import {getParameters, isSchema} from './helpers/misc.helper';
 import type {Infer} from './models/infer.model';
-import type {Schema} from './models/schema.plain.model';
-import type {TypedSchema} from './models/schema.typed.model';
+import type {Schematic} from './models/schematic.plain.model';
+import type {TypedSchematic} from './models/schematic.typed.model';
 import {
 	SchematicError,
 	type GetOptions,
@@ -17,21 +17,21 @@ import {
 import {getObjectValidator} from './validator/object.validator';
 
 /**
- * A schematic for validating objects
+ * A schema for validating objects
  */
-export class Schematic<Model> {
-	declare private readonly $schematic: true;
+export class Schema<Model> {
+	declare private readonly $schema: true;
 
 	#validator: Validator;
 
 	constructor(validator: Validator) {
-		Object.defineProperty(this, PROPERTY_SCHEMATIC, {
+		Object.defineProperty(this, PROPERTY_SCHEMA, {
 			value: true,
 		});
 
 		this.#validator = validator;
 
-		schematicValidator.set(this, validator);
+		schemaValidators.set(this, validator);
 	}
 
 	/**
@@ -230,25 +230,25 @@ export class Schematic<Model> {
 }
 
 /**
- * Create a schematic from a schema
+ * Create a schema from a schematic
  * @template Model Schema type
- * @param schema Schema to create the schematic from
- * @throws Throws {@link SchematicError} if the schema can not be converted into a schematic
- * @returns A schematic for the given schema
+ * @param schema Schematic to create the schema from
+ * @throws Throws {@link SchematicError} if the schematic can not be converted into a schema
+ * @returns A schema for the given schematic
  */
-export function schematic<Model extends Schema>(schema: Model): Schematic<Infer<Model>>;
+export function schema<Model extends Schematic>(schema: Model): Schema<Infer<Model>>;
 
 /**
- * Create a schematic from a typed schema
+ * Create a schema from a typed schematic
  * @template Model Existing type
- * @param schema Typed schema to create the schematic from
- * @throws Throws {@link SchematicError} if the schema can not be converted into a schematic
- * @returns A schematic for the given typed schema
+ * @param schema Typed schematic to create the schema from
+ * @throws Throws {@link SchematicError} if the schematic can not be converted into a schema
+ * @returns A schema for the given typed schematic
  */
-export function schematic<Model extends PlainObject>(schema: TypedSchema<Model>): Schematic<Model>;
+export function schema<Model extends PlainObject>(schema: TypedSchematic<Model>): Schema<Model>;
 
-export function schematic<Model extends Schema>(schema: Model): Schematic<Model> {
-	if (isSchematic(schema)) {
+export function schema<Model extends Schematic>(schema: Model): Schema<Model> {
+	if (isSchema(schema)) {
 		return schema;
 	}
 
@@ -256,7 +256,7 @@ export function schematic<Model extends Schema>(schema: Model): Schematic<Model>
 		throw new SchematicError(SCHEMATIC_MESSAGE_SCHEMA_INVALID_TYPE);
 	}
 
-	return new Schematic<Model>(getObjectValidator(schema));
+	return new Schema<Model>(getObjectValidator(schema));
 }
 
-export const schematicValidator = new WeakMap<Schematic<unknown>, Validator>();
+export const schemaValidators = new WeakMap<Schema<unknown>, Validator>();

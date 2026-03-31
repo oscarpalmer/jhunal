@@ -2,7 +2,7 @@ import {isConstructor, isPlainObject} from '@oscarpalmer/atoms/is';
 import type {Constructor} from '@oscarpalmer/atoms/models';
 import {
 	MESSAGE_CONSTRUCTOR,
-	PROPERTY_SCHEMATIC,
+	PROPERTY_SCHEMA,
 	REPORTING_ALL,
 	REPORTING_FIRST,
 	REPORTING_NONE,
@@ -14,7 +14,7 @@ import type {
 	ReportingType,
 	ValidatorParameters,
 } from '../models/validation.model';
-import type {Schematic} from '../schematic';
+import type {Schema} from '../schema';
 
 export function getParameters(input?: unknown): ValidatorParameters {
 	if (typeof input === 'boolean') {
@@ -82,11 +82,11 @@ export function instanceOf<Instance>(
  * @param value Value to check
  * @returns `true` if the value is a schematic, `false` otherwise
  */
-export function isSchematic(value: unknown): value is Schematic<never> {
+export function isSchema(value: unknown): value is Schema<never> {
 	return (
 		typeof value === 'object' &&
 		value !== null &&
-		PROPERTY_SCHEMATIC in value &&
-		value[PROPERTY_SCHEMATIC] === true
+		PROPERTY_SCHEMA in value &&
+		value[PROPERTY_SCHEMA] === true
 	);
 }

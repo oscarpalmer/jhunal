@@ -1,7 +1,7 @@
 import type {PlainObject} from '@oscarpalmer/atoms/models';
-import type {Schematic} from '../schematic';
+import type {Schema} from '../schema';
 import type {DeduplicateTuple, UnionToTuple, UnwrapSingle, Values} from './misc.model';
-import type {TypedSchema} from './schema.typed.model';
+import type {TypedSchematic} from './schematic.typed.model';
 
 /**
  * Maps each element of a tuple through {@link ToValueType}
@@ -36,12 +36,12 @@ export type ToSchemaPropertyType<Value> = UnwrapSingle<
 /**
  * Converts a single type to its schema property equivalent
  *
- * Plain objects become {@link TypedSchema}; primitives go through {@link ToValueType}
+ * Plain objects become {@link TypedSchematic}; primitives go through {@link ToValueType}
  *
  * @template Value Type to convert
  */
 export type ToSchemaPropertyTypeEach<Value> = Value extends PlainObject
-	? TypedSchema<Value>
+	? TypedSchematic<Value>
 	: ToValueType<Value>;
 
 /**
@@ -56,7 +56,7 @@ export type ToSchemaType<Value> = UnwrapSingle<
 /**
  * Maps a type to its {@link ValueName} string equivalent
  *
- * Resolves {@link Schematic} types as-is, then performs a reverse-lookup against {@link Values} _(excluding `'object'`)_ to find a matching key. If no match is found, `object` types resolve to `'object'` or a type-guard function, and all other unrecognised types resolve to a type-guard function
+ * Resolves {@link Schema} types as-is, then performs a reverse-lookup against {@link Values} _(excluding `'object'`)_ to find a matching key. If no match is found, `object` types resolve to `'object'` or a type-guard function, and all other unrecognised types resolve to a type-guard function
  *
  * @template Value Type to map
  *
@@ -68,7 +68,7 @@ export type ToSchemaType<Value> = UnwrapSingle<
  * ```
  */
 export type ToValueType<Value> =
-	Value extends Schematic<any>
+	Value extends Schema<any>
 		? Value
 		: {
 					[Key in keyof Omit<Values, 'object'>]: Value extends Values[Key] ? Key : never;

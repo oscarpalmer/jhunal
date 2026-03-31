@@ -1,4 +1,4 @@
-import type {SchemaProperty} from './schema.plain.model';
+import type {SchematicProperty} from './schematic.plain.model';
 
 /**
  * Removes duplicate types from a tuple, preserving first occurrence order
@@ -43,11 +43,11 @@ export type ExtractValueNames<Value> = Value extends ValueName
 /**
  * Determines whether a schema entry is optional
  *
- * Returns `true` if the entry is a {@link SchemaProperty} with `$required` set to `false`; otherwise returns `false`
+ * Returns `true` if the entry is a {@link SchematicProperty} with `$required` set to `false`; otherwise returns `false`
  *
  * @template Value Schema entry to check
  */
-export type IsOptionalProperty<Value> = Value extends SchemaProperty
+export type IsOptionalProperty<Value> = Value extends SchematicProperty
 	? Value['$required'] extends false
 		? true
 		: false

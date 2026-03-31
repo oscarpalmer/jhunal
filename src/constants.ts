@@ -23,9 +23,9 @@ export const MESSAGE_CONSTRUCTOR = 'Expected a constructor function';
 
 // #region Names
 
-export const NAME_SCHEMATIC = 'Schematic';
+export const NAME_SCHEMA = 'Schema';
 
-export const NAME_SCHEMATIC_PREFIXED = 'a Schematic';
+export const NAME_SCHEMA_PREFIXED = 'a Schema';
 
 export const NAME_ERROR_SCHEMATIC = 'SchematicError';
 
@@ -39,7 +39,7 @@ export const PROPERTY_DEFAULT = '$default';
 
 export const PROPERTY_REQUIRED = '$required';
 
-export const PROPERTY_SCHEMATIC = '$schematic';
+export const PROPERTY_SCHEMA = '$schema';
 
 export const PROPERTY_TYPE = '$type';
 

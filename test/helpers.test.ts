@@ -1,9 +1,8 @@
 import {expect, test} from 'vitest';
-import {instanceOf, isSchematic} from '../src';
+import {instanceOf, isSchema, schema} from '../src';
 import {MESSAGE_CONSTRUCTOR} from '../src/constants';
 import {getInputPropertyTypeMessage} from '../src/helpers/message.helper';
 import {getParameters} from '../src/helpers/misc.helper';
-import {schematic} from '../src/schematic';
 import {cases, length, parameters, validatorCase, values} from './.fixture/helpers.fixture';
 import {TestItem} from './.fixture/models.fixture';
 
@@ -47,14 +46,14 @@ test('instanceOf', () => {
 	expect(isInstanceofTestItem(new TestItem())).toBe(true);
 });
 
-test('isSchematic', () => {
+test('isSchema', () => {
 	for (let index = 0; index < length; index += 1) {
-		expect(isSchematic(values[index] as never)).toBe(false);
+		expect(isSchema(values[index] as never)).toBe(false);
 	}
 
 	expect(
-		isSchematic(
-			schematic({
+		isSchema(
+			schema({
 				key: 'number',
 			}),
 		),

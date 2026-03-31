@@ -1,9 +1,9 @@
 import {expect, test} from 'vitest';
-import {schematic} from '../src';
+import {schema} from '../src';
 import {run, setup} from './.fixture/validators.fixture';
 
 test('errors: run', () => {
-	const first = schematic(run.schemas[0]);
+	const first = schema(run.schemas[0]);
 
 	const invalidCases = run.cases.filter(item => !item.ok);
 
@@ -14,13 +14,13 @@ test('errors: run', () => {
 
 test('error: setup', () => {
 	for (let index = 0; index < setup.cases.length; index += 1) {
-		expect(() => schematic(setup.cases[index].schema as never)).toThrow(setup.cases[index].error);
+		expect(() => schema(setup.cases[index].schema as never)).toThrow(setup.cases[index].error);
 	}
 });
 
 test('run', () => {
-	const first = schematic(run.schemas[0]);
-	const second = schematic(run.schemas[1]);
+	const first = schema(run.schemas[0]);
+	const second = schema(run.schemas[1]);
 
 	for (let index = 0; index < run.cases.length; index += 1) {
 		expect(first.is(run.cases[index].input)).toBe(run.cases[index].ok);

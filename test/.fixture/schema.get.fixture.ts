@@ -1,7 +1,7 @@
 import {values} from './helpers.fixture';
-import {schematic} from '../../src';
+import {schema} from '../../src';
 
-const Basic = schematic({
+const Basic = schema({
 	date: 'date',
 	message: 'string',
 	optional: {
@@ -14,7 +14,7 @@ const Basic = schematic({
 	},
 });
 
-const Defaults = schematic({
+const Defaults = schema({
 	property: {
 		$default: true,
 		$type: 'boolean',

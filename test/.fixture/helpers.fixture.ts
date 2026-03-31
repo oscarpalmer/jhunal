@@ -1,4 +1,4 @@
-import {schematic} from '../../src';
+import {schema} from '../../src';
 import {TEMPLATE_PATTERN, VALIDATION_MESSAGE_INVALID_TYPE} from '../../src/constants';
 
 function getFakeInvalidTypeMessage(key: string, type: string, actual: string): string {
@@ -179,7 +179,7 @@ const properties = {
 	two: {...property, types: ['boolean', 'bigint']},
 };
 
-const Simple = schematic({property: 'number'});
+const Simple = schema({property: 'number'});
 
 export const cases = [
 	...values.map((value, index) => ({

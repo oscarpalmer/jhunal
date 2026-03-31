@@ -13,7 +13,7 @@ import {
 	SCHEMATIC_MESSAGE_SCHEMA_INVALID_TYPE,
 	TEMPLATE_PATTERN,
 } from '../../src/constants';
-import {Schema} from '../../src/models/schema.plain.model';
+import {Schematic} from '../../src';
 import {values as typeValues} from './helpers.fixture';
 
 const invalidDisallowed = SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED;
@@ -274,7 +274,7 @@ export const BasicSchema = {
 	required: {
 		$type: ['number', 'string'],
 	},
-} satisfies Schema;
+} satisfies Schematic;
 
 export const basic = {
 	cases: basicCases,

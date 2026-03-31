@@ -1,12 +1,12 @@
 import type {Constructor} from '@oscarpalmer/atoms/models';
-import type {Schematic} from '../schematic';
+import type {Schema} from '../schema';
 import type {ExtractValueNames, ValueName, Values} from './misc.model';
 
 /**
- * A generic schema allowing nested schemas, {@link SchemaEntry} values, or arrays of {@link SchemaEntry} as values
+ * A generic schematic allowing nested schematics, {@link SchematicEntry} values, or arrays of {@link SchematicEntry} as values
  */
-export type PlainSchema = {
-	[key: string]: PlainSchema | SchemaEntry | SchemaEntry[] | undefined;
+export type PlainSchematic = {
+	[key: string]: PlainSchematic | SchematicEntry | SchematicEntry[] | undefined;
 } & {
 	$default?: never;
 	$required?: never;
@@ -15,29 +15,29 @@ export type PlainSchema = {
 };
 
 /**
- * A schema for validating objects
+ * A schematic for validating objects
  *
  * @example
  * ```ts
- * const schema: Schema = {
+ * const schematic = {
  *   name: 'string',
  *   age: 'number',
  *   tags: ['string', 'number'],
- * };
+ * } satisfies Schematic;
  * ```
  */
-export type Schema = PlainSchema;
+export type Schematic = PlainSchematic;
 
 /**
- * A union of all valid types for a single schema entry
+ * A union of all valid types for a single schematic entry
  *
- * Can be a {@link Constructor}, {@link PlainSchema}, {@link SchemaProperty}, {@link Schematic}, {@link ValueName} string, or a custom validator function
+ * Can be a {@link Constructor}, {@link PlainSchematic}, {@link SchematicProperty}, {@link Schema}, {@link ValueName}, or a custom validator function
  */
-export type SchemaEntry =
+export type SchematicEntry =
 	| Constructor
-	| PlainSchema
-	| SchemaProperty
-	| Schematic<unknown>
+	| PlainSchematic
+	| Schema<unknown>
+	| SchematicProperty
 	| ValueName
 	| ((value: unknown) => boolean);
 
@@ -46,7 +46,7 @@ export type SchemaEntry =
  *
  * @example
  * ```ts
- * const prop: SchemaProperty = {
+ * const prop: SchematicProperty = {
  *   $required: false,
  *   $type: ['string', 'number'],
  *   $validators: {
@@ -56,7 +56,7 @@ export type SchemaEntry =
  * };
  * ```
  */
-export type SchemaProperty = {
+export type SchematicProperty = {
 	$default?: unknown;
 	/**
 	 * Whether the property is required _(defaults to `true`)_
@@ -73,14 +73,14 @@ export type SchemaProperty = {
 };
 
 /**
- * A union of valid types for a {@link SchemaProperty}'s `$type` field
+ * A union of valid types for a {@link SchematicProperty}'s `$type` field
  *
- * Can be a {@link Constructor}, {@link PlainSchema}, {@link Schematic}, {@link ValueName} string, or a custom validator function
+ * Can be a {@link Constructor}, {@link PlainSchematic}, {@link Schema}, {@link ValueName} string, or a custom validator function
  */
 export type SchemaPropertyType =
 	| Constructor
-	| PlainSchema
-	| Schematic<unknown>
+	| PlainSchematic
+	| Schema<unknown>
 	| ValueName
 	| ((value: unknown) => boolean);
 

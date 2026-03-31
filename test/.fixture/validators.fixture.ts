@@ -5,7 +5,7 @@ import {
 	TEMPLATE_PATTERN,
 } from '../../src/constants';
 import {getInputPropertyValidatorMessage} from '../../src/helpers/message.helper';
-import {Schema} from '../../src/models/schema.plain.model';
+import {Schematic} from '../../src';
 
 const invalidKey = 'invalid';
 
@@ -101,7 +101,7 @@ export const run = {
 					string: name => name.length > 0 && name.length < 10,
 				},
 			},
-		} satisfies Schema,
+		} satisfies Schematic,
 		{
 			age: {
 				$type: 'number',
@@ -111,6 +111,6 @@ export const run = {
 				$type: 'string',
 				$validators: null as never,
 			},
-		} satisfies Schema,
+		} satisfies Schematic,
 	],
 };

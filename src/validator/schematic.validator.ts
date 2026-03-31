@@ -1,9 +1,9 @@
 import {isPlainObject} from '@oscarpalmer/atoms/is';
 import type {Validator} from '../models/validation.model';
-import {Schematic, schematicValidator} from '../schematic';
+import {Schema, schemaValidators} from '../schema';
 
-export function getSchematicValidator(schematic: Schematic<unknown>): Validator {
-	const validator = schematicValidator.get(schematic)!;
+export function getSchemaValidator(schematic: Schema<unknown>): Validator {
+	const validator = schemaValidators.get(schematic)!;
 
 	return (input, parameters, get) => {
 		let result: ReturnType<Validator>;

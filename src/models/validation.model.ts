@@ -1,7 +1,7 @@
 import type {GenericCallback, PlainObject} from '@oscarpalmer/atoms/models';
 import {join} from '@oscarpalmer/atoms/string';
 import {NAME_ERROR_SCHEMATIC, NAME_ERROR_VALIDATION} from '../constants';
-import type {Schematic} from '../schematic';
+import type {Schema} from '../schema';
 import type {ValueName} from './misc.model';
 
 // #region Named validation
@@ -147,6 +147,6 @@ export type ValidatorParameters = {
 	strict: boolean;
 };
 
-export type ValidatorType = Function | PlainObject | Schematic<unknown> | ValueName;
+export type ValidatorType = Function | PlainObject | Schema<unknown> | ValueName;
 
 // #endregion
