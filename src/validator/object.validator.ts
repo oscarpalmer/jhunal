@@ -40,7 +40,7 @@ import {getBaseValidator} from './base.validator';
 import {getFunctionValidator} from './function.validator';
 import {getNamedHandlers} from './named.handler';
 import {getNamedValidator} from './named.validator';
-import {getSchemaValidator} from './schematic.validator';
+import {getSchemaValidator} from './schema.validator';
 
 function getDefaults(
 	obj: PlainObject,
