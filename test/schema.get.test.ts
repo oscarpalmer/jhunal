@@ -91,9 +91,35 @@ test('get: clone options', () => {
 	expect(get.success.date).not.toBe(cloned!.date);
 	expect(get.success.date).not.toBe(defaulted!.date);
 	expect(get.success.date).toBe(noClone!.date);
+
+	const clonedResult = get.schema.get(get.success, {
+		clone: true,
+		errors: 'first',
+	});
+
+	const defaultedResult = get.schema.get(get.success, {
+		clone: 'blah' as never,
+		errors: 'first',
+	});
+
+	const noCloneResult = get.schema.get(get.success, {
+		clone: false,
+		errors: 'first',
+	});
+
+	expect(get.success.date).not.toBe((clonedResult as Ok<any>).value.date);
+	expect(get.success.date).not.toBe((defaultedResult as Ok<any>).value.date);
+	expect(get.success.date).toBe((noCloneResult as Ok<any>).value.date);
 });
 
 test('get: defaults', () => {
 	expect(defaults.schema.get(defaults.input.defaulted)).toEqual(defaults.result.defaulted);
 	expect(defaults.schema.get(defaults.input.ignored)).toEqual(defaults.result.ignored);
+
+	expect(defaults.schema.get(defaults.input.updated, {
+		clone: false,
+		errors: 'none',
+	})).toEqual(defaults.result.updated);
+
+	expect(defaults.input.updated.num).toBe(42);
 });

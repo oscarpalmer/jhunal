@@ -121,8 +121,8 @@ export class Schema<Model> {
 
 		if (result === true) {
 			return parameters.reporting.none || parameters.reporting.throw
-				? parameters.output
-				: ok(parameters.output);
+				? parameters.clone ? parameters.output : value
+				: ok(parameters.clone ? parameters.output : value);
 		}
 
 		if (parameters.reporting.none) {

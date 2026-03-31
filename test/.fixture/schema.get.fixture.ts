@@ -15,25 +15,42 @@ const Basic = schema({
 });
 
 const Defaults = schema({
-	property: {
+	bool: {
 		$default: true,
 		$type: 'boolean',
+	},
+	num: {
+		$default: 42,
+		$type: 'number',
 	},
 });
 
 export const defaults = {
 	input: {
-		defaulted: {},
+		defaulted: {
+			num: 123,
+		},
 		ignored: {
-			property: false,
+			bool: false,
+			num: 456,
+		},
+		updated: {
+			bool: true,
+			num: undefined as unknown as number,
 		},
 	},
 	result: {
 		defaulted: {
-			property: true,
+			bool: true,
+			num: 123,
 		},
 		ignored: {
-			property: false,
+			bool: false,
+			num: 456,
+		},
+		updated: {
+			bool: true,
+			num: 42,
 		},
 	},
 	schema: Defaults,

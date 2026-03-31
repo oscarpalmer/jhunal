@@ -249,6 +249,8 @@ export function getObjectValidator(
 			}
 		}
 
+		const getAndClone = get && parameters.clone;
+
 		const allInformation: ValidationInformation[] = [];
 		const output: PlainObject = {};
 
@@ -260,7 +262,13 @@ export function getObjectValidator(
 			if (value === undefined) {
 				if (required) {
 					if (get && defaults != null) {
-						output[key.short] = clone(defaults.value);
+						const defaultValue = clone(defaults.value);
+
+						if (parameters.clone) {
+							output[key.short] = defaultValue;
+						} else {
+							input[key.short] = defaultValue;
+						}
 
 						continue;
 					}
@@ -302,8 +310,8 @@ export function getObjectValidator(
 			parameters.output = previousOutput;
 
 			if (result === true) {
-				if (get && !isPlainObject(value)) {
-					output[key.short] = parameters.clone ? clone(value) : value;
+				if (getAndClone && !isPlainObject(value)) {
+					output[key.short] = clone(value);
 				}
 
 				continue;
@@ -337,7 +345,7 @@ export function getObjectValidator(
 			return information;
 		}
 
-		if (get) {
+		if (getAndClone) {
 			if (origin == null) {
 				parameters.output = output;
 			} else {
