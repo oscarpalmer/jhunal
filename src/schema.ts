@@ -102,7 +102,7 @@ export class Schema<Model> {
 	 * @param options Validation options
 	 * @returns Deeply cloned value, or `undefined` if it's invalid
 	 */
-	get(value: unknown, options: GetOptions<'none'>): Model | undefined;
+	get(value: unknown, options: Partial<GetOptions<'none'>>): Model | undefined;
 
 	/**
 	 * Parse a value according to the schema
@@ -121,7 +121,9 @@ export class Schema<Model> {
 
 		if (result === true) {
 			return parameters.reporting.none || parameters.reporting.throw
-				? parameters.clone ? parameters.output : value
+				? parameters.clone
+					? parameters.output
+					: value
 				: ok(parameters.clone ? parameters.output : value);
 		}
 
@@ -200,7 +202,7 @@ export class Schema<Model> {
 	 * @param options Validation options
 	 * @returns `true` if the value matches the schema, otherwise `false`
 	 */
-	is(value: unknown, options: IsOptions<'none'>): value is Model;
+	is(value: unknown, options: Partial<IsOptions<'none'>>): value is Model;
 
 	/**
 	 * Does the value match the schema?

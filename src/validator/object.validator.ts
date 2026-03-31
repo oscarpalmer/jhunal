@@ -34,6 +34,7 @@ import {
 	type Validator,
 	type ValidatorDefaults,
 	type ValidatorItem,
+	type ValidatorParameters,
 	type ValidatorType,
 } from '../models/validation.model';
 import {getBaseValidator} from './base.validator';
@@ -41,6 +42,25 @@ import {getFunctionValidator} from './function.validator';
 import {getNamedHandlers} from './named.handler';
 import {getNamedValidator} from './named.validator';
 import {getSchemaValidator} from './schema.validator';
+
+type ReportParameters<Callback extends (...args: any[]) => string> = {
+	extract?: boolean;
+	information?: ReportParametersInformation;
+	key: ValidationInformationKey;
+	message: ReportParametersMessage<Callback>;
+	original: ValidatorParameters;
+	value: unknown;
+};
+
+type ReportParametersMessage<Callback extends (...args: any[]) => string> = {
+	arguments: Parameters<Callback>;
+	callback: Callback;
+};
+
+type ReportParametersInformation = {
+	all: ValidationInformation[];
+	existing?: ValidationInformation[];
+};
 
 function getDefaults(
 	obj: PlainObject,
@@ -106,11 +126,11 @@ export function getObjectValidator(
 		const key = keys[keyIndex];
 		const value = original[key];
 
-		if (value == null) {
-			throw new SchematicError(getSchematicPropertyNullableMessage(join([origin?.full, key], '.')));
-		}
-
 		const prefixedKey = origin == null ? key : join([origin.full, key], '.');
+
+		if (value == null) {
+			throw new SchematicError(getSchematicPropertyNullableMessage(prefixedKey));
+		}
 
 		const fullKey: ValidationInformationKey = {
 			full: prefixedKey,
@@ -203,26 +223,23 @@ export function getObjectValidator(
 
 	return (input, parameters, get) => {
 		if (!isPlainObject(input)) {
-			if (origin != null) {
-				return [];
-			}
-
-			const information: ValidationInformation = {
-				key: {
-					full: '',
-					short: '',
-				},
-				value: input,
-				message: getInputTypeMessage(input),
-			};
-
-			if (parameters.reporting.throw) {
-				throw new ValidationError([information]);
-			}
-
-			parameters.information?.push(information);
-
-			return [information];
+			return origin == null
+				? report(
+						{
+							key: {
+								full: '',
+								short: '',
+							},
+							message: {
+								arguments: [input],
+								callback: getInputTypeMessage,
+							},
+							original: parameters,
+							value: input,
+						},
+						true,
+					)
+				: [];
 		}
 
 		if (parameters.strict) {
@@ -277,25 +294,24 @@ export function getObjectValidator(
 						return [];
 					}
 
-					const information: ValidationInformation = {
+					const reported = report({
 						key,
 						value,
-						message: getInputPropertyMissingMessage(key.full, types),
-					};
+						information: {
+							all: allInformation,
+						},
+						message: {
+							arguments: [key.full, types],
+							callback: getInputPropertyMissingMessage,
+						},
+						original: parameters,
+					});
 
-					if (parameters.reporting.throw) {
-						throw new ValidationError([information]);
-					}
-
-					parameters.information?.push(information);
-
-					if (parameters.reporting.all) {
-						allInformation.push(information);
-
+					if (reported == null) {
 						continue;
 					}
 
-					return [information];
+					return reported;
 				}
 
 				continue;
@@ -321,28 +337,26 @@ export function getObjectValidator(
 				return [];
 			}
 
-			const information: ValidationInformation[] =
-				typeof result !== 'boolean' && result.length > 0
-					? result
-					: [
-							{
-								key,
-								value,
-								message: getInputPropertyTypeMessage(key.full, types, value),
-							},
-						];
+			const reported = report({
+				key,
+				value,
+				extract: false,
+				information: {
+					all: allInformation,
+					existing: typeof result !== 'boolean' && result.length > 0 ? result : undefined,
+				},
+				message: {
+					arguments: [key.full, types, value],
+					callback: getInputPropertyTypeMessage,
+				},
+				original: parameters,
+			});
 
-			if (parameters.reporting.throw) {
-				throw new ValidationError(information);
-			}
-
-			if (parameters.reporting.all) {
-				allInformation.push(...information);
-
+			if (reported == null) {
 				continue;
 			}
 
-			return information;
+			return reported;
 		}
 
 		if (getAndClone) {
@@ -371,4 +385,42 @@ function getRequired(obj: PlainObject, key: string, allowed: boolean): boolean |
 	}
 
 	return obj[PROPERTY_REQUIRED];
+}
+
+function report<Callback extends (...args: any[]) => string>(
+	parameters: ReportParameters<Callback>,
+	getReports: true,
+): ValidationInformation[];
+
+function report<Callback extends (...args: any[]) => string>(
+	parameters: ReportParameters<Callback>,
+): ValidationInformation[] | undefined;
+
+function report<Callback extends (...args: any[]) => string>(
+	parameters: ReportParameters<Callback>,
+	getReports?: boolean,
+): ValidationInformation[] | undefined {
+	const {information, message, original} = parameters;
+
+	const reported: ValidationInformation[] = information?.existing ?? [
+		{
+			key: parameters.key,
+			value: parameters.value,
+			message: message.callback(...message.arguments),
+		},
+	];
+
+	if (original.reporting.throw) {
+		throw new ValidationError(reported);
+	}
+
+	information?.all.push(...reported);
+
+	if (parameters.extract ?? true) {
+		original.information?.push(...reported);
+	}
+
+	if ((getReports ?? false) || !original.reporting.all) {
+		return reported;
+	}
 }

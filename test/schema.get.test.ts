@@ -74,18 +74,14 @@ test('get throw', () => {
 });
 
 test('get: clone options', () => {
-	const cloned = get.schema.get(get.success, {
-		errors: 'none',
-	});
+	const cloned = get.schema.get(get.success);
 
 	const defaulted = get.schema.get(get.success, {
 		clone: 'blah' as never,
-		errors: 'none',
 	});
 
 	const noClone = get.schema.get(get.success, {
 		clone: false,
-		errors: 'none',
 	});
 
 	expect(get.success.date).not.toBe(cloned!.date);
@@ -116,10 +112,11 @@ test('get: defaults', () => {
 	expect(defaults.schema.get(defaults.input.defaulted)).toEqual(defaults.result.defaulted);
 	expect(defaults.schema.get(defaults.input.ignored)).toEqual(defaults.result.ignored);
 
-	expect(defaults.schema.get(defaults.input.updated, {
-		clone: false,
-		errors: 'none',
-	})).toEqual(defaults.result.updated);
+	expect(
+		defaults.schema.get(defaults.input.updated, {
+			clone: false,
+		}),
+	).toEqual(defaults.result.updated);
 
 	expect(defaults.input.updated.num).toBe(42);
 });
