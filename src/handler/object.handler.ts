@@ -26,29 +26,28 @@ import {
 import {getParameters, isSchema} from '../helpers/misc.helper';
 import type {ValueName} from '../models/misc.model';
 import {
-	type NamedValidatorHandlers,
+	type TypedHandlers,
 	SchematicError,
 	ValidationError,
 	type ValidationInformation,
 	type ValidationInformationKey,
-	type Validator,
-	type ValidatorDefaults,
-	type ValidatorItem,
-	type ValidatorParameters,
-	type ValidatorType,
+	type ValidationHandler,
+	type ValidationHandlerDefaults,
+	type ValidationHandlerItem,
+	type ValidationHandlerParameters,
+	type ValidationHandlerType,
 } from '../models/validation.model';
-import {getBaseValidator} from './base.validator';
-import {getFunctionValidator} from './function.validator';
-import {getNamedHandlers} from './named.handler';
-import {getNamedValidator} from './named.validator';
-import {getSchemaValidator} from './schema.validator';
+import {getBaseHandler} from './base.handler';
+import {getFunctionHandler} from './function.handler';
+import {getTypeHandler, getTypeHandlers} from './type.handler';
+import {getSchemaValidator} from './schema.handler';
 
 type ReportParameters<Callback extends (...args: any[]) => string> = {
 	extract?: boolean;
 	information?: ReportParametersInformation;
 	key: ValidationInformationKey;
 	message: ReportParametersMessage<Callback>;
-	original: ValidatorParameters;
+	original: ValidationHandlerParameters;
 	value: unknown;
 };
 
@@ -66,7 +65,7 @@ function getDefaults(
 	obj: PlainObject,
 	key: string,
 	allowed: boolean,
-): ValidatorDefaults | undefined {
+): ValidationHandlerDefaults | undefined {
 	if (!(PROPERTY_DEFAULT in obj)) {
 		return;
 	}
@@ -102,7 +101,7 @@ export function getObjectValidator(
 	original: PlainObject,
 	origin?: ValidationInformationKey,
 	fromType?: boolean,
-): Validator {
+): ValidationHandler {
 	const keys = Object.keys(original);
 	const keysLength = keys.length;
 
@@ -120,7 +119,7 @@ export function getObjectValidator(
 
 	const set = new Set<string>();
 
-	const items: ValidatorItem[] = [];
+	const items: ValidationHandlerItem[] = [];
 
 	for (let keyIndex = 0; keyIndex < keysLength; keyIndex += 1) {
 		const key = keys[keyIndex];
@@ -137,15 +136,15 @@ export function getObjectValidator(
 			short: key,
 		};
 
-		let handlers: NamedValidatorHandlers = {};
+		let handlers: TypedHandlers = {};
 		let required = true;
 		let typed = false;
 
-		let defaults: ValidatorDefaults | undefined;
+		let defaults: ValidationHandlerDefaults | undefined;
 
-		let types: ValidatorType[];
+		let types: ValidationHandlerType[];
 
-		const validators: Validator[] = [];
+		const validators: ValidationHandler[] = [];
 
 		if (isPlainObject(value)) {
 			typed = PROPERTY_TYPE in value;
@@ -153,7 +152,7 @@ export function getObjectValidator(
 			const type = typed ? value[PROPERTY_TYPE] : value;
 
 			defaults = getDefaults(value, prefixedKey, typed);
-			handlers = getNamedHandlers(value[PROPERTY_VALIDATORS], prefixedKey, typed);
+			handlers = getTypeHandlers(value[PROPERTY_VALIDATORS], prefixedKey, typed);
 			required = getRequired(value, prefixedKey, typed) ?? required;
 
 			types = Array.isArray(type) ? type : [type];
@@ -170,11 +169,11 @@ export function getObjectValidator(
 		for (let typeIndex = 0; typeIndex < typesLength; typeIndex += 1) {
 			const type = types[typeIndex];
 
-			let validator: Validator;
+			let validator: ValidationHandler;
 
 			switch (true) {
 				case typeof type === 'function':
-					validator = getFunctionValidator(type);
+					validator = getFunctionHandler(type);
 					break;
 
 				case isPlainObject(type):
@@ -186,7 +185,7 @@ export function getObjectValidator(
 					break;
 
 				case TYPE_ALL.has(type as ValueName):
-					validator = getNamedValidator(fullKey, type as ValueName, handlers);
+					validator = getTypeHandler(fullKey, type as ValueName, handlers);
 					break;
 
 				default:
@@ -202,7 +201,7 @@ export function getObjectValidator(
 			throw new SchematicError(getDefaultRequiredMessage(prefixedKey));
 		}
 
-		const validator = getBaseValidator(validators);
+		const validator = getBaseHandler(validators);
 
 		if (defaults != null && Array.isArray(validator(defaults.value, getParameters(), false))) {
 			throw new SchematicError(getDefaultTypeMessage(prefixedKey, types));

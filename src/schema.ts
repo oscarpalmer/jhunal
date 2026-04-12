@@ -3,6 +3,7 @@ import type {PlainObject} from '@oscarpalmer/atoms/models';
 import {error, ok} from '@oscarpalmer/atoms/result/misc';
 import type {Result} from '@oscarpalmer/atoms/result/models';
 import {PROPERTY_SCHEMA, SCHEMATIC_MESSAGE_SCHEMA_INVALID_TYPE} from './constants';
+import {getObjectValidator} from './handler/object.handler';
 import {getParameters, isSchema} from './helpers/misc.helper';
 import type {Infer} from './models/infer.model';
 import type {Schematic} from './models/schematic.plain.model';
@@ -11,10 +12,9 @@ import {
 	SchematicError,
 	type GetOptions,
 	type IsOptions,
+	type ValidationHandler,
 	type ValidationInformation,
-	type Validator,
 } from './models/validation.model';
-import {getObjectValidator} from './validator/object.validator';
 
 /**
  * A schema for validating objects
@@ -22,16 +22,16 @@ import {getObjectValidator} from './validator/object.validator';
 export class Schema<Model> {
 	declare private readonly $schema: true;
 
-	#validator: Validator;
+	#handler: ValidationHandler;
 
-	constructor(validator: Validator) {
+	constructor(validator: ValidationHandler) {
 		Object.defineProperty(this, PROPERTY_SCHEMA, {
 			value: true,
 		});
 
-		this.#validator = validator;
+		this.#handler = validator;
 
-		schemaValidators.set(this, validator);
+		schemaHandlers.set(this, validator);
 	}
 
 	/**
@@ -117,7 +117,7 @@ export class Schema<Model> {
 	get(value: unknown, options?: unknown): unknown {
 		const parameters = getParameters(options);
 
-		const result = this.#validator(value, parameters, true);
+		const result = this.#handler(value, parameters, true);
 
 		if (result === true) {
 			return parameters.reporting.none || parameters.reporting.throw
@@ -217,7 +217,7 @@ export class Schema<Model> {
 	is(value: unknown, options?: unknown): unknown {
 		const parameters = getParameters(options);
 
-		const result = this.#validator(value, parameters, false);
+		const result = this.#handler(value, parameters, false);
 
 		if (result === true) {
 			return parameters.reporting.none || parameters.reporting.throw ? result : ok(result);
@@ -261,4 +261,4 @@ export function schema<Model extends Schematic>(schema: Model): Schema<Model> {
 	return new Schema<Model>(getObjectValidator(schema));
 }
 
-export const schemaValidators = new WeakMap<Schema<unknown>, Validator>();
+export const schemaHandlers = new WeakMap<Schema<unknown>, ValidationHandler>();

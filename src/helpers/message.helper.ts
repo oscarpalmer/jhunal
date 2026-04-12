@@ -26,7 +26,7 @@ import {
 	VALIDATION_MESSAGE_UNKNOWN_KEYS,
 } from '../constants';
 import type {ValueName} from '../models/misc.model';
-import type {ValidatorType} from '../models/validation.model';
+import type {ValidatorHandlerType} from '../models/validation.model';
 
 // #region Defaults
 
@@ -34,7 +34,7 @@ export function getDefaultRequiredMessage(key: string): string {
 	return SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_REQUIRED.replace(TEMPLATE_PATTERN, key);
 }
 
-export function getDefaultTypeMessage(key: string, types: ValidatorType[]): string {
+export function getDefaultTypeMessage(key: string, types: ValidatorHandlerType[]): string {
 	let message = SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_TYPE.replace(TEMPLATE_PATTERN, key);
 
 	message = message.replace(TEMPLATE_PATTERN, renderTypes(types));
@@ -62,7 +62,7 @@ export function getInputTypeMessage(actual: unknown): string {
 	return VALIDATION_MESSAGE_INVALID_INPUT.replace(TEMPLATE_PATTERN, getValueType(actual));
 }
 
-export function getInputPropertyMissingMessage(key: string, types: ValidatorType[]): string {
+export function getInputPropertyMissingMessage(key: string, types: ValidatorHandlerType[]): string {
 	let message = VALIDATION_MESSAGE_INVALID_REQUIRED.replace(TEMPLATE_PATTERN, renderTypes(types));
 
 	message = message.replace(TEMPLATE_PATTERN, key);
@@ -72,7 +72,7 @@ export function getInputPropertyMissingMessage(key: string, types: ValidatorType
 
 export function getInputPropertyTypeMessage(
 	key: string,
-	types: ValidatorType[],
+	types: ValidatorHandlerType[],
 	actual: unknown,
 ): string {
 	let message = VALIDATION_MESSAGE_INVALID_TYPE.replace(TEMPLATE_PATTERN, renderTypes(types));
@@ -116,7 +116,7 @@ export function getSchematicPropertyTypeMessage(key: string): string {
 
 // #region Misc.
 
-function getPropertyType(type: ValidatorType): string {
+function getPropertyType(type: ValidatorHandlerType): string {
 	switch (true) {
 		case typeof type === 'function':
 			return isConstructor(type) ? type.name : TYPE_FUNCTION_RESULT;
@@ -180,7 +180,7 @@ function renderParts(parts: string[], delimiterShort: string, delimiterLong: str
 	return rendered;
 }
 
-function renderTypes(types: ValidatorType[]): string {
+function renderTypes(types: ValidatorHandlerType[]): string {
 	const unique = new Set<string>();
 	const parts: string[] = [];
 

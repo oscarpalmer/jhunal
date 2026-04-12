@@ -12,11 +12,11 @@ import {
 import type {
 	ReportingInformation,
 	ReportingType,
-	ValidatorParameters,
+	ValidatorHandlerParameters,
 } from '../models/validation.model';
 import type {Schema} from '../schema';
 
-export function getParameters(input?: unknown): ValidatorParameters {
+export function getParameters(input?: unknown): ValidatorHandlerParameters {
 	if (typeof input === 'boolean') {
 		return {
 			clone: true,

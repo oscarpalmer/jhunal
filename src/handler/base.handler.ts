@@ -1,6 +1,6 @@
-import type {ValidationInformation, Validator} from '../models/validation.model';
+import type {ValidationInformation, ValidationHandler} from '../models/validation.model';
 
-export function getBaseValidator(validators: Validator[]): Validator {
+export function getBaseHandler(validators: ValidationHandler[]): ValidationHandler {
 	const {length} = validators;
 
 	return (input, parameters, get) => {

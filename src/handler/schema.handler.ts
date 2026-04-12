@@ -1,12 +1,12 @@
 import {isPlainObject} from '@oscarpalmer/atoms/is';
-import type {Validator} from '../models/validation.model';
-import {Schema, schemaValidators} from '../schema';
+import type {ValidationHandler} from '../models/validation.model';
+import {Schema, schemaHandlers} from '../schema';
 
-export function getSchemaValidator(schematic: Schema<unknown>): Validator {
-	const validator = schemaValidators.get(schematic)!;
+export function getSchemaValidator(schematic: Schema<unknown>): ValidationHandler {
+	const validator = schemaHandlers.get(schematic)!;
 
 	return (input, parameters, get) => {
-		let result: ReturnType<Validator>;
+		let result: ReturnType<ValidationHandler>;
 
 		if (isPlainObject(input)) {
 			result = validator(input, parameters, get);

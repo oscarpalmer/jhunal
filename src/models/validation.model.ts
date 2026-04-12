@@ -6,11 +6,17 @@ import type {ValueName} from './misc.model';
 
 // #region Named validation
 
-export type NamedValidatorHandlers = {
+/**
+ * Object property validation handlers
+ */
+export type TypedHandlers = {
 	[Key in ValueName]?: Array<(value: unknown) => boolean>;
 };
 
-export type NamedValidators = Record<ValueName, (value: unknown) => boolean>;
+/**
+ * Base type validation handlers
+ */
+export type TypeHandlers = Record<ValueName, (value: unknown) => boolean>;
 
 // #endregion
 
@@ -121,25 +127,25 @@ export type IsOptions<Errors extends ReportingType> = BaseOptions<Errors>;
 
 // #region Validator
 
-export type Validator = (
+export type ValidationHandler = (
 	input: unknown,
-	parameters: ValidatorParameters,
+	parameters: ValidationHandlerParameters,
 	get: boolean,
 ) => true | ValidationInformation[];
 
-export type ValidatorDefaults = {
+export type ValidationHandlerDefaults = {
 	value: unknown;
 };
 
-export type ValidatorItem = {
-	defaults: ValidatorDefaults | undefined;
+export type ValidationHandlerItem = {
+	defaults: ValidationHandlerDefaults | undefined;
 	key: ValidationInformationKey;
 	required: boolean;
-	types: ValidatorType[];
-	validator: Validator;
+	types: ValidationHandlerType[];
+	validator: ValidationHandler;
 };
 
-export type ValidatorParameters = {
+export type ValidationHandlerParameters = {
 	clone: boolean;
 	information?: ValidationInformation[];
 	output: PlainObject;
@@ -147,6 +153,6 @@ export type ValidatorParameters = {
 	strict: boolean;
 };
 
-export type ValidatorType = Function | PlainObject | Schema<unknown> | ValueName;
+export type ValidationHandlerType = Function | PlainObject | Schema<unknown> | ValueName;
 
 // #endregion
