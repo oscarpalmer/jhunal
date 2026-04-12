@@ -1,4 +1,4 @@
-import type {ValueName} from './models/misc.model';
+import type {ValueType} from './models/misc.model';
 import type {ReportingType} from './models/validation.model';
 
 // #region Grammar
@@ -136,7 +136,7 @@ export const TYPE_OBJECT = 'object';
 
 export const TYPE_UNDEFINED = 'undefined';
 
-export const VALIDATABLE_TYPES = new Set<ValueName>([
+export const VALIDATABLE_TYPES = new Set<ValueType>([
 	TYPE_ARRAY,
 	'bigint',
 	'boolean',
@@ -148,9 +148,9 @@ export const VALIDATABLE_TYPES = new Set<ValueName>([
 	'symbol',
 ]);
 
-export const TYPE_ALL = new Set<ValueName>([...VALIDATABLE_TYPES, TYPE_NULL, TYPE_UNDEFINED]);
+export const TYPES_ALL = new Set<ValueType>([...VALIDATABLE_TYPES, TYPE_NULL, TYPE_UNDEFINED]);
 
-export const PREFIXED_TYPES: Record<ValueName, string> = {
+export const TYPES_PREFIXED: Record<ValueType, string> = {
 	[TYPE_ARRAY]: `an ${TYPE_ARRAY}`,
 	bigint: `a bigint`,
 	boolean: `a boolean`,

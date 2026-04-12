@@ -22,22 +22,22 @@ export type DeduplicateTuple<Value extends unknown[], Seen extends unknown[] = [
 	: Seen;
 
 /**
- * Recursively extracts {@link ValueName} strings from a type, unwrapping arrays and readonly arrays
+ * Recursively extracts {@link ValueType} strings from a type, unwrapping arrays and readonly arrays
  *
- * @template Value Type to extract value names from
+ * @template Value Type to extract value types from
  *
  * @example
  * ```ts
- * // ExtractValueNames<'string'>         => 'string'
- * // ExtractValueNames<['string', 'number']> => 'string' | 'number'
+ * // ExtractValueTypes<'string'>         => 'string'
+ * // ExtractValueTypes<['string', 'number']> => 'string' | 'number'
  * ```
  */
-export type ExtractValueNames<Value> = Value extends ValueName
+export type ExtractValueTypes<Value> = Value extends ValueType
 	? Value
 	: Value extends (infer Item)[]
-		? ExtractValueNames<Item>
+		? ExtractValueTypes<Item>
 		: Value extends readonly (infer Item)[]
-			? ExtractValueNames<Item>
+			? ExtractValueTypes<Item>
 			: never;
 
 /**
@@ -183,10 +183,10 @@ export type UnwrapSingle<Value extends unknown[]> = Value extends [infer Only]
 /**
  * A union of valid type name strings, e.g. `'string'`, `'number'`, `'date'`
  */
-export type ValueName = keyof Values;
+export type ValueType = keyof Values;
 
 /**
- * Maps {@link ValueName} strings to their TypeScript equivalents
+ * Maps {@link ValueType} strings to their TypeScript equivalents
  */
 export type Values = {
 	array: unknown[];

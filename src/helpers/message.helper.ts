@@ -5,7 +5,7 @@ import {
 	CONJUNCTION_AND_COMMA,
 	CONJUNCTION_OR,
 	CONJUNCTION_OR_COMMA,
-	PREFIXED_TYPES,
+	TYPES_PREFIXED,
 	SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_REQUIRED,
 	SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_TYPE,
 	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED,
@@ -13,7 +13,7 @@ import {
 	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED,
 	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE,
 	TEMPLATE_PATTERN,
-	TYPE_ALL,
+	TYPES_ALL,
 	TYPE_ARRAY,
 	TYPE_FUNCTION_RESULT,
 	TYPE_NULL,
@@ -25,7 +25,7 @@ import {
 	VALIDATION_MESSAGE_INVALID_VALUE_SUFFIX,
 	VALIDATION_MESSAGE_UNKNOWN_KEYS,
 } from '../constants';
-import type {ValueName} from '../models/misc.model';
+import type {ValueType} from '../models/misc.model';
 import type {ValidatorHandlerType} from '../models/validation.model';
 
 // #region Defaults
@@ -85,7 +85,7 @@ export function getInputPropertyTypeMessage(
 
 export function getInputPropertyValidatorMessage(
 	key: string,
-	type: ValueName,
+	type: ValueType,
 	index: number,
 	length: number,
 ): string {
@@ -121,11 +121,11 @@ function getPropertyType(type: ValidatorHandlerType): string {
 		case typeof type === 'function':
 			return isConstructor(type) ? type.name : TYPE_FUNCTION_RESULT;
 
-		case TYPE_ALL.has(type as ValueName):
-			return PREFIXED_TYPES[type as ValueName];
+		case TYPES_ALL.has(type as ValueType):
+			return TYPES_PREFIXED[type as ValueType];
 
 		default:
-			return PREFIXED_TYPES[TYPE_OBJECT];
+			return TYPES_PREFIXED[TYPE_OBJECT];
 	}
 }
 
@@ -137,13 +137,13 @@ function getValueType(value: unknown): string {
 			return TYPE_NULL;
 
 		case Array.isArray(value):
-			return PREFIXED_TYPES[TYPE_ARRAY];
+			return TYPES_PREFIXED[TYPE_ARRAY];
 
 		case isPlainObject(value):
-			return PREFIXED_TYPES[TYPE_OBJECT];
+			return TYPES_PREFIXED[TYPE_OBJECT];
 
 		case valueType !== TYPE_OBJECT:
-			return PREFIXED_TYPES[valueType as ValueName];
+			return TYPES_PREFIXED[valueType as ValueType];
 
 		default:
 			return (value as object).constructor.name;

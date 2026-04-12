@@ -8,3 +8,4 @@ export {
 	type IsOptions,
 } from './models/validation.model';
 export {schema, type Schema} from './schema';
+export {validator, type Validator} from './validator';

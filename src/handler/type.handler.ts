@@ -6,10 +6,10 @@ import {
 	SCHEMATIC_MESSAGE_VALIDATOR_INVALID_TYPE,
 	SCHEMATIC_MESSAGE_VALIDATOR_INVALID_VALUE,
 	TEMPLATE_PATTERN,
-	TYPE_ALL,
+	TYPES_ALL,
 } from '../constants';
 import {getInputPropertyValidatorMessage} from '../helpers/message.helper';
-import type {ValueName} from '../models/misc.model';
+import type {ValueType} from '../models/misc.model';
 import type {
 	TypedHandlers,
 	TypeHandlers,
@@ -19,22 +19,22 @@ import type {
 } from '../models/validation.model';
 
 export function getTypeHandler(
-	key: ValidationInformationKey,
-	name: ValueName,
+	type: ValueType,
 	handlers: TypedHandlers,
+	key?: ValidationInformationKey,
 ): ValidationHandler {
-	const validator = typedValidators[name];
+	const handler = typeHandlers[type];
 
-	const named = handlers[name] ?? [];
-	const {length} = named;
+	const typedHandlers = handlers[type] ?? [];
+	const {length} = typedHandlers;
 
 	return (input, parameters) => {
-		if (!validator(input)) {
+		if (!handler(input)) {
 			return [];
 		}
 
 		for (let index = 0; index < length; index += 1) {
-			const handler = named[index];
+			const handler = typedHandlers[index];
 
 			if (handler(input) === true) {
 				continue;
@@ -42,8 +42,9 @@ export function getTypeHandler(
 
 			const information: ValidationInformation = {
 				key,
-				validator,
-				message: getInputPropertyValidatorMessage(key.full, name, index, length),
+				message:
+					key == null ? '' : getInputPropertyValidatorMessage(key?.full, type, index, length),
+				validator: handler,
 				value: input,
 			};
 
@@ -86,13 +87,13 @@ export function getTypeHandlers(
 	for (let index = 0; index < length; index += 1) {
 		const key = keys[index];
 
-		if (!TYPE_ALL.has(key as never)) {
+		if (!TYPES_ALL.has(key as never)) {
 			throw new TypeError(SCHEMATIC_MESSAGE_VALIDATOR_INVALID_KEY.replace(TEMPLATE_PATTERN, key));
 		}
 
 		const value = original[key];
 
-		handlers[key as ValueName] = (Array.isArray(value) ? value : [value]).map(item => {
+		handlers[key as ValueType] = (Array.isArray(value) ? value : [value]).map(item => {
 			if (typeof item !== 'function') {
 				throw new TypeError(
 					SCHEMATIC_MESSAGE_VALIDATOR_INVALID_VALUE.replace(TEMPLATE_PATTERN, key).replace(
@@ -109,7 +110,7 @@ export function getTypeHandlers(
 	return handlers;
 }
 
-const typedValidators: TypeHandlers = {
+const typeHandlers: TypeHandlers = {
 	array: Array.isArray,
 	bigint: value => typeof value === 'bigint',
 	boolean: value => typeof value === 'boolean',

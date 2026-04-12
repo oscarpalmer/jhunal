@@ -1,12 +1,13 @@
 import type {Constructor} from '@oscarpalmer/atoms/models';
 import type {Schema} from '../schema';
-import type {ExtractValueNames, ValueName, Values} from './misc.model';
+import type {Validator} from '../validator';
+import type {ExtractValueTypes, ValueType, Values} from './misc.model';
 
 /**
  * A generic schematic allowing nested schematics, {@link SchematicEntry} values, or arrays of {@link SchematicEntry} as values
  */
 export type PlainSchematic = {
-	[key: string]: PlainSchematic | SchematicEntry | SchematicEntry[] | undefined;
+	[key: string]: SchematicEntry | SchematicEntry[] | undefined;
 } & {
 	$default?: never;
 	$required?: never;
@@ -31,14 +32,15 @@ export type Schematic = PlainSchematic;
 /**
  * A union of all valid types for a single schematic entry
  *
- * Can be a {@link Constructor}, {@link PlainSchematic}, {@link SchematicProperty}, {@link Schema}, {@link ValueName}, or a custom validator function
+ * Can be a {@link Constructor}, {@link PlainSchematic}, {@link SchematicProperty}, {@link Schema}, {@link ValueType}, or a custom validator function
  */
 export type SchematicEntry =
 	| Constructor
 	| PlainSchematic
 	| Schema<unknown>
 	| SchematicProperty
-	| ValueName
+	| Validator<unknown>
+	| ValueType
 	| ((value: unknown) => boolean);
 
 /**
@@ -67,7 +69,7 @@ export type SchematicProperty = {
 	 */
 	$type: SchemaPropertyType | SchemaPropertyType[];
 	/**
-	 * Optional validators keyed by {@link ValueName}, applied during validation
+	 * Optional validators keyed by {@link ValueType}, applied during validation
 	 */
 	$validators?: PropertyValidators<SchemaPropertyType | SchemaPropertyType[]>;
 };
@@ -75,17 +77,18 @@ export type SchematicProperty = {
 /**
  * A union of valid types for a {@link SchematicProperty}'s `$type` field
  *
- * Can be a {@link Constructor}, {@link PlainSchematic}, {@link Schema}, {@link ValueName} string, or a custom validator function
+ * Can be a {@link Constructor}, {@link PlainSchematic}, {@link Schema}, {@link ValueType} string, or a custom validator function
  */
 export type SchemaPropertyType =
 	| Constructor
 	| PlainSchematic
 	| Schema<unknown>
-	| ValueName
+	| Validator<unknown>
+	| ValueType
 	| ((value: unknown) => boolean);
 
 /**
- * A map of optional validator functions keyed by {@link ValueName}, used to add custom validation to {@link SchemaProperty} definitions
+ * A map of optional validator functions keyed by {@link ValueType}, used to add custom validation to {@link SchemaProperty} definitions
  *
  * Each key may hold a single validator or an array of validators that receive the typed value
  *
@@ -99,7 +102,7 @@ export type SchemaPropertyType =
  * ```
  */
 export type PropertyValidators<Value> = {
-	[Key in ExtractValueNames<Value>]?:
+	[Key in ExtractValueTypes<Value>]?:
 		| ((value: Values[Key]) => boolean)
 		| Array<(value: Values[Key]) => boolean>;
 };

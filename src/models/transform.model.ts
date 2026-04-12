@@ -45,7 +45,7 @@ export type ToSchemaPropertyTypeEach<Value> = Value extends PlainObject
 	: ToValueType<Value>;
 
 /**
- * Converts a TypeScript type to its {@link ValueName} representation, suitable for use as a top-level schema entry
+ * Converts a TypeScript type to its {@link ValueType} representation, suitable for use as a top-level schema entry
  *
  * @template Value Type to convert
  */
@@ -54,7 +54,7 @@ export type ToSchemaType<Value> = UnwrapSingle<
 >;
 
 /**
- * Maps a type to its {@link ValueName} string equivalent
+ * Maps a type to its {@link ValueType} string equivalent
  *
  * Resolves {@link Schema} types as-is, then performs a reverse-lookup against {@link Values} _(excluding `'object'`)_ to find a matching key. If no match is found, `object` types resolve to `'object'` or a type-guard function, and all other unrecognised types resolve to a type-guard function
  *

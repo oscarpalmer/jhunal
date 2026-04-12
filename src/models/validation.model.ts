@@ -2,23 +2,7 @@ import type {GenericCallback, PlainObject} from '@oscarpalmer/atoms/models';
 import {join} from '@oscarpalmer/atoms/string';
 import {NAME_ERROR_SCHEMATIC, NAME_ERROR_VALIDATION} from '../constants';
 import type {Schema} from '../schema';
-import type {ValueName} from './misc.model';
-
-// #region Named validation
-
-/**
- * Object property validation handlers
- */
-export type TypedHandlers = {
-	[Key in ValueName]?: Array<(value: unknown) => boolean>;
-};
-
-/**
- * Base type validation handlers
- */
-export type TypeHandlers = Record<ValueName, (value: unknown) => boolean>;
-
-// #endregion
+import type {ValueType} from './misc.model';
 
 // #region Reporting
 
@@ -76,7 +60,7 @@ export class ValidationError extends Error {
  */
 export type ValidationInformation = {
 	/** The key path of the property that failed */
-	key: ValidationInformationKey;
+	key?: ValidationInformationKey;
 	/** Human-readable description of the failure */
 	message: string;
 	/** The validator function that failed, if the failure was from a `$validators` entry */
@@ -125,7 +109,23 @@ export type IsOptions<Errors extends ReportingType> = BaseOptions<Errors>;
 
 // #endregion
 
-// #region Validator
+// #region Type validation
+
+/**
+ * Object property validation handlers
+ */
+export type TypedHandlers = {
+	[Key in ValueType]?: Array<(value: unknown) => boolean>;
+};
+
+/**
+ * Base type validation handlers
+ */
+export type TypeHandlers = Record<ValueType, (value: unknown) => boolean>;
+
+// #endregion
+
+// #region Validation handler
 
 export type ValidationHandler = (
 	input: unknown,
@@ -153,6 +153,6 @@ export type ValidationHandlerParameters = {
 	strict: boolean;
 };
 
-export type ValidationHandlerType = Function | PlainObject | Schema<unknown> | ValueName;
+export type ValidationHandlerType = Function | PlainObject | Schema<unknown> | ValueType;
 
 // #endregion

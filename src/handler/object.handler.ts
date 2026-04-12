@@ -8,7 +8,7 @@ import {
 	PROPERTY_TYPE,
 	PROPERTY_VALIDATORS,
 	SCHEMATIC_MESSAGE_SCHEMA_INVALID_EMPTY,
-	TYPE_ALL,
+	TYPES_ALL,
 	TYPE_UNDEFINED,
 } from '../constants';
 import {
@@ -24,7 +24,7 @@ import {
 	getUnknownKeysMessage,
 } from '../helpers/message.helper';
 import {getParameters, isSchema} from '../helpers/misc.helper';
-import type {ValueName} from '../models/misc.model';
+import type {ValueType} from '../models/misc.model';
 import {
 	type TypedHandlers,
 	SchematicError,
@@ -45,7 +45,7 @@ import {getSchemaValidator} from './schema.handler';
 type ReportParameters<Callback extends (...args: any[]) => string> = {
 	extract?: boolean;
 	information?: ReportParametersInformation;
-	key: ValidationInformationKey;
+	key?: ValidationInformationKey;
 	message: ReportParametersMessage<Callback>;
 	original: ValidationHandlerParameters;
 	value: unknown;
@@ -184,8 +184,8 @@ export function getObjectValidator(
 					validator = getSchemaValidator(type);
 					break;
 
-				case TYPE_ALL.has(type as ValueName):
-					validator = getTypeHandler(fullKey, type as ValueName, handlers);
+				case TYPES_ALL.has(type as ValueType):
+					validator = getTypeHandler(type as ValueType, handlers, fullKey);
 					break;
 
 				default:
@@ -225,10 +225,6 @@ export function getObjectValidator(
 			return origin == null
 				? report(
 						{
-							key: {
-								full: '',
-								short: '',
-							},
 							message: {
 								arguments: [input],
 								callback: getInputTypeMessage,
@@ -247,10 +243,7 @@ export function getObjectValidator(
 
 			if (unknownKeys.length > 0) {
 				const information: ValidationInformation = {
-					key: origin ?? {
-						full: '',
-						short: '',
-					},
+					key: origin,
 					message: getUnknownKeysMessage(unknownKeys),
 					value: input,
 				};

@@ -1,10 +1,10 @@
 import {isPlainObject} from '@oscarpalmer/atoms/is';
 import type {PlainObject} from '@oscarpalmer/atoms/models';
-import {error, ok} from '@oscarpalmer/atoms/result/misc';
 import type {Result} from '@oscarpalmer/atoms/result/models';
 import {PROPERTY_SCHEMA, SCHEMATIC_MESSAGE_SCHEMA_INVALID_TYPE} from './constants';
 import {getObjectValidator} from './handler/object.handler';
-import {getParameters, isSchema} from './helpers/misc.helper';
+import {isSchema} from './helpers/misc.helper';
+import {getResult, isResult} from './helpers/result.helper';
 import type {Infer} from './models/infer.model';
 import type {Schematic} from './models/schematic.plain.model';
 import type {TypedSchematic} from './models/schematic.typed.model';
@@ -115,23 +115,7 @@ export class Schema<Model> {
 	get(value: unknown, strict?: true): Model | undefined;
 
 	get(value: unknown, options?: unknown): unknown {
-		const parameters = getParameters(options);
-
-		const result = this.#handler(value, parameters, true);
-
-		if (result === true) {
-			return parameters.reporting.none || parameters.reporting.throw
-				? parameters.clone
-					? parameters.output
-					: value
-				: ok(parameters.clone ? parameters.output : value);
-		}
-
-		if (parameters.reporting.none) {
-			return;
-		}
-
-		return error(parameters.reporting.all ? result : result[0]);
+		return getResult(this.#handler, value, options);
 	}
 
 	/**
@@ -215,19 +199,7 @@ export class Schema<Model> {
 	is(value: unknown, strict?: true): value is Model;
 
 	is(value: unknown, options?: unknown): unknown {
-		const parameters = getParameters(options);
-
-		const result = this.#handler(value, parameters, false);
-
-		if (result === true) {
-			return parameters.reporting.none || parameters.reporting.throw ? result : ok(result);
-		}
-
-		if (parameters.reporting.none) {
-			return false;
-		}
-
-		return error(parameters.reporting.all ? result : result[0]);
+		return isResult(this.#handler, value, options);
 	}
 }
 
