@@ -5,7 +5,6 @@ import {
 	CONJUNCTION_AND_COMMA,
 	CONJUNCTION_OR,
 	CONJUNCTION_OR_COMMA,
-	TYPES_PREFIXED,
 	SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_REQUIRED,
 	SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_TYPE,
 	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED,
@@ -14,19 +13,24 @@ import {
 	SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE,
 	TEMPLATE_PATTERN,
 	TYPES_ALL,
+	TYPES_PREFIXED,
 	TYPE_ARRAY,
 	TYPE_FUNCTION_RESULT,
 	TYPE_NULL,
 	TYPE_OBJECT,
 	VALIDATION_MESSAGE_INVALID_INPUT,
+	VALIDATION_MESSAGE_INVALID_PROPERTY_TYPE,
+	VALIDATION_MESSAGE_INVALID_PROPERTY_VALIDATOR,
 	VALIDATION_MESSAGE_INVALID_REQUIRED,
-	VALIDATION_MESSAGE_INVALID_TYPE,
-	VALIDATION_MESSAGE_INVALID_VALUE,
-	VALIDATION_MESSAGE_INVALID_VALUE_SUFFIX,
+	VALIDATION_MESSAGE_INVALID_VALIDATOR_SUFFIX,
+	VALIDATION_MESSAGE_INVALID_VALUE_TYPE,
+	VALIDATION_MESSAGE_INVALID_VALUE_VALIDATOR,
 	VALIDATION_MESSAGE_UNKNOWN_KEYS,
 } from '../constants';
 import type {ValueType} from '../models/misc.model';
-import type {ValidatorHandlerType} from '../models/validation.model';
+import type {ValidationHandlerType} from '../models/validation.model';
+import {isValidator} from './misc.helper';
+import {validatorTypes} from '../validator';
 
 // #region Defaults
 
@@ -34,7 +38,7 @@ export function getDefaultRequiredMessage(key: string): string {
 	return SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_REQUIRED.replace(TEMPLATE_PATTERN, key);
 }
 
-export function getDefaultTypeMessage(key: string, types: ValidatorHandlerType[]): string {
+export function getDefaultTypeMessage(key: string, types: ValidationHandlerType[]): string {
 	let message = SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_TYPE.replace(TEMPLATE_PATTERN, key);
 
 	message = message.replace(TEMPLATE_PATTERN, renderTypes(types));
@@ -62,7 +66,10 @@ export function getInputTypeMessage(actual: unknown): string {
 	return VALIDATION_MESSAGE_INVALID_INPUT.replace(TEMPLATE_PATTERN, getValueType(actual));
 }
 
-export function getInputPropertyMissingMessage(key: string, types: ValidatorHandlerType[]): string {
+export function getInputPropertyMissingMessage(
+	key: string,
+	types: ValidationHandlerType[],
+): string {
 	let message = VALIDATION_MESSAGE_INVALID_REQUIRED.replace(TEMPLATE_PATTERN, renderTypes(types));
 
 	message = message.replace(TEMPLATE_PATTERN, key);
@@ -72,10 +79,13 @@ export function getInputPropertyMissingMessage(key: string, types: ValidatorHand
 
 export function getInputPropertyTypeMessage(
 	key: string,
-	types: ValidatorHandlerType[],
+	types: ValidationHandlerType[],
 	actual: unknown,
 ): string {
-	let message = VALIDATION_MESSAGE_INVALID_TYPE.replace(TEMPLATE_PATTERN, renderTypes(types));
+	let message = VALIDATION_MESSAGE_INVALID_PROPERTY_TYPE.replace(
+		TEMPLATE_PATTERN,
+		renderTypes(types),
+	);
 
 	message = message.replace(TEMPLATE_PATTERN, key);
 	message = message.replace(TEMPLATE_PATTERN, getValueType(actual));
@@ -89,12 +99,34 @@ export function getInputPropertyValidatorMessage(
 	index: number,
 	length: number,
 ): string {
-	let message = VALIDATION_MESSAGE_INVALID_VALUE.replace(TEMPLATE_PATTERN, key);
+	let message = VALIDATION_MESSAGE_INVALID_PROPERTY_VALIDATOR.replace(TEMPLATE_PATTERN, key);
 
 	message = message.replace(TEMPLATE_PATTERN, type);
 
 	if (length > 1) {
-		message += VALIDATION_MESSAGE_INVALID_VALUE_SUFFIX.replace(TEMPLATE_PATTERN, String(index));
+		message += VALIDATION_MESSAGE_INVALID_VALIDATOR_SUFFIX.replace(TEMPLATE_PATTERN, String(index));
+	}
+
+	return message;
+}
+
+export function getInputValueTypeMessage(types: ValidationHandlerType[], actual: unknown): string {
+	let message = VALIDATION_MESSAGE_INVALID_VALUE_TYPE.replace(TEMPLATE_PATTERN, renderTypes(types));
+
+	message = message.replace(TEMPLATE_PATTERN, getValueType(actual));
+
+	return message;
+}
+
+export function getInputValueValidatorMessage(
+	type: ValueType,
+	index: number,
+	length: number,
+): string {
+	let message = VALIDATION_MESSAGE_INVALID_VALUE_VALIDATOR.replace(TEMPLATE_PATTERN, type);
+
+	if (length > 1) {
+		message += VALIDATION_MESSAGE_INVALID_VALIDATOR_SUFFIX.replace(TEMPLATE_PATTERN, String(index));
 	}
 
 	return message;
@@ -116,16 +148,19 @@ export function getSchematicPropertyTypeMessage(key: string): string {
 
 // #region Misc.
 
-function getPropertyType(type: ValidatorHandlerType): string {
+function getPropertyType(type: ValidationHandlerType): string[] {
 	switch (true) {
 		case typeof type === 'function':
-			return isConstructor(type) ? type.name : TYPE_FUNCTION_RESULT;
+			return [isConstructor(type) ? type.name : TYPE_FUNCTION_RESULT];
+
+		case isValidator(type):
+			return validatorTypes.get(type)!.flatMap(getPropertyType);
 
 		case TYPES_ALL.has(type as ValueType):
-			return TYPES_PREFIXED[type as ValueType];
+			return [TYPES_PREFIXED[type as ValueType]];
 
 		default:
-			return TYPES_PREFIXED[TYPE_OBJECT];
+			return [TYPES_PREFIXED[TYPE_OBJECT]];
 	}
 }
 
@@ -180,19 +215,26 @@ function renderParts(parts: string[], delimiterShort: string, delimiterLong: str
 	return rendered;
 }
 
-function renderTypes(types: ValidatorHandlerType[]): string {
+function renderTypes(types: ValidationHandlerType[]): string {
 	const unique = new Set<string>();
 	const parts: string[] = [];
 
-	for (let index = 0; index < types.length; index += 1) {
-		const rendered = getPropertyType(types[index]);
+	const typesLength = types.length;
 
-		if (unique.has(rendered)) {
-			continue;
+	for (let typeIndex = 0; typeIndex < typesLength; typeIndex += 1) {
+		const properties = getPropertyType(types[typeIndex]);
+		const propertiesLength = properties.length;
+
+		for (let propertyIndex = 0; propertyIndex < propertiesLength; propertyIndex += 1) {
+			const property = properties[propertyIndex];
+
+			if (unique.has(property)) {
+				continue;
+			}
+
+			unique.add(property);
+			parts.push(property);
 		}
-
-		unique.add(rendered);
-		parts.push(rendered);
 	}
 
 	return renderParts(parts, CONJUNCTION_OR, CONJUNCTION_OR_COMMA);

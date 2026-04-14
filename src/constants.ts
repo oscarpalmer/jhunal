@@ -31,6 +31,8 @@ export const NAME_ERROR_SCHEMATIC = 'SchematicError';
 
 export const NAME_ERROR_VALIDATION = 'ValidationError';
 
+export const NAME_ERROR_VALIDATOR = 'ValidatorError';
+
 // #endregion
 
 // #region Properties
@@ -43,22 +45,29 @@ export const PROPERTY_SCHEMA = '$schema';
 
 export const PROPERTY_TYPE = '$type';
 
+export const PROPERTY_VALIDATOR = '$validator';
+
 export const PROPERTY_VALIDATORS = '$validators';
 
 // #endregion
 
-// #region Property validation
+// #region Value validation
 
 export const VALIDATION_MESSAGE_INVALID_INPUT = 'Expected an object as input but received <>';
 
 export const VALIDATION_MESSAGE_INVALID_REQUIRED = "Expected <> for required property '<>'";
 
-export const VALIDATION_MESSAGE_INVALID_TYPE = "Expected <> for '<>' but received <>";
+export const VALIDATION_MESSAGE_INVALID_PROPERTY_TYPE = "Expected <> for '<>' but received <>";
 
-export const VALIDATION_MESSAGE_INVALID_VALUE =
+export const VALIDATION_MESSAGE_INVALID_PROPERTY_VALIDATOR =
 	"Value does not satisfy validator for '<>' and type '<>'";
 
-export const VALIDATION_MESSAGE_INVALID_VALUE_SUFFIX = ' at index <>';
+export const VALIDATION_MESSAGE_INVALID_VALIDATOR_SUFFIX = ' at index <>';
+
+export const VALIDATION_MESSAGE_INVALID_VALUE_TYPE = 'Expected <> but received <>';
+
+export const VALIDATION_MESSAGE_INVALID_VALUE_VALIDATOR =
+	"Value does not satisfy validator for type '<>'";
 
 export const VALIDATION_MESSAGE_UNKNOWN_KEYS = 'Found keys that are not defined in the schema: <>';
 
@@ -72,12 +81,15 @@ export const REPORTING_FIRST: ReportingType = 'first';
 
 export const REPORTING_NONE: ReportingType = 'none';
 
+export const REPORTING_RESULT: ReportingType = 'result';
+
 export const REPORTING_THROW: ReportingType = 'throw';
 
 export const REPORTING_TYPES = new Set<ReportingType>([
 	REPORTING_ALL,
 	REPORTING_FIRST,
 	REPORTING_NONE,
+	REPORTING_RESULT,
 	REPORTING_THROW,
 ]);
 
@@ -165,3 +177,13 @@ export const TYPES_PREFIXED: Record<ValueType, string> = {
 };
 
 // #endregion
+
+// #region Validator validation
+
+export const VALIDATOR_MESSAGE_INVALID_PROPERTY_NULLABLE =
+	"Validator must not be 'null' or 'undefined'";
+
+export const VALIDATOR_MESSAGE_INVALID_PROPERTY_TYPE = 'Validator must be of a valid type';
+
+export const VALIDATOR_MESSAGE_INVALID_VALIDATOR =
+	'Validator must be a function or an array of functions';

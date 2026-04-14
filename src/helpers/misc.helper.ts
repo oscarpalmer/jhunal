@@ -3,20 +3,23 @@ import type {Constructor} from '@oscarpalmer/atoms/models';
 import {
 	MESSAGE_CONSTRUCTOR,
 	PROPERTY_SCHEMA,
+	PROPERTY_VALIDATOR,
 	REPORTING_ALL,
 	REPORTING_FIRST,
 	REPORTING_NONE,
+	REPORTING_RESULT,
 	REPORTING_THROW,
 	REPORTING_TYPES,
 } from '../constants';
 import type {
 	ReportingInformation,
 	ReportingType,
-	ValidatorHandlerParameters,
+	ValidationHandlerParameters,
 } from '../models/validation.model';
 import type {Schema} from '../schema';
+import type {Validator} from '../validator';
 
-export function getParameters(input?: unknown): ValidatorHandlerParameters {
+export function getParameters(input?: unknown): ValidationHandlerParameters {
 	if (typeof input === 'boolean') {
 		return {
 			clone: true,
@@ -53,7 +56,7 @@ export function getReporting(value?: unknown): ReportingInformation {
 	return {
 		type,
 		[REPORTING_ALL]: type === REPORTING_ALL,
-		[REPORTING_FIRST]: type === REPORTING_FIRST,
+		[REPORTING_FIRST]: type === REPORTING_FIRST || type === REPORTING_RESULT,
 		[REPORTING_NONE]: type === REPORTING_NONE,
 		[REPORTING_THROW]: type === REPORTING_THROW,
 	} as ReportingInformation;
@@ -78,15 +81,29 @@ export function instanceOf<Instance>(
 }
 
 /**
- * Is the value a schematic?
+ * Is the value a schema?
  * @param value Value to check
- * @returns `true` if the value is a schematic, `false` otherwise
+ * @returns `true` if the value is a schema, `false` otherwise
  */
-export function isSchema(value: unknown): value is Schema<never> {
+export function isSchema(value: unknown): value is Schema<unknown> {
 	return (
 		typeof value === 'object' &&
 		value !== null &&
 		PROPERTY_SCHEMA in value &&
 		value[PROPERTY_SCHEMA] === true
+	);
+}
+
+/**
+ * Is the value a validator?
+ * @param value Value to check
+ * @returns `true` if the value is a validator, `false` otherwise
+ */
+export function isValidator(value: unknown): value is Validator<unknown> {
+	return (
+		typeof value === 'object' &&
+		value !== null &&
+		PROPERTY_VALIDATOR in value &&
+		value[PROPERTY_VALIDATOR] === true
 	);
 }

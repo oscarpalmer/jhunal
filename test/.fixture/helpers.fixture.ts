@@ -1,8 +1,8 @@
 import {schema} from '../../src';
-import {TEMPLATE_PATTERN, VALIDATION_MESSAGE_INVALID_TYPE} from '../../src/constants';
+import {TEMPLATE_PATTERN, VALIDATION_MESSAGE_INVALID_PROPERTY_TYPE} from '../../src/constants';
 
 function getFakeInvalidTypeMessage(key: string, type: string, actual: string): string {
-	return VALIDATION_MESSAGE_INVALID_TYPE.replace(TEMPLATE_PATTERN, type)
+	return VALIDATION_MESSAGE_INVALID_PROPERTY_TYPE.replace(TEMPLATE_PATTERN, type)
 		.replace(TEMPLATE_PATTERN, key)
 		.replace(TEMPLATE_PATTERN, actual);
 }

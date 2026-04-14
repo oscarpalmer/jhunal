@@ -1,8 +1,8 @@
 import {expect, test} from 'vitest';
-import {instanceOf, isSchema, schema} from '../src';
+import {instanceOf, isSchema, schema, validator} from '../src';
 import {MESSAGE_CONSTRUCTOR} from '../src/constants';
 import {getInputPropertyTypeMessage} from '../src/helpers/message.helper';
-import {getParameters} from '../src/helpers/misc.helper';
+import {getParameters, isValidator} from '../src/helpers/misc.helper';
 import {cases, length, parameters, validatorCase, values} from './.fixture/helpers.fixture';
 import {TestItem} from './.fixture/models.fixture';
 
@@ -58,4 +58,12 @@ test('isSchema', () => {
 			}),
 		),
 	).toBe(true);
+});
+
+test('isValidator', () => {
+	for (let index = 0; index < length; index += 1) {
+		expect(isValidator(values[index] as never)).toBe(false);
+	}
+
+	expect(isValidator(validator('string'))).toBe(true);
 });

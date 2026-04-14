@@ -7,46 +7,58 @@ import {
 	SCHEMATIC_MESSAGE_VALIDATOR_INVALID_VALUE,
 	TEMPLATE_PATTERN,
 	TYPES_ALL,
+	VALIDATOR_MESSAGE_INVALID_VALIDATOR,
 } from '../constants';
-import {getInputPropertyValidatorMessage} from '../helpers/message.helper';
+import {
+	getInputPropertyValidatorMessage,
+	getInputValueValidatorMessage,
+} from '../helpers/message.helper';
 import type {ValueType} from '../models/misc.model';
-import type {
-	TypedHandlers,
-	TypeHandlers,
-	ValidationHandler,
-	ValidationInformation,
-	ValidationInformationKey,
+import {
+	type PropertyValidation,
+	type PropertyValidationKey,
+	type TypeValidators,
+	type ValidationHandler,
+	type ValidationHandlerType,
+	type Validators,
+	SchematicError,
+	ValidatorError,
 } from '../models/validation.model';
 
 export function getTypeHandler(
 	type: ValueType,
-	handlers: TypedHandlers,
-	key?: ValidationInformationKey,
+	validators: Validators,
+	key?: PropertyValidationKey,
 ): ValidationHandler {
-	const handler = typeHandlers[type];
+	const validator = typeValidators[type];
 
-	const typedHandlers = handlers[type] ?? [];
-	const {length} = typedHandlers;
+	const typedValidators = validators[type] ?? [];
+	const {length} = typedValidators;
 
 	return (input, parameters) => {
-		if (!handler(input)) {
+		if (!validator(input)) {
 			return [];
 		}
 
 		for (let index = 0; index < length; index += 1) {
-			const handler = typedHandlers[index];
+			const validator = typedValidators[index];
 
-			if (handler(input) === true) {
+			if (validator(input) === true) {
 				continue;
 			}
 
-			const information: ValidationInformation = {
-				key,
+			const information: PropertyValidation = {
+				validator,
 				message:
-					key == null ? '' : getInputPropertyValidatorMessage(key?.full, type, index, length),
-				validator: handler,
+					key == null
+						? getInputValueValidatorMessage(type, index, length)
+						: getInputPropertyValidatorMessage(key.full, type, index, length),
 				value: input,
 			};
+
+			if (key != null) {
+				information.key = key;
+			}
 
 			parameters.information?.push(information);
 
@@ -57,28 +69,45 @@ export function getTypeHandler(
 	};
 }
 
-export function getTypeHandlers(
-	original: unknown,
-	prefix: string,
-	allowed: boolean,
-): TypedHandlers {
-	const handlers: TypedHandlers = {};
+export function getTypeValidators(types: ValidationHandlerType[], original: unknown): Validators {
+	const values = types.filter(type => TYPES_ALL.has(type as ValueType)) as ValueType[];
+	const {length} = values;
+
+	const validators: Validators = {};
+
+	if (original == null || length === 0) {
+		return validators;
+	}
+
+	if (typeof original === 'function' || Array.isArray(original)) {
+		if (length > 1) {
+			throw new ValidatorError(SCHEMATIC_MESSAGE_VALIDATOR_INVALID_TYPE);
+		}
+
+		return getValidators({[values[0]]: original}, true);
+	}
+
+	return getValidators(original, true);
+}
+
+export function getValidators(original: unknown, allowed: boolean, prefix?: string): Validators {
+	const validators: Validators = {};
 
 	if (original == null) {
-		return handlers;
+		return validators;
 	}
 
 	if (!allowed) {
-		throw new TypeError(
+		throw new SchematicError(
 			SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED.replace(
 				TEMPLATE_PATTERN,
-				prefix,
+				prefix!,
 			).replace(TEMPLATE_PATTERN, PROPERTY_VALIDATORS),
 		);
 	}
 
 	if (!isPlainObject(original)) {
-		throw new TypeError(SCHEMATIC_MESSAGE_VALIDATOR_INVALID_TYPE);
+		throw new SchematicError(SCHEMATIC_MESSAGE_VALIDATOR_INVALID_TYPE);
 	}
 
 	const keys = Object.keys(original);
@@ -88,29 +117,35 @@ export function getTypeHandlers(
 		const key = keys[index];
 
 		if (!TYPES_ALL.has(key as never)) {
-			throw new TypeError(SCHEMATIC_MESSAGE_VALIDATOR_INVALID_KEY.replace(TEMPLATE_PATTERN, key));
+			throw new SchematicError(
+				SCHEMATIC_MESSAGE_VALIDATOR_INVALID_KEY.replace(TEMPLATE_PATTERN, key),
+			);
 		}
 
 		const value = original[key];
 
-		handlers[key as ValueType] = (Array.isArray(value) ? value : [value]).map(item => {
+		validators[key as ValueType] = (Array.isArray(value) ? value : [value]).map(item => {
 			if (typeof item !== 'function') {
-				throw new TypeError(
-					SCHEMATIC_MESSAGE_VALIDATOR_INVALID_VALUE.replace(TEMPLATE_PATTERN, key).replace(
-						TEMPLATE_PATTERN,
-						prefix,
-					),
-				);
+				if (prefix == null) {
+					throw new ValidatorError(VALIDATOR_MESSAGE_INVALID_VALIDATOR);
+				} else {
+					throw new SchematicError(
+						SCHEMATIC_MESSAGE_VALIDATOR_INVALID_VALUE.replace(TEMPLATE_PATTERN, key).replace(
+							TEMPLATE_PATTERN,
+							prefix,
+						),
+					);
+				}
 			}
 
 			return item;
 		});
 	}
 
-	return handlers;
+	return validators;
 }
 
-const typeHandlers: TypeHandlers = {
+const typeValidators: TypeValidators = {
 	array: Array.isArray,
 	bigint: value => typeof value === 'bigint',
 	boolean: value => typeof value === 'boolean',

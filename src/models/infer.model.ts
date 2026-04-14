@@ -50,8 +50,6 @@ export type InferPropertyType<Value> = Value extends (infer Item)[]
 /**
  * Maps a single `$type` definition to its TypeScript equivalent
  *
- * Resolves, in order: {@link Constructor}s, {@link Schema} instances, {@link ValueType} values, and nested {@link PlainSchematic} objects
- *
  * @template Value single type definition
  */
 export type InferPropertyValue<Value> =
@@ -88,8 +86,6 @@ export type InferSchemaEntry<Value> = Value extends (infer Item)[]
 /**
  * Maps a single top-level schema entry to its TypeScript type
  *
- * Resolves, in order: {@link Constructor}s, {@link Schema} instances, {@link SchemaProperty} objects, {@link PlainSchematic} objects, and {@link ValueType} values
- *
  * @template Value single schema entry
  */
 export type InferSchemaEntryValue<Value> =
@@ -107,6 +103,11 @@ export type InferSchemaEntryValue<Value> =
 							? Values[Value & ValueType]
 							: never;
 
+/**
+ * Infers the TypeScript type from a {@link Validator} definition
+ *
+ * @template Value Validator to infer type from
+ */
 export type InferValidatorValue<Value> = Value extends (infer Item)[]
 	? InferValidatorValue<Item>
 	: Value extends Constructor<infer Instance>

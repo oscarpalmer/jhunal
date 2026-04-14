@@ -2,7 +2,7 @@ import {isPlainObject} from '@oscarpalmer/atoms/is';
 import type {PlainObject} from '@oscarpalmer/atoms/models';
 import type {Result} from '@oscarpalmer/atoms/result/models';
 import {PROPERTY_SCHEMA, SCHEMATIC_MESSAGE_SCHEMA_INVALID_TYPE} from './constants';
-import {getObjectValidator} from './handler/object.handler';
+import {getObjectHandler} from './handler/object.handler';
 import {isSchema} from './helpers/misc.helper';
 import {getResult, isResult} from './helpers/result.helper';
 import type {Infer} from './models/infer.model';
@@ -13,7 +13,7 @@ import {
 	type GetOptions,
 	type IsOptions,
 	type ValidationHandler,
-	type ValidationInformation,
+	type PropertyValidation,
 } from './models/validation.model';
 
 /**
@@ -22,7 +22,7 @@ import {
 export class Schema<Model> {
 	declare private readonly $schema: true;
 
-	#handler: ValidationHandler;
+	readonly #handler: ValidationHandler;
 
 	constructor(validator: ValidationHandler) {
 		Object.defineProperty(this, PROPERTY_SCHEMA, {
@@ -37,80 +37,80 @@ export class Schema<Model> {
 	/**
 	 * Parse a value according to the schema
 	 *
-	 * Returns a deeply cloned version of the value or throws an error for the first property that fails validation
+	 * Returns value _(deeply cloned, by default)_ or throws an error for the first property that fails validation
 	 * @param value Value to parse
 	 * @param options Validation options
-	 * @returns Deeply cloned version of the value if it matches the schema, otherwise throws an error
+	 * @returns Value, if it matches the schema, otherwise throws an error
 	 */
 	get(value: unknown, options: GetOptions<'throw'>): Model;
 
 	/**
 	 * Parse a value according to the schema
 	 *
-	 * Returns a deeply cloned version of the value or throws an error for the first property that fails validation
+	 * Returns value _(deeply cloned, by default)_ or throws an error for the first property that fails validation
 	 * @param value Value to parse
 	 * @param errors Reporting type
-	 * @returns Deeply cloned version of the value if it matches the schema, otherwise throws an error
+	 * @returns Value, if it matches the schema, otherwise throws an error
 	 */
 	get(value: unknown, errors: 'throw'): Model;
 
 	/**
 	 * Parse a value according to the schema
 	 *
-	 * Returns a result of a deeply cloned version of the value or all validation information for validation failures from the same depth in the value
+	 * Returns value _(deeply cloned, by default)_ or all validation information for validation failures from the same depth in the value
 	 * @param value Value to parse
 	 * @param options Validation options
-	 * @returns Result holding deeply cloned value or all validation information
+	 * @returns Result holding value or all validation information
 	 */
-	get(value: unknown, options: GetOptions<'all'>): Result<Model, ValidationInformation[]>;
+	get(value: unknown, options: GetOptions<'all'>): Result<Model, PropertyValidation[]>;
 
 	/**
 	 * Parse a value according to the schema
 	 *
-	 * Returns a result of a deeply cloned version of the value or all validation information for validation failures from the same depth in the value
+	 * Returns value _(deeply cloned, by default)_ or all validation information for validation failures from the same depth in the value
 	 * @param value Value to parse
 	 * @param errors Reporting type
-	 * @returns Result holding deeply cloned value or all validation information
+	 * @returns Result holding value or all validation information
 	 */
-	get(value: unknown, errors: 'all'): Result<Model, ValidationInformation[]>;
+	get(value: unknown, errors: 'all'): Result<Model, PropertyValidation[]>;
 
 	/**
 	 * Parse a value according to the schema
 	 *
-	 * Returns a deeply cloned version of the value or all validation information for the first failing property
+	 * Returns value _(deeply cloned, by default)_ or all validation information for the first failing property
 	 * @param value Value to parse
 	 * @param options Validation options
-	 * @returns Result holding deeply cloned value or all validation information
+	 * @returns Result holding value or all validation information
 	 */
-	get(value: unknown, options: GetOptions<'first'>): Result<Model, ValidationInformation>;
+	get(value: unknown, options: GetOptions<'first'>): Result<Model, PropertyValidation>;
 
 	/**
 	 * Parse a value according to the schema
 	 *
-	 * Returns a deeply cloned version of the value or all validation information for the first failing property
+	 * Returns value _(deeply cloned, by default)_ or all validation information for the first failing property
 	 * @param value Value to parse
 	 * @param errors Reporting type
-	 * @returns Result holding deeply cloned value or all validation information
+	 * @returns Result holding value or all validation information
 	 */
-	get(value: unknown, errors: 'first'): Result<Model, ValidationInformation>;
+	get(value: unknown, errors: 'first'): Result<Model, PropertyValidation>;
 
 	/**
 	 * Parse a value according to the schema
 	 *
-	 * Returns a deeply cloned version of the value or `undefined` if the value does not match the schema
+	 * Returns value _(deeply cloned, by default)_ or `undefined` if the value does not match the schema
 	 * @param value Value to parse
 	 * @param options Validation options
-	 * @returns Deeply cloned value, or `undefined` if it's invalid
+	 * @returns Value, or `undefined` if it's invalid
 	 */
 	get(value: unknown, options: Partial<GetOptions<'none'>>): Model | undefined;
 
 	/**
 	 * Parse a value according to the schema
 	 *
-	 * Returns a deeply cloned version of the value or `undefined` if the value does not match the schema
+	 * Returns value _(deeply cloned, by default)_ or `undefined` if the value does not match the schema
 	 * @param value Value to parse
 	 * @param strict Validate if unknown keys are present in the object? _(defaults to `false`)_
-	 * @returns Deeply cloned value, or `undefined` if it's invalid
+	 * @returns Value, or `undefined` if it's invalid
 	 */
 	get(value: unknown, strict?: true): Model | undefined;
 
@@ -146,7 +146,7 @@ export class Schema<Model> {
 	 * @param options Validation options
 	 * @returns Result holding `true` or all validation information
 	 */
-	is(value: unknown, options: IsOptions<'all'>): Result<true, ValidationInformation[]>;
+	is(value: unknown, options: IsOptions<'all'>): Result<true, PropertyValidation[]>;
 
 	/**
 	 * Does the value match the schema?
@@ -156,7 +156,7 @@ export class Schema<Model> {
 	 * @param errors Reporting type
 	 * @returns Result holding `true` or all validation information
 	 */
-	is(value: unknown, errors: 'all'): Result<true, ValidationInformation[]>;
+	is(value: unknown, errors: 'all'): Result<true, PropertyValidation[]>;
 
 	/**
 	 * Does the value match the schema?
@@ -164,9 +164,9 @@ export class Schema<Model> {
 	 * Will validate that the value matches the schema and return a result of `true` or all validation information for the first failing property
 	 * @param value Value to validate
 	 * @param options Validation options
-	 * @returns `true` if the value matches the schema, otherwise `false`
+	 * @returns Result holding `true` or all validation information
 	 */
-	is(value: unknown, options: IsOptions<'first'>): Result<true, ValidationInformation>;
+	is(value: unknown, options: IsOptions<'first'>): Result<true, PropertyValidation>;
 
 	/**
 	 * Does the value match the schema?
@@ -174,14 +174,14 @@ export class Schema<Model> {
 	 * Will validate that the value matches the schema and return a result of `true` or all validation information for the first failing property
 	 * @param value Value to validate
 	 * @param errors Reporting type
-	 * @returns `true` if the value matches the schema, otherwise `false`
+	 * @returns Result holding `true` or all validation information
 	 */
-	is(value: unknown, errors: 'first'): Result<true, ValidationInformation>;
+	is(value: unknown, errors: 'first'): Result<true, PropertyValidation>;
 
 	/**
 	 * Does the value match the schema?
 	 *
-	 * Will validate that the value matches the schema and return `true` or `false`, without any validation information for validation failures
+	 * Will validate that the value matches the schema and return `true` if it's valid, or `false` if not
 	 * @param value Value to validate
 	 * @param options Validation options
 	 * @returns `true` if the value matches the schema, otherwise `false`
@@ -191,7 +191,7 @@ export class Schema<Model> {
 	/**
 	 * Does the value match the schema?
 	 *
-	 * Will validate that the value matches the schema and return `true` or `false`, without any validation information for validation failures
+	 * Will validate that the value matches the schema and return `true` if it's valid, or `false` if not
 	 * @param value Value to validate
 	 * @param strict Validate if unknown keys are present in the object? _(defaults to `false`)_
 	 * @returns `true` if the value matches the schema, otherwise `false`
@@ -223,14 +223,14 @@ export function schema<Model extends PlainObject>(schema: TypedSchematic<Model>)
 
 export function schema<Model extends Schematic>(schema: Model): Schema<Model> {
 	if (isSchema(schema)) {
-		return schema;
+		return schema as Schema<Model>;
 	}
 
 	if (!isPlainObject(schema)) {
 		throw new SchematicError(SCHEMATIC_MESSAGE_SCHEMA_INVALID_TYPE);
 	}
 
-	return new Schema<Model>(getObjectValidator(schema));
+	return new Schema<Model>(getObjectHandler(schema));
 }
 
 export const schemaHandlers = new WeakMap<Schema<unknown>, ValidationHandler>();

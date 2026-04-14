@@ -63,11 +63,11 @@ export type TypedPropertyRequired<Value> = {
 export type TypedSchematic<Model extends PlainObject> = Simplify<
 	{
 		[Key in RequiredKeys<Model>]: Model[Key] extends PlainObject
-			? Schema<Model[Key]>
+			? Schema<Model[Key]> | TypedSchematic<Model[Key]>
 			: ToSchemaType<Model[Key]> | TypedPropertyRequired<Model[Key]>;
 	} & {
 		[Key in OptionalKeys<Model>]: Exclude<Model[Key], undefined> extends PlainObject
-			? Schema<Exclude<Model[Key], undefined>>
-			: TypedPropertyOptional<Model[Key]>;
+			? TypedPropertyOptional<Model[Key]>
+			: never;
 	}
 >;

@@ -1,6 +1,6 @@
 {
 	"name": "@oscarpalmer/jhunal",
-	"version": "0.26.0",
+	"version": "0.27.0",
 	"description": "Flies free beneath the glistening moons…",
 	"keywords": [
 		"schema",
@@ -41,7 +41,7 @@
 		"@oscarpalmer/atoms": "^0.170"
 	},
 	"devDependencies": {
-		"@types/node": "^25.5",
+		"@types/node": "^25.6",
 		"@vitest/coverage-istanbul": "^4.1",
 		"jsdom": "^29.0",
 		"tsdown": "^0.21",

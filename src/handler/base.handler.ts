@@ -1,19 +1,19 @@
-import type {ValidationInformation, ValidationHandler} from '../models/validation.model';
+import type {ValidationHandler, PropertyValidation} from '../models/validation.model';
 
-export function getBaseHandler(validators: ValidationHandler[]): ValidationHandler {
-	const {length} = validators;
+export function getBaseHandler(handlers: ValidationHandler[]): ValidationHandler {
+	const {length} = handlers;
 
 	return (input, parameters, get) => {
-		const allInformation: ValidationInformation[] = [];
+		const allInformation: PropertyValidation[] = [];
 
 		for (let index = 0; index < length; index += 1) {
 			const previousInformation = parameters.information;
 
-			const nextInformation: ValidationInformation[] = [];
+			const nextInformation: PropertyValidation[] = [];
 
 			parameters.information = nextInformation;
 
-			const result = validators[index](input, parameters, get);
+			const result = handlers[index](input, parameters, get);
 
 			parameters.information = previousInformation;
 

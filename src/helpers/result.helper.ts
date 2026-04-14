@@ -15,11 +15,9 @@ export function getResult(handler: ValidationHandler, value: unknown, options?: 
 			: ok(parameters.clone ? parameters.output : value);
 	}
 
-	if (parameters.reporting.none) {
-		return;
+	if (!parameters.reporting.none) {
+		return error(parameters.reporting.all ? result : result[0]);
 	}
-
-	return error(parameters.reporting.all ? result : result[0]);
 }
 
 export function isResult(handler: ValidationHandler, value: unknown, options?: unknown): unknown {
@@ -31,9 +29,5 @@ export function isResult(handler: ValidationHandler, value: unknown, options?: u
 		return parameters.reporting.none || parameters.reporting.throw ? result : ok(result);
 	}
 
-	if (parameters.reporting.none) {
-		return false;
-	}
-
-	return error(parameters.reporting.all ? result : result[0]);
+	return parameters.reporting.none ? false : error(parameters.reporting.all ? result : result[0]);
 }

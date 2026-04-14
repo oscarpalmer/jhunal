@@ -7,7 +7,7 @@ import type {ExtractValueTypes, ValueType, Values} from './misc.model';
  * A generic schematic allowing nested schematics, {@link SchematicEntry} values, or arrays of {@link SchematicEntry} as values
  */
 export type PlainSchematic = {
-	[key: string]: SchematicEntry | SchematicEntry[] | undefined;
+	[key: string]: SchematicEntry | SchematicEntry[];
 } & {
 	$default?: never;
 	$required?: never;

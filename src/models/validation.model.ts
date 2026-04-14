@@ -1,7 +1,8 @@
 import type {GenericCallback, PlainObject} from '@oscarpalmer/atoms/models';
 import {join} from '@oscarpalmer/atoms/string';
-import {NAME_ERROR_SCHEMATIC, NAME_ERROR_VALIDATION} from '../constants';
+import {NAME_ERROR_SCHEMATIC, NAME_ERROR_VALIDATION, NAME_ERROR_VALIDATOR} from '../constants';
 import type {Schema} from '../schema';
+import type {Validator} from '../validator';
 import type {ValueType} from './misc.model';
 
 // #region Reporting
@@ -14,11 +15,11 @@ export type ReportingInformation = Record<ReportingType, boolean> & {
  * Controls how validation failures are reported
  *
  * - `'none'`, returns a boolean _(default)_
- * - `'first'`, returns the first failure as a `Result`
+ * - `'first'` or `'result'`, returns the first failure as a `Result`
  * - `'all'`, returns all failures as a `Result` _(from same level)_
  * - `'throw'`, throws a {@link ValidationError} on failure
  */
-export type ReportingType = 'all' | 'first' | 'none' | 'throw';
+export type ReportingType = 'all' | 'first' | 'none' | 'result' | 'throw';
 
 // #endregion
 
@@ -39,7 +40,7 @@ export class SchematicError extends Error {
  * Thrown in `'throw'` mode when one or more properties fail validation; `information` holds all failures
  */
 export class ValidationError extends Error {
-	constructor(readonly information: ValidationInformation[]) {
+	constructor(readonly information: PropertyValidation[]) {
 		super(
 			join(
 				information.map(item => item.message),
@@ -51,30 +52,55 @@ export class ValidationError extends Error {
 	}
 }
 
+/**
+ * Thrown when a validator definition is invalid
+ */
+export class ValidatorError extends Error {
+	constructor(message: string) {
+		super(message);
+
+		this.name = NAME_ERROR_VALIDATOR;
+	}
+}
+
 // #endregion
 
 // #region Results
 
 /**
- * Describes a single validation failure
+ * Describes a single property validation failure
  */
-export type ValidationInformation = {
-	/** The key path of the property that failed */
-	key?: ValidationInformationKey;
-	/** Human-readable description of the failure */
+export type PropertyValidation = {
+	/**
+	 * The key path of the property that failed
+	 */
+	key?: PropertyValidationKey;
+	/**
+	 * Human-readable description of the failure
+	 */
 	message: string;
-	/** The validator function that failed, if the failure was from a `$validators` entry */
+	/**
+	 * The validator function that failed, if the failure was from a `$validators` entry
+	 */
 	validator?: GenericCallback;
-	/** The value that was provided */
+	/**
+	 * The value that was provided
+	 */
 	value: unknown;
 };
 
 /**
- *
+ * The full and short key paths of a property; `full` is the complete path from the root, while `short` is the path from the current schema
  */
-export type ValidationInformationKey = {
+export type PropertyValidationKey = {
 	full: string;
 	short: string;
+};
+
+export type ValueValidation = {
+	message: string;
+	validator?: GenericCallback;
+	value: unknown;
 };
 
 // #endregion
@@ -112,16 +138,16 @@ export type IsOptions<Errors extends ReportingType> = BaseOptions<Errors>;
 // #region Type validation
 
 /**
- * Object property validation handlers
+ * Object property validators
  */
-export type TypedHandlers = {
+export type Validators = {
 	[Key in ValueType]?: Array<(value: unknown) => boolean>;
 };
 
 /**
- * Base type validation handlers
+ * Base type validators
  */
-export type TypeHandlers = Record<ValueType, (value: unknown) => boolean>;
+export type TypeValidators = Record<ValueType, (value: unknown) => boolean>;
 
 // #endregion
 
@@ -131,28 +157,34 @@ export type ValidationHandler = (
 	input: unknown,
 	parameters: ValidationHandlerParameters,
 	get: boolean,
-) => true | ValidationInformation[];
+) => true | PropertyValidation[];
 
 export type ValidationHandlerDefaults = {
 	value: unknown;
 };
 
 export type ValidationHandlerItem = {
-	defaults: ValidationHandlerDefaults | undefined;
-	key: ValidationInformationKey;
+	defaults?: ValidationHandlerDefaults;
+	handler: ValidationHandler;
+	key: PropertyValidationKey;
 	required: boolean;
 	types: ValidationHandlerType[];
-	validator: ValidationHandler;
 };
 
 export type ValidationHandlerParameters = {
 	clone: boolean;
-	information?: ValidationInformation[];
+	information?: PropertyValidation[];
+	key?: string;
 	output: PlainObject;
 	reporting: ReportingInformation;
 	strict: boolean;
 };
 
-export type ValidationHandlerType = Function | PlainObject | Schema<unknown> | ValueType;
+export type ValidationHandlerType =
+	| Function
+	| PlainObject
+	| Schema<unknown>
+	| Validator<unknown>
+	| ValueType;
 
 // #endregion

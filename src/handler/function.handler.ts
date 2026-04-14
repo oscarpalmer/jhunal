@@ -3,7 +3,7 @@ import {instanceOf} from '../helpers/misc.helper';
 import type {ValidationHandler} from '../models/validation.model';
 
 export function getFunctionHandler(fn: Function): ValidationHandler {
-	const validator = isConstructor(fn) ? instanceOf(fn) : fn;
+	const handler = isConstructor(fn) ? instanceOf(fn) : fn;
 
-	return input => (validator(input) ? true : []);
+	return input => (handler(input) ? true : []);
 }
