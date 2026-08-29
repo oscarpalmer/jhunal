@@ -1,7 +1,9 @@
 import type {PlainObject} from '@oscarpalmer/atoms/models';
-import type {Schema} from '../schema';
+import type {Schema} from '../models/schema.model';
 import type {DeduplicateTuple, UnionToTuple, UnwrapSingle, Values} from './misc.model';
 import type {TypedSchematic} from './schematic.typed.model';
+
+// #region Types
 
 /**
  * Maps each element of a tuple through {@link ToValueType}
@@ -79,3 +81,5 @@ export type ToValueType<Value> =
 					: (value: unknown) => value is Value
 				: Match
 			: never;
+
+// #endregion

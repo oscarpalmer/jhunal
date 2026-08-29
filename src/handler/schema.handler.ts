@@ -1,6 +1,9 @@
 import {isPlainObject} from '@oscarpalmer/atoms/is';
+import type {Schema} from '../models/schema.model';
 import type {ValidationHandler} from '../models/validation.model';
-import {Schema, schemaHandlers} from '../schema';
+import {schemaHandlers} from '../schema';
+
+// #region Functions
 
 export function getSchemaHandler(schematic: Schema<unknown>): ValidationHandler {
 	const handler = schemaHandlers.get(schematic)!;
@@ -23,3 +26,5 @@ export function getSchemaHandler(schematic: Schema<unknown>): ValidationHandler 
 		return result;
 	};
 }
+
+// #endregion

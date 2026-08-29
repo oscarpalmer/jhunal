@@ -1,62 +1,12 @@
 import type {Constructor} from '@oscarpalmer/atoms/models';
-import type {Result} from '@oscarpalmer/atoms/result/models';
 import {PROPERTY_VALIDATOR} from './constants';
 import {getValidatorHandler} from './handler/validator.handler';
+import {isValidator} from './helpers/misc.helper';
 import {isResult} from './helpers/result.helper';
 import type {InferValidatorValue} from './models/infer.model';
 import type {Values, ValueType} from './models/misc.model';
-import type {
-	ValidationHandler,
-	ValidationHandlerType,
-	Validators,
-	ValueValidation,
-} from './models/validation.model';
-
-export class Validator<Value> {
-	declare private readonly $validator: true;
-
-	readonly #handler: ValidationHandler;
-
-	constructor(handler: ValidationHandler, types: ValidationHandlerType[]) {
-		Object.defineProperty(this, PROPERTY_VALIDATOR, {
-			value: true,
-		});
-
-		this.#handler = handler;
-
-		validatorHandlers.set(this, handler);
-		validatorTypes.set(this, types);
-	}
-
-	/**
-	 * Is the value valid?
-	 *
-	 * Will assert that the value is valid and throws an error if it does not
-	 * @param value Value to validate
-	 * @returns `true` if the value is valid, otherwise throws an error
-	 */
-	is(value: unknown, reporting: 'throw'): asserts value is Value;
-
-	/**
-	 * Is the value valid?
-	 *
-	 * Will validate that the value is valid and return a result of `true` or validation information for the first validation failure
-	 * @param value Value to validate
-	 * @return Result holding `true` or validation information
-	 */
-	is(value: unknown, reporting: 'result'): Result<Value, ValueValidation>;
-
-	/**
-	 * Is the value valid?
-	 * @param value Value to validate
-	 * @returns `true` if the value is valid, otherwise `false`
-	 */
-	is(value: unknown, reporting?: 'none'): value is Value;
-
-	is(value: unknown, options?: unknown): unknown {
-		return isResult(this.#handler, value, options);
-	}
-}
+import type {ValidationHandler, ValidationHandlerType, Validators} from './models/validation.model';
+import type {Validator} from './models/validator.model';
 
 /**
  * Create a validator for value types
@@ -121,15 +71,27 @@ export function validator<Types extends ValueType[]>(
  */
 export function validator<Item>(type: 'array'): Validator<Item[]>;
 
-export function validator(value: unknown, validators?: unknown): Validator<unknown> {
-	if (value instanceof Validator) {
-		return value;
+export function validator(input: unknown, validators?: unknown): unknown {
+	if (isValidator(input)) {
+		return input;
 	}
 
-	const {handler, types} = getValidatorHandler(value, validators);
+	const [handler, types] = getValidatorHandler(input, validators);
 
-	return new Validator(handler, types);
+	const instance = {
+		is: (value: unknown, options?: unknown): unknown => isResult(handler, value, options),
+	};
+
+	Object.defineProperty(instance, PROPERTY_VALIDATOR, {
+		value: true,
+	});
+
+	validatorHandlers.set(instance as Validator<unknown>, handler);
+	validatorTypes.set(instance as Validator<unknown>, types);
+
+	return Object.freeze(instance);
 }
 
 export const validatorHandlers = new WeakMap<Validator<unknown>, ValidationHandler>();
+
 export const validatorTypes = new WeakMap<Validator<unknown>, ValidationHandlerType[]>();

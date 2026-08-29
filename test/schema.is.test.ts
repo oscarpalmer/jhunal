@@ -1,7 +1,7 @@
 import {Err, Ok} from '@oscarpalmer/atoms/result/models';
 import {expect, test} from 'vitest';
-import {ValidationInformation} from '../src/models/validation.model';
 import {schema} from '../src';
+import {PropertyValidation} from '../src/models/validation.model';
 import {
 	basic,
 	complex,
@@ -27,7 +27,7 @@ test('is basic: all', () => {
 	const invalidCases = basic.cases.filter(item => !item.ok && item.errors != null);
 
 	for (let index = 0; index < invalidCases.length; index += 1) {
-		const result = instance.is(invalidCases[index].input, 'all') as Err<ValidationInformation[]>;
+		const result = instance.is(invalidCases[index].input, 'all') as Err<PropertyValidation[]>;
 
 		expect(result.ok).toBe(false);
 		expect(result.error.map(info => info.message)).toEqual(invalidCases[index].errors);
@@ -42,7 +42,7 @@ test('is basic: all', () => {
 test('is basic: all, nested', () => {
 	const instance = schema(basic.nested.schema as never);
 
-	const result = instance.is(basic.nested.all.input, 'all') as Err<ValidationInformation[]>;
+	const result = instance.is(basic.nested.all.input, 'all') as Err<PropertyValidation[]>;
 
 	expect(result.ok).toBe(false);
 	expect(result.error.map(info => info.message)).toEqual(basic.nested.all.errors);
@@ -54,7 +54,7 @@ test('is basic: first', () => {
 	const invalidCases = basic.cases.filter(item => !item.ok && item.error != null);
 
 	for (let index = 0; index < invalidCases.length; index += 1) {
-		const result = instance.is(invalidCases[index].input, 'first') as Err<ValidationInformation>;
+		const result = instance.is(invalidCases[index].input, 'first') as Err<PropertyValidation>;
 
 		expect(result.ok).toBe(false);
 		expect(result.error.message).toBe(invalidCases[index].error);
@@ -69,7 +69,7 @@ test('is basic: first', () => {
 test('is basic: first, nested', () => {
 	const instance = schema(basic.nested.schema as never);
 
-	const result = instance.is(basic.nested.first.input, 'first') as Err<ValidationInformation>;
+	const result = instance.is(basic.nested.first.input, 'first') as Err<PropertyValidation>;
 
 	expect(result.ok).toBe(false);
 	expect(result.error.message).toBe(basic.nested.first.error);
@@ -138,7 +138,7 @@ test('is schematics', () => {
 
 	expect(all.ok).toBe(schematics.cases.all.ok);
 
-	const errors = (all as Err<ValidationInformation[]>).error;
+	const errors = (all as Err<PropertyValidation[]>).error;
 
 	expect(errors).toHaveLength(1);
 	expect(errors[0].message).toBe(schematics.cases.all.error);
@@ -147,7 +147,7 @@ test('is schematics', () => {
 
 	expect(first.ok).toBe(schematics.cases.first.ok);
 
-	const error = (first as Err<ValidationInformation>).error;
+	const error = (first as Err<PropertyValidation>).error;
 
 	expect(error.message).toBe(schematics.cases.first.error);
 	expect(schematics.instance.is(schematics.cases.none.input)).toBe(schematics.cases.none.result);
@@ -163,7 +163,7 @@ test('is strictness', () => {
 
 	expect(basic.ok).toBe(strictness.cases.basic.ok);
 
-	const basicError = (basic as Err<ValidationInformation>).error;
+	const basicError = (basic as Err<PropertyValidation>).error;
 
 	expect(basicError.message).toBe(strictness.cases.basic.error);
 
@@ -174,7 +174,7 @@ test('is strictness', () => {
 
 	expect(nested.ok).toBe(strictness.cases.nested.ok);
 
-	const nestedError = (nested as Err<ValidationInformation>).error;
+	const nestedError = (nested as Err<PropertyValidation>).error;
 
 	expect(nestedError.message).toBe(strictness.cases.nested.error);
 

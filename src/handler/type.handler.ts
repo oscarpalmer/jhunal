@@ -25,6 +25,8 @@ import {
 	ValidatorError,
 } from '../models/validation.model';
 
+// #region Functions
+
 export function getTypeHandler(
 	type: ValueType,
 	validators: Validators,
@@ -145,6 +147,10 @@ export function getValidators(original: unknown, allowed: boolean, prefix?: stri
 	return validators;
 }
 
+// #endregion
+
+// #region Variables
+
 const typeValidators: TypeValidators = {
 	array: Array.isArray,
 	bigint: value => typeof value === 'bigint',
@@ -158,3 +164,5 @@ const typeValidators: TypeValidators = {
 	symbol: value => typeof value === 'symbol',
 	undefined: value => value === undefined,
 };
+
+// #endregion

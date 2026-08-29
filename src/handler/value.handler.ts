@@ -38,6 +38,8 @@ import {getSchemaHandler} from './schema.handler';
 import {getTypeHandler, getTypeValidators, getValidators} from './type.handler';
 import {validatorHandlers} from '../validator';
 
+// #region Types
+
 type Input = {
 	validators?: unknown;
 	value: unknown;
@@ -47,6 +49,10 @@ type PropertyInformation = {
 	key: string;
 	origin?: PropertyValidationKey;
 };
+
+// #endregion
+
+// #region Functions
 
 function getDefaults(
 	obj: PlainObject,
@@ -151,16 +157,16 @@ export function getValueHandler(
 				handler = getFunctionHandler(type);
 				break;
 
-			case isProperty && isPlainObject(type):
-				handler = getObjectHandler(type, fullKey, typed);
-				break;
-
 			case isProperty && isSchema(type):
 				handler = getSchemaHandler(type);
 				break;
 
 			case isProperty && isValidator(type):
 				handler = validatorHandlers.get(type)!;
+				break;
+
+			case isProperty && isPlainObject(type):
+				handler = getObjectHandler(type, fullKey, typed);
 				break;
 
 			case TYPES_ALL.has(type as ValueType):
@@ -200,3 +206,5 @@ export function getValueHandler(
 
 	return {defaults, handler, required, types, key: fullKey};
 }
+
+// #endregion

@@ -1,9 +1,11 @@
 import {
 	ValidationError,
-	type ValidationHandlerParameters,
 	type PropertyValidation,
 	type PropertyValidationKey,
+	type ValidationHandlerParameters,
 } from '../models/validation.model';
+
+// #region Types
 
 type ReportParameters<Callback extends (...args: any[]) => string> = {
 	extract?: boolean;
@@ -23,6 +25,10 @@ type ReportParametersInformation = {
 	all: PropertyValidation[];
 	existing?: PropertyValidation[];
 };
+
+// #endregion
+
+// #region Functions
 
 export function report<Callback extends (...args: any[]) => string>(
 	parameters: ReportParameters<Callback>,
@@ -70,3 +76,5 @@ export function report<Callback extends (...args: any[]) => string>(
 		return reported;
 	}
 }
+
+// #endregion

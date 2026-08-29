@@ -1,6 +1,8 @@
 import type {ValueType} from './models/misc.model';
 import type {ReportingType} from './models/validation.model';
 
+// #region Variables
+
 // #region Grammar
 
 export const COMMA = ', ';
@@ -187,3 +189,5 @@ export const VALIDATOR_MESSAGE_INVALID_PROPERTY_TYPE = 'Validator must be of a v
 
 export const VALIDATOR_MESSAGE_INVALID_VALIDATOR =
 	'Validator must be a function or an array of functions';
+
+// #endregion

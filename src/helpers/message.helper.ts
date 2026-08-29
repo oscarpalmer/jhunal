@@ -29,8 +29,10 @@ import {
 } from '../constants';
 import type {ValueType} from '../models/misc.model';
 import type {ValidationHandlerType} from '../models/validation.model';
-import {isValidator} from './misc.helper';
 import {validatorTypes} from '../validator';
+import {isValidator} from './misc.helper';
+
+// #region Functions
 
 // #region Defaults
 
@@ -255,5 +257,7 @@ export function getRequiredMessage(key: string): string {
 export function getUnknownKeysMessage(keys: string[]): string {
 	return VALIDATION_MESSAGE_UNKNOWN_KEYS.replace(TEMPLATE_PATTERN, renderKeys(keys));
 }
+
+// #endregion
 
 // #endregion

@@ -1,9 +1,11 @@
 import type {GenericCallback, PlainObject} from '@oscarpalmer/atoms/models';
 import {join} from '@oscarpalmer/atoms/string';
 import {NAME_ERROR_SCHEMATIC, NAME_ERROR_VALIDATION, NAME_ERROR_VALIDATOR} from '../constants';
-import type {Schema} from '../schema';
-import type {Validator} from '../validator';
 import type {ValueType} from './misc.model';
+import type {Schema} from './schema.model';
+import type {Validator} from './validator.model';
+
+// #region Types
 
 // #region Reporting
 
@@ -186,5 +188,7 @@ export type ValidationHandlerType =
 	| Schema<unknown>
 	| Validator<unknown>
 	| ValueType;
+
+// #endregion
 
 // #endregion

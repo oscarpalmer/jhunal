@@ -3,12 +3,12 @@ import {report} from '../helpers/report.helper';
 import type {ValidationHandler, ValidationHandlerType} from '../models/validation.model';
 import {getValueHandler} from './value.handler';
 
-type ValidatorHandler = {
-	handler: ValidationHandler;
-	types: ValidationHandlerType[];
-};
+// #region Functions
 
-export function getValidatorHandler(value: unknown, validators?: unknown): ValidatorHandler {
+export function getValidatorHandler(
+	value: unknown,
+	validators?: unknown,
+): [ValidationHandler, ValidationHandlerType[]] {
 	const {handler, types} = getValueHandler({
 		validators,
 		value,
@@ -42,8 +42,7 @@ export function getValidatorHandler(value: unknown, validators?: unknown): Valid
 		return reported;
 	};
 
-	return {
-		types,
-		handler: validator,
-	};
+	return [validator, types];
 }
+
+// #endregion

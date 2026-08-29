@@ -11,13 +11,15 @@ import {
 	REPORTING_THROW,
 	REPORTING_TYPES,
 } from '../constants';
+import type {Schema} from '../models/schema.model';
 import type {
 	ReportingInformation,
 	ReportingType,
 	ValidationHandlerParameters,
 } from '../models/validation.model';
-import type {Schema} from '../schema';
-import type {Validator} from '../validator';
+import type {Validator} from '../models/validator.model';
+
+// #region Functions
 
 export function getParameters(input?: unknown): ValidationHandlerParameters {
 	if (typeof input === 'boolean') {
@@ -86,12 +88,7 @@ export function instanceOf<Instance>(
  * @returns `true` if the value is a schema, `false` otherwise
  */
 export function isSchema(value: unknown): value is Schema<unknown> {
-	return (
-		typeof value === 'object' &&
-		value !== null &&
-		PROPERTY_SCHEMA in value &&
-		value[PROPERTY_SCHEMA] === true
-	);
+	return isPlainObject(value) && value[PROPERTY_SCHEMA] === true;
 }
 
 /**
@@ -100,10 +97,7 @@ export function isSchema(value: unknown): value is Schema<unknown> {
  * @returns `true` if the value is a validator, `false` otherwise
  */
 export function isValidator(value: unknown): value is Validator<unknown> {
-	return (
-		typeof value === 'object' &&
-		value !== null &&
-		PROPERTY_VALIDATOR in value &&
-		value[PROPERTY_VALIDATOR] === true
-	);
+	return isPlainObject(value) && value[PROPERTY_VALIDATOR] === true;
 }
+
+// #endregion

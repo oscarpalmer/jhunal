@@ -2,6 +2,8 @@ import {error, ok} from '@oscarpalmer/atoms/result/misc';
 import type {ValidationHandler} from '../models/validation.model';
 import {getParameters} from './misc.helper';
 
+// #region Functions
+
 export function getResult(handler: ValidationHandler, value: unknown, options?: unknown): unknown {
 	const parameters = getParameters(options);
 
@@ -31,3 +33,5 @@ export function isResult(handler: ValidationHandler, value: unknown, options?: u
 
 	return parameters.reporting.none ? false : error(parameters.reporting.all ? result : result[0]);
 }
+
+// #endregion

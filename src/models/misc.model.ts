@@ -1,5 +1,7 @@
 import type {SchematicProperty} from './schematic.plain.model';
 
+// #region Types
+
 /**
  * Removes duplicate types from a tuple, preserving first occurrence order
  *
@@ -201,3 +203,5 @@ export type Values = {
 	symbol: symbol;
 	undefined: undefined;
 };
+
+// #endregion

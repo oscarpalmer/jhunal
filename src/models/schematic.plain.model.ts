@@ -1,7 +1,9 @@
 import type {Constructor} from '@oscarpalmer/atoms/models';
-import type {Schema} from '../schema';
-import type {Validator} from '../validator';
 import type {ExtractValueTypes, ValueType, Values} from './misc.model';
+import type {Schema} from './schema.model';
+import type {Validator} from './validator.model';
+
+// #region Types
 
 /**
  * A generic schematic allowing nested schematics, {@link SchematicEntry} values, or arrays of {@link SchematicEntry} as values
@@ -106,3 +108,5 @@ export type PropertyValidators<Value> = {
 		| ((value: Values[Key]) => boolean)
 		| Array<(value: Values[Key]) => boolean>;
 };
+
+// #endregion

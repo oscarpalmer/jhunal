@@ -1,4 +1,6 @@
-import type {ValidationHandler, PropertyValidation} from '../models/validation.model';
+import type {PropertyValidation, ValidationHandler} from '../models/validation.model';
+
+// #region Functions
 
 export function getBaseHandler(handlers: ValidationHandler[]): ValidationHandler {
 	const {length} = handlers;
@@ -29,3 +31,5 @@ export function getBaseHandler(handlers: ValidationHandler[]): ValidationHandler
 		return allInformation;
 	};
 }
+
+// #endregion

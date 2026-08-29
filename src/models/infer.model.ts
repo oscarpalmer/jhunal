@@ -1,8 +1,10 @@
 import type {Constructor, Simplify} from '@oscarpalmer/atoms/models';
-import type {Schema} from '../schema';
 import type {IsOptionalProperty, ValueType, Values} from './misc.model';
+import type {Schema} from './schema.model';
 import type {PlainSchematic, Schematic, SchematicProperty} from './schematic.plain.model';
-import type {Validator} from '../validator';
+import type {Validator} from './validator.model';
+
+// #region Types
 
 /**
  * Infers the TypeScript type from a {@link Schematic} definition
@@ -95,12 +97,12 @@ export type InferSchemaEntryValue<Value> =
 			? Model
 			: Value extends SchematicProperty
 				? InferPropertyType<Value['$type']>
-				: Value extends PlainSchematic
-					? Infer<Value & Schematic>
-					: Value extends Validator<infer Type>
-						? Type
-						: Value extends ValueType
-							? Values[Value & ValueType]
+				: Value extends Validator<infer Type>
+					? Type
+					: Value extends ValueType
+						? Values[Value & ValueType]
+						: Value extends PlainSchematic
+							? Infer<Value & Schematic>
 							: never;
 
 /**
@@ -119,3 +121,5 @@ export type InferValidatorValue<Value> = Value extends (infer Item)[]
 				: Value extends ValueType
 					? Values[Value & ValueType]
 					: never;
+
+// #endregion

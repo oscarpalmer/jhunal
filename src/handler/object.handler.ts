@@ -26,6 +26,8 @@ import {
 } from '../models/validation.model';
 import {getValueHandler} from './value.handler';
 
+// #region Functions
+
 function getDisallowedProperty(obj: PlainObject): string | undefined {
 	if (PROPERTY_DEFAULT in obj) {
 		return PROPERTY_DEFAULT;
@@ -243,3 +245,5 @@ export function getObjectHandler(
 		return allInformation.length === 0 ? true : allInformation;
 	};
 }
+
+// #endregion
