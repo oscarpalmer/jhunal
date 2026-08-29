@@ -16,8 +16,7 @@
 		"url": "git+https://github.com/oscarpalmer/jhunal.git"
 	},
 	"files": [
-		"dist",
-		"src"
+		"dist"
 	],
 	"type": "module",
 	"module": "./dist/index.mjs",
@@ -38,14 +37,14 @@
 		"watch": "npx vite build --watch"
 	},
 	"dependencies": {
-		"@oscarpalmer/atoms": "^0.170"
+		"@oscarpalmer/atoms": "^0.195"
 	},
 	"devDependencies": {
-		"@types/node": "^25.6",
+		"@types/node": "^26.4",
 		"@vitest/coverage-istanbul": "^4.1",
-		"jsdom": "^29.0",
-		"tsdown": "^0.21",
-		"typescript": "^5.9",
+		"jsdom": "^30",
+		"tsdown": "^0.22",
+		"typescript": "^6",
 		"vite": "npm:@voidzero-dev/vite-plus-core@latest",
 		"vite-plus": "latest",
 		"vitest": "npm:@voidzero-dev/vite-plus-test@latest"

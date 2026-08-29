@@ -1,6 +1,6 @@
 import {expect, test} from 'vitest';
 import {isSchema, schema} from '../src';
-import {basic, defaults} from './.fixture/schematic.fixture';
+import {basic, defaults} from './.fixture/schema.fixture';
 
 test('errors', () => {
 	for (let index = 0; index < basic.cases.length; index += 1) {
