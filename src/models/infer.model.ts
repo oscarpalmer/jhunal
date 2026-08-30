@@ -102,7 +102,7 @@ export type InferSchemaEntryValue<Value> =
 					: Value extends ValueType
 						? Values[Value & ValueType]
 						: Value extends PlainSchematic
-							? Infer<Value & Schematic>
+							? Infer<Value>
 							: never;
 
 /**

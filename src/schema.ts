@@ -13,20 +13,20 @@ import {SchematicError, type ValidationHandler} from './models/validation.model'
 /**
  * Create a schema from a schematic
  * @template Model Schema type
- * @param schema Schematic to create the schema from
+ * @param schematic Schematic to create the schema from
  * @throws Throws {@link SchematicError} if the schematic can not be converted into a schema
  * @returns A schema for the given schematic
  */
-export function schema<Model extends Schematic>(schema: Model): Schema<Infer<Model>>;
+export function schema<Model extends Schematic>(schematic: Model): Schema<Infer<Model>>;
 
 /**
  * Create a schema from a typed schematic
  * @template Model Existing type
- * @param schema Typed schematic to create the schema from
+ * @param schematic Typed schematic to create the schema from
  * @throws Throws {@link SchematicError} if the schematic can not be converted into a schema
  * @returns A schema for the given typed schematic
  */
-export function schema<Model extends PlainObject>(schema: TypedSchematic<Model>): Schema<Model>;
+export function schema<Model extends PlainObject>(schematic: TypedSchematic<Model>): Schema<Model>;
 
 export function schema(input: unknown): unknown {
 	if (isSchema(input)) {
