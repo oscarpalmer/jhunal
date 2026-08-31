@@ -21,7 +21,7 @@ export function getValidatorHandler(
 			return true;
 		}
 
-		if (parameters.key != null) {
+		if (parameters.key != null || parameters.reporting.none) {
 			return [];
 		}
 

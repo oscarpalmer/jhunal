@@ -10,6 +10,7 @@ import type {Validator} from './models/validator.model';
 
 /**
  * Create a validator for value types
+ *
  * @param types Types to validate against
  * @param validators Custom validators to use for validation
  * @returns Validator
@@ -20,6 +21,7 @@ export function validator<
 
 /**
  * Create a validator for a constructor
+ *
  * @param constructor Constructor to validate against
  * @returns Validator
  */
@@ -27,6 +29,7 @@ export function validator<Instance>(constructor: Constructor<Instance>): Validat
 
 /**
  * Create a validator for a callback
+ *
  * @param callback Callback for validation
  * @returns Validator
  */
@@ -34,6 +37,7 @@ export function validator<Value>(callback: (value: unknown) => value is Value): 
 
 /**
  * Create a validator for a callback
+ *
  * @param callback Callback for validation
  * @returns Validator
  */
@@ -41,6 +45,7 @@ export function validator<Value>(callback: (value: unknown) => boolean): Validat
 
 /**
  * Create a validator for a type
+ *
  * @param type Type to validate against
  * @param validators Custom validators to use for validation
  * @returns Validator
@@ -55,6 +60,7 @@ export function validator<Type extends ValueType>(
 
 /**
  * Create a validator for value types
+ *
  * @param types Types to validate against
  * @param validators Custom validators to use for validation
  * @returns Validator
@@ -66,6 +72,7 @@ export function validator<Types extends ValueType[]>(
 
 /**
  * Create a validator for an array of items
+ *
  * @param type Type of items in the array
  * @returns Validator
  */

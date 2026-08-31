@@ -49,6 +49,10 @@ export function getTypeHandler(
 				continue;
 			}
 
+			if (parameters.reporting.none) {
+				return [];
+			}
+
 			const information: PropertyValidation = {
 				validator,
 				message:
@@ -64,7 +68,7 @@ export function getTypeHandler(
 
 			parameters.information?.push(information);
 
-			return parameters.reporting.none ? [] : [information];
+			return [information];
 		}
 
 		return true;

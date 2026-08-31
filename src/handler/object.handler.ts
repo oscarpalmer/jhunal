@@ -104,26 +104,40 @@ export function getObjectHandler(
 
 	return (input, parameters, get) => {
 		if (!isPlainObject(input)) {
-			return origin == null
-				? report(
-						{
-							message: {
-								arguments: [input],
-								callback: getInputTypeMessage,
-							},
-							original: parameters,
-							value: input,
-						},
-						true,
-					)
-				: [];
+			if (parameters.reporting.none || origin != null) {
+				return [];
+			}
+
+			return report(
+				{
+					message: {
+						arguments: [input],
+						callback: getInputTypeMessage,
+					},
+					original: parameters,
+					value: input,
+				},
+				true,
+			);
 		}
 
 		if (parameters.strict) {
 			const inputKeys = Object.keys(input);
-			const unknownKeys = inputKeys.filter(key => !set.has(key));
+			const inputKeysLength = inputKeys.length;
 
-			if (unknownKeys.length > 0) {
+			let unknownKeys: string[] | undefined;
+
+			for (let inputKeyIndex = 0; inputKeyIndex < inputKeysLength; inputKeyIndex += 1) {
+				const inputKey = inputKeys[inputKeyIndex];
+
+				if (!set.has(inputKey)) {
+					unknownKeys ??= [];
+
+					unknownKeys.push(inputKey);
+				}
+			}
+
+			if (unknownKeys != null) {
 				const information: PropertyValidation = {
 					key: origin,
 					message: getUnknownKeysMessage(unknownKeys),

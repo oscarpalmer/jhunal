@@ -195,7 +195,7 @@ export function getValueHandler(
 		throw new SchematicError(getDefaultRequiredMessage(prefixedKey));
 	}
 
-	const handler = getBaseHandler(handlers);
+	const handler = handlers.length === 1 ? handlers[0] : getBaseHandler(handlers);
 
 	if (
 		defaults != null &&

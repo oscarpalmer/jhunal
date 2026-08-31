@@ -22,32 +22,33 @@ import type {Validator} from '../models/validator.model';
 // #region Functions
 
 export function getParameters(input?: unknown): ValidationHandlerParameters {
+	const parameters: ValidationHandlerParameters = {
+		clone: true,
+		output: {},
+		reporting: undefined as never,
+		strict: false,
+	};
+
 	if (typeof input === 'boolean') {
-		return {
-			clone: true,
-			output: {},
-			reporting: getReporting(),
-			strict: input,
-		};
+		parameters.reporting = getReporting();
+		parameters.strict = input;
+
+		return parameters;
 	}
 
 	if (REPORTING_TYPES.has(input as ReportingType)) {
-		return {
-			clone: true,
-			output: {},
-			reporting: getReporting(input as ReportingType),
-			strict: false,
-		};
+		parameters.reporting = getReporting(input as ReportingType);
+
+		return parameters;
 	}
 
 	const options = isPlainObject(input) ? input : {};
 
-	return {
-		clone: typeof options.clone === 'boolean' ? options.clone : true,
-		output: {},
-		reporting: getReporting(options.errors),
-		strict: typeof options.strict === 'boolean' ? options.strict : false,
-	};
+	parameters.clone = typeof options.clone === 'boolean' ? options.clone : true;
+	parameters.reporting = getReporting(options.errors);
+	parameters.strict = typeof options.strict === 'boolean' ? options.strict : false;
+
+	return parameters;
 }
 
 export function getReporting(value?: unknown): ReportingInformation {
@@ -66,6 +67,7 @@ export function getReporting(value?: unknown): ReportingInformation {
 
 /**
  * Creates a validator function for a given constructor
+ *
  * @param constructor - Constructor to check against
  * @throws Will throw a `TypeError` if the provided argument is not a valid constructor
  * @returns Validator function that checks if a value is an instance of the constructor
@@ -84,6 +86,7 @@ export function instanceOf<Instance>(
 
 /**
  * Is the value a schema?
+ *
  * @param value Value to check
  * @returns `true` if the value is a schema, `false` otherwise
  */
@@ -93,6 +96,7 @@ export function isSchema(value: unknown): value is Schema<unknown> {
 
 /**
  * Is the value a validator?
+ *
  * @param value Value to check
  * @returns `true` if the value is a validator, `false` otherwise
  */
