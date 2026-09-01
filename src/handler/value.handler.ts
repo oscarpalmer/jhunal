@@ -199,7 +199,7 @@ export function getValueHandler(
 
 	if (
 		defaults != null &&
-		Array.isArray(handler(defaults.value, getParameters(isProperty), false))
+		Array.isArray(handler(defaults.value, getParameters(isProperty)[0], false))
 	) {
 		throw new SchematicError(getDefaultTypeMessage(prefixedKey, types));
 	}

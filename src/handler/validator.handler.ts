@@ -25,7 +25,7 @@ export function getValidatorHandler(
 			return [];
 		}
 
-		const reported = report({
+		return report({
 			value: input,
 			extract: false,
 			information: {
@@ -38,8 +38,6 @@ export function getValidatorHandler(
 			},
 			original: parameters,
 		})!;
-
-		return reported;
 	};
 
 	return [validator, types];
