@@ -96,8 +96,6 @@ export const parameters = {
 		invalid: {
 			input: 'not a valid input',
 			result: {
-				clone: true,
-				output: {},
 				reporting: {...defaultReporting},
 				strict: false,
 			},
@@ -105,8 +103,6 @@ export const parameters = {
 		valid: {
 			input: 'all',
 			result: {
-				clone: true,
-				output: {},
 				reporting: {
 					all: true,
 					first: false,
@@ -122,8 +118,6 @@ export const parameters = {
 		invalid: {
 			input: 'not a valid object',
 			result: {
-				clone: true,
-				output: {},
 				reporting: {...defaultReporting},
 				strict: false,
 			},
@@ -134,8 +128,6 @@ export const parameters = {
 				strict: true,
 			},
 			result: {
-				clone: true,
-				output: {},
 				reporting: {
 					all: false,
 					first: true,
@@ -151,8 +143,6 @@ export const parameters = {
 		invalid: {
 			input: 'not a valid input',
 			result: {
-				clone: true,
-				output: {},
 				reporting: {...defaultReporting},
 				strict: false,
 			},
@@ -160,8 +150,6 @@ export const parameters = {
 		valid: {
 			input: true,
 			result: {
-				clone: true,
-				output: {},
 				reporting: {...defaultReporting},
 				strict: true,
 			},

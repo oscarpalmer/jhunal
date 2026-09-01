@@ -21,7 +21,9 @@ export function getSchemaHandler(schematic: Schema<unknown>): ValidationHandler 
 			return result;
 		}
 
-		parameters.information?.push(...result);
+		if (!parameters.reporting.none) {
+			parameters.information?.push(...result);
+		}
 
 		return result;
 	};

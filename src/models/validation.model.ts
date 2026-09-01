@@ -125,7 +125,7 @@ type BaseOptions<Errors extends ReportingType> = {
  */
 export type GetOptions<Errors extends ReportingType> = BaseOptions<Errors> & {
 	/**
-	 * Get a deeply cloned version of the input? _(defaults to `true`)_
+	 * Get a deeply cloned version of the input? _(defaults to `false`)_
 	 */
 	clone?: boolean;
 };
@@ -174,10 +174,9 @@ export type ValidationHandlerItem = {
 };
 
 export type ValidationHandlerParameters = {
-	clone: boolean;
+	defaulted?: PlainObject;
 	information?: PropertyValidation[];
 	key?: string;
-	output: PlainObject;
 	reporting: ReportingInformation;
 	strict: boolean;
 };

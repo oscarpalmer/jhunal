@@ -154,10 +154,7 @@ export function getObjectHandler(
 			}
 		}
 
-		const getAndClone = get && parameters.clone;
-
 		const allInformation: PropertyValidation[] = [];
-		const output: PlainObject = {};
 
 		for (let validatorIndex = 0; validatorIndex < validatorsLength; validatorIndex += 1) {
 			const {defaults, handler, key, required, types} = items[validatorIndex];
@@ -169,11 +166,8 @@ export function getObjectHandler(
 					if (get && defaults != null) {
 						const defaultValue = clone(defaults.value);
 
-						if (parameters.clone) {
-							output[key.short] = defaultValue;
-						} else {
-							input[key.short] = defaultValue;
-						}
+						parameters.defaulted ??= {};
+						parameters.defaulted[key.full] = defaultValue;
 
 						continue;
 					}
@@ -205,20 +199,11 @@ export function getObjectHandler(
 				continue;
 			}
 
-			const previousOutput = parameters.output;
-
 			parameters.key = key.full;
-			parameters.output = output;
 
 			const result = handler(value, parameters, get);
 
-			parameters.output = previousOutput;
-
 			if (result === true) {
-				if (getAndClone && !isPlainObject(value)) {
-					output[key.short] = clone(value);
-				}
-
 				continue;
 			}
 
@@ -246,14 +231,6 @@ export function getObjectHandler(
 			}
 
 			return reported;
-		}
-
-		if (getAndClone) {
-			if (origin == null) {
-				parameters.output = output;
-			} else {
-				parameters.output[origin.short] = output;
-			}
 		}
 
 		return allInformation.length === 0 ? true : allInformation;

@@ -1,7 +1,7 @@
 import {isError, isOk} from '@oscarpalmer/atoms/result/misc';
 import {Err, Ok} from '@oscarpalmer/atoms/result/models';
 import {expect, test} from 'vitest';
-import {ValidationError, ValidationInformation} from '../src/models/validation.model';
+import {PropertyValidation, ValidationError} from '../src/models/validation.model';
 import {defaults, get} from './.fixture/schema.get.fixture';
 
 test('get all', () => {
@@ -10,7 +10,7 @@ test('get all', () => {
 
 		expect(isError(result)).toBe(true);
 
-		const error = (result as Err<ValidationInformation[]>).error;
+		const error = (result as Err<PropertyValidation[]>).error;
 
 		expect(error.length).toBe(get.lengths[index]);
 	}
@@ -23,7 +23,7 @@ test('get all', () => {
 
 	expect(value).toEqual(get.success);
 
-	expect(get.success.date).not.toBe(value.date);
+	expect(get.success.date).toBe(value.date);
 	expect(get.success.date.getTime()).toBe(value.date.getTime());
 });
 
@@ -32,7 +32,7 @@ test('get first', () => {
 		const result = get.schema.get(get.failures[index], 'first');
 
 		expect(isError(result)).toBe(true);
-		expect((result as Err<ValidationInformation>).error.message).toBeTypeOf('string');
+		expect((result as Err<PropertyValidation>).error.message).toBeTypeOf('string');
 	}
 
 	const result = get.schema.get(get.success, 'first');
@@ -43,7 +43,7 @@ test('get first', () => {
 
 	expect(value).toEqual(get.success);
 
-	expect(get.success.date).not.toBe(value.date);
+	expect(get.success.date).toBe(value.date);
 	expect(get.success.date.getTime()).toBe(value.date.getTime());
 });
 
@@ -56,7 +56,7 @@ test('get none', () => {
 
 	expect(result).toEqual(get.success);
 
-	expect(get.success.date).not.toBe(result!.date);
+	expect(get.success.date).toBe(result!.date);
 	expect(get.success.date.getTime()).toBe(result!.date.getTime());
 });
 
@@ -69,24 +69,24 @@ test('get throw', () => {
 
 	expect(result).toEqual(get.success);
 
-	expect(get.success.date).not.toBe(result!.date);
+	expect(get.success.date).toBe(result!.date);
 	expect(get.success.date.getTime()).toBe(result!.date.getTime());
 });
 
 test('get: clone options', () => {
-	const cloned = get.schema.get(get.success);
+	const value = get.schema.get(get.success);
 
 	const defaulted = get.schema.get(get.success, {
 		clone: 'blah' as never,
 	});
 
-	const noClone = get.schema.get(get.success, {
-		clone: false,
+	const clone = get.schema.get(get.success, {
+		clone: true,
 	});
 
-	expect(get.success.date).not.toBe(cloned!.date);
-	expect(get.success.date).not.toBe(defaulted!.date);
-	expect(get.success.date).toBe(noClone!.date);
+	expect(get.success.date).toBe(value?.date);
+	expect(get.success.date).toBe(defaulted?.date);
+	expect(get.success.date).not.toBe(clone?.date);
 
 	const clonedResult = get.schema.get(get.success, {
 		clone: true,
@@ -99,12 +99,11 @@ test('get: clone options', () => {
 	});
 
 	const noCloneResult = get.schema.get(get.success, {
-		clone: false,
 		errors: 'first',
 	});
 
 	expect(get.success.date).not.toBe((clonedResult as Ok<any>).value.date);
-	expect(get.success.date).not.toBe((defaultedResult as Ok<any>).value.date);
+	expect(get.success.date).toBe((defaultedResult as Ok<any>).value.date);
 	expect(get.success.date).toBe((noCloneResult as Ok<any>).value.date);
 });
 

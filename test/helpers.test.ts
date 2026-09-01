@@ -25,14 +25,35 @@ test('getInvalidTypeMessage', () => {
 });
 
 test('getParameters', () => {
-	expect(getParameters(parameters.errors.invalid.input)).toEqual(parameters.errors.invalid.result);
-	expect(getParameters(parameters.errors.valid.input)).toEqual(parameters.errors.valid.result);
+	expect(getParameters(parameters.errors.invalid.input)).toEqual([
+		parameters.errors.invalid.result,
+		false,
+	]);
 
-	expect(getParameters(parameters.object.invalid.input)).toEqual(parameters.object.invalid.result);
-	expect(getParameters(parameters.object.valid.input)).toEqual(parameters.object.valid.result);
+	expect(getParameters(parameters.errors.valid.input)).toEqual([
+		parameters.errors.valid.result,
+		false,
+	]);
 
-	expect(getParameters(parameters.strict.invalid.input)).toEqual(parameters.strict.invalid.result);
-	expect(getParameters(parameters.strict.valid.input)).toEqual(parameters.strict.valid.result);
+	expect(getParameters(parameters.object.invalid.input)).toEqual([
+		parameters.object.invalid.result,
+		false,
+	]);
+
+	expect(getParameters(parameters.object.valid.input)).toEqual([
+		parameters.object.valid.result,
+		false,
+	]);
+
+	expect(getParameters(parameters.strict.invalid.input)).toEqual([
+		parameters.strict.invalid.result,
+		false,
+	]);
+
+	expect(getParameters(parameters.strict.valid.input)).toEqual([
+		parameters.strict.valid.result,
+		false,
+	]);
 });
 
 test('instanceOf', () => {

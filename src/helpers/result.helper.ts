@@ -1,20 +1,19 @@
+import type {PlainObject} from '@oscarpalmer/atoms/models';
 import {error, ok} from '@oscarpalmer/atoms/result/misc';
-import type {ValidationHandler} from '../models/validation.model';
+import {clone} from '@oscarpalmer/atoms/value/clone';
+import {setValue} from '@oscarpalmer/atoms/value/handle';
+import type {ValidationHandler, ValidationHandlerParameters} from '../models/validation.model';
 import {getParameters} from './misc.helper';
 
 // #region Functions
 
 export function getResult(handler: ValidationHandler, value: unknown, options?: unknown): unknown {
-	const parameters = getParameters(options);
+	const [parameters, cloneValue] = getParameters(options);
 
 	const result = handler(value, parameters, true);
 
 	if (result === true) {
-		return parameters.reporting.none || parameters.reporting.throw
-			? parameters.clone
-				? parameters.output
-				: value
-			: ok(parameters.clone ? parameters.output : value);
+		return getValidResult(value as PlainObject, parameters, cloneValue);
 	}
 
 	if (!parameters.reporting.none) {
@@ -22,8 +21,29 @@ export function getResult(handler: ValidationHandler, value: unknown, options?: 
 	}
 }
 
+function getValidResult(
+	input: PlainObject,
+	parameters: ValidationHandlerParameters,
+	cloneValue: boolean,
+): PlainObject {
+	const output = cloneValue ? clone(input) : input;
+
+	if (parameters.defaulted != null) {
+		const keys = Object.keys(parameters.defaulted);
+		const {length} = keys;
+
+		for (let index = 0; index < length; index += 1) {
+			const key = keys[index];
+
+			setValue(output, key, parameters.defaulted[key]);
+		}
+	}
+
+	return parameters.reporting.none || parameters.reporting.throw ? output : ok(output);
+}
+
 export function isResult(handler: ValidationHandler, value: unknown, options?: unknown): unknown {
-	const parameters = getParameters(options);
+	const [parameters] = getParameters(options);
 
 	const result = handler(value, parameters, false);
 

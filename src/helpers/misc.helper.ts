@@ -21,10 +21,8 @@ import type {Validator} from '../models/validator.model';
 
 // #region Functions
 
-export function getParameters(input?: unknown): ValidationHandlerParameters {
+export function getParameters(input?: unknown): [ValidationHandlerParameters, boolean] {
 	const parameters: ValidationHandlerParameters = {
-		clone: true,
-		output: {},
 		reporting: undefined as never,
 		strict: false,
 	};
@@ -33,22 +31,21 @@ export function getParameters(input?: unknown): ValidationHandlerParameters {
 		parameters.reporting = getReporting();
 		parameters.strict = input;
 
-		return parameters;
+		return [parameters, false];
 	}
 
 	if (REPORTING_TYPES.has(input as ReportingType)) {
 		parameters.reporting = getReporting(input as ReportingType);
 
-		return parameters;
+		return [parameters, false];
 	}
 
 	const options = isPlainObject(input) ? input : {};
 
-	parameters.clone = typeof options.clone === 'boolean' ? options.clone : true;
 	parameters.reporting = getReporting(options.errors);
 	parameters.strict = typeof options.strict === 'boolean' ? options.strict : false;
 
-	return parameters;
+	return [parameters, typeof options.clone === 'boolean' ? options.clone : false];
 }
 
 export function getReporting(value?: unknown): ReportingInformation {

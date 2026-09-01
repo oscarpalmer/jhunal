@@ -9,18 +9,28 @@ export function getBaseHandler(handlers: ValidationHandler[]): ValidationHandler
 		const allInformation: PropertyValidation[] = [];
 
 		for (let index = 0; index < length; index += 1) {
-			const previousInformation = parameters.information;
+			let previousInformation: PropertyValidation[] | undefined;
 
-			const nextInformation: PropertyValidation[] = [];
+			if (!parameters.reporting.none) {
+				previousInformation = parameters.information;
 
-			parameters.information = nextInformation;
+				const nextInformation: PropertyValidation[] = [];
+
+				parameters.information = nextInformation;
+			}
 
 			const result = handlers[index](input, parameters, get);
 
-			parameters.information = previousInformation;
+			if (previousInformation != null) {
+				parameters.information = previousInformation;
+			}
 
 			if (result === true) {
 				return true;
+			}
+
+			if (parameters.reporting.none) {
+				continue;
 			}
 
 			parameters.information?.push(...result);
