@@ -125,7 +125,7 @@ type BaseOptions<Errors extends ReportingType> = {
  */
 export type GetOptions<Errors extends ReportingType> = BaseOptions<Errors> & {
 	/**
-	 * Get a deeply cloned version of the input? _(defaults to `false`)_
+	 * Get a deeply cloned version of the input? _(defaults to `true`)_
 	 */
 	clone?: boolean;
 };

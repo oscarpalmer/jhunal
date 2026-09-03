@@ -106,7 +106,10 @@ export function getInputPropertyValidatorMessage(
 	message = message.replace(TEMPLATE_PATTERN, type);
 
 	if (length > 1) {
-		message += VALIDATION_MESSAGE_INVALID_VALIDATOR_SUFFIX.replace(TEMPLATE_PATTERN, String(index));
+		message += VALIDATION_MESSAGE_INVALID_VALIDATOR_SUFFIX.replace(
+			TEMPLATE_PATTERN,
+			index.toString(),
+		);
 	}
 
 	return message;
@@ -128,7 +131,10 @@ export function getInputValueValidatorMessage(
 	let message = VALIDATION_MESSAGE_INVALID_VALUE_VALIDATOR.replace(TEMPLATE_PATTERN, type);
 
 	if (length > 1) {
-		message += VALIDATION_MESSAGE_INVALID_VALIDATOR_SUFFIX.replace(TEMPLATE_PATTERN, String(index));
+		message += VALIDATION_MESSAGE_INVALID_VALIDATOR_SUFFIX.replace(
+			TEMPLATE_PATTERN,
+			index.toString(),
+		);
 	}
 
 	return message;

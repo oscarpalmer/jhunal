@@ -31,13 +31,13 @@ export function getParameters(input?: unknown): [ValidationHandlerParameters, bo
 		parameters.reporting = getReporting();
 		parameters.strict = input;
 
-		return [parameters, false];
+		return [parameters, true];
 	}
 
 	if (REPORTING_TYPES.has(input as ReportingType)) {
 		parameters.reporting = getReporting(input as ReportingType);
 
-		return [parameters, false];
+		return [parameters, true];
 	}
 
 	const options = isPlainObject(input) ? input : {};
@@ -45,7 +45,7 @@ export function getParameters(input?: unknown): [ValidationHandlerParameters, bo
 	parameters.reporting = getReporting(options.errors);
 	parameters.strict = typeof options.strict === 'boolean' ? options.strict : false;
 
-	return [parameters, typeof options.clone === 'boolean' ? options.clone : false];
+	return [parameters, typeof options.clone === 'boolean' ? options.clone : true];
 }
 
 export function getReporting(value?: unknown): ReportingInformation {

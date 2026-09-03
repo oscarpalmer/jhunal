@@ -72,9 +72,7 @@ export function report<Callback extends (...args: any[]) => string>(
 		original.information?.push(...reported);
 	}
 
-	if ((getReports ?? false) || !original.reporting.all) {
-		return reported;
-	}
+	return (getReports ?? false) || !original.reporting.all ? reported : undefined;
 }
 
 // #endregion

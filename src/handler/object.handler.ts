@@ -2,6 +2,7 @@ import {isPlainObject} from '@oscarpalmer/atoms/is';
 import type {PlainObject} from '@oscarpalmer/atoms/models';
 import {clone} from '@oscarpalmer/atoms/value/clone';
 import {
+	CLONE_OPTIONS,
 	PROPERTY_DEFAULT,
 	PROPERTY_REQUIRED,
 	PROPERTY_TYPE,
@@ -41,9 +42,7 @@ function getDisallowedProperty(obj: PlainObject): string | undefined {
 		return PROPERTY_TYPE;
 	}
 
-	if (PROPERTY_VALIDATORS in obj) {
-		return PROPERTY_VALIDATORS;
-	}
+	return PROPERTY_VALIDATORS in obj ? PROPERTY_VALIDATORS : undefined;
 }
 
 export function getObjectHandler(
@@ -164,7 +163,7 @@ export function getObjectHandler(
 			if (value === undefined) {
 				if (required) {
 					if (get && defaults != null) {
-						const defaultValue = clone(defaults.value);
+						const defaultValue = clone(defaults.value, CLONE_OPTIONS);
 
 						parameters.defaulted ??= {};
 						parameters.defaulted[key.full] = defaultValue;

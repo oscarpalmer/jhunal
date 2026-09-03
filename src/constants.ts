@@ -1,3 +1,4 @@
+import type {CloneOptions} from '@oscarpalmer/atoms/value/clone';
 import type {ValueType} from './models/misc.model';
 import type {ReportingType} from './models/validation.model';
 
@@ -18,6 +19,12 @@ export const CONJUNCTION_AND_COMMA = ', and ';
 // #endregion
 
 // #region Misc.
+
+export const CLONE_OPTIONS: CloneOptions = {
+	copyFunctions: true,
+	copySymbols: true,
+	flat: false,
+};
 
 export const MESSAGE_CONSTRUCTOR = 'Expected a constructor function';
 
