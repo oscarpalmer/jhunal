@@ -37,15 +37,11 @@ import {isValidator} from './misc.helper';
 // #region Defaults
 
 export function getDefaultRequiredMessage(key: string): string {
-	return SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_REQUIRED.replace(TEMPLATE_PATTERN, key);
+	return getMessage(SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_REQUIRED, [key]);
 }
 
 export function getDefaultTypeMessage(key: string, types: ValidationHandlerType[]): string {
-	let message = SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_TYPE.replace(TEMPLATE_PATTERN, key);
-
-	message = message.replace(TEMPLATE_PATTERN, renderTypes(types));
-
-	return message;
+	return getMessage(SCHEMATIC_MESSAGE_SCHEMA_INVALID_DEFAULT_TYPE, [key, renderTypes(types)]);
 }
 
 // #endregion
@@ -53,30 +49,38 @@ export function getDefaultTypeMessage(key: string, types: ValidationHandlerType[
 // #region Disallowed
 
 export function getDisallowedMessage(key: string, property: string): string {
-	let message = SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED.replace(TEMPLATE_PATTERN, key);
-
-	message = message.replace(TEMPLATE_PATTERN, property);
-
-	return message;
+	return getMessage(SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_DISALLOWED, [key, property]);
 }
 
 // #endregion
 
+// #region Generic
+
+// #endregion
+
+function getMessage(original: string, items: string[]): string {
+	let message = original;
+
+	const {length} = items;
+
+	for (let index = 0; index < length; index += 1) {
+		message = message.replace(TEMPLATE_PATTERN, items[index]);
+	}
+
+	return message;
+}
+
 // #region Input
 
 export function getInputTypeMessage(actual: unknown): string {
-	return VALIDATION_MESSAGE_INVALID_INPUT.replace(TEMPLATE_PATTERN, getValueType(actual));
+	return getMessage(VALIDATION_MESSAGE_INVALID_INPUT, [getValueType(actual)]);
 }
 
 export function getInputPropertyMissingMessage(
 	key: string,
 	types: ValidationHandlerType[],
 ): string {
-	let message = VALIDATION_MESSAGE_INVALID_REQUIRED.replace(TEMPLATE_PATTERN, renderTypes(types));
-
-	message = message.replace(TEMPLATE_PATTERN, key);
-
-	return message;
+	return getMessage(VALIDATION_MESSAGE_INVALID_REQUIRED, [renderTypes(types), key]);
 }
 
 export function getInputPropertyTypeMessage(
@@ -84,15 +88,11 @@ export function getInputPropertyTypeMessage(
 	types: ValidationHandlerType[],
 	actual: unknown,
 ): string {
-	let message = VALIDATION_MESSAGE_INVALID_PROPERTY_TYPE.replace(
-		TEMPLATE_PATTERN,
+	return getMessage(VALIDATION_MESSAGE_INVALID_PROPERTY_TYPE, [
 		renderTypes(types),
-	);
-
-	message = message.replace(TEMPLATE_PATTERN, key);
-	message = message.replace(TEMPLATE_PATTERN, getValueType(actual));
-
-	return message;
+		key,
+		getValueType(actual),
+	]);
 }
 
 export function getInputPropertyValidatorMessage(
@@ -101,26 +101,20 @@ export function getInputPropertyValidatorMessage(
 	index: number,
 	length: number,
 ): string {
-	let message = VALIDATION_MESSAGE_INVALID_PROPERTY_VALIDATOR.replace(TEMPLATE_PATTERN, key);
-
-	message = message.replace(TEMPLATE_PATTERN, type);
+	let message = getMessage(VALIDATION_MESSAGE_INVALID_PROPERTY_VALIDATOR, [key, type]);
 
 	if (length > 1) {
-		message += VALIDATION_MESSAGE_INVALID_VALIDATOR_SUFFIX.replace(
-			TEMPLATE_PATTERN,
-			index.toString(),
-		);
+		message += getMessage(VALIDATION_MESSAGE_INVALID_VALIDATOR_SUFFIX, [index.toString()]);
 	}
 
 	return message;
 }
 
 export function getInputValueTypeMessage(types: ValidationHandlerType[], actual: unknown): string {
-	let message = VALIDATION_MESSAGE_INVALID_VALUE_TYPE.replace(TEMPLATE_PATTERN, renderTypes(types));
-
-	message = message.replace(TEMPLATE_PATTERN, getValueType(actual));
-
-	return message;
+	return getMessage(VALIDATION_MESSAGE_INVALID_VALUE_TYPE, [
+		renderTypes(types),
+		getValueType(actual),
+	]);
 }
 
 export function getInputValueValidatorMessage(
@@ -128,13 +122,10 @@ export function getInputValueValidatorMessage(
 	index: number,
 	length: number,
 ): string {
-	let message = VALIDATION_MESSAGE_INVALID_VALUE_VALIDATOR.replace(TEMPLATE_PATTERN, type);
+	let message = getMessage(VALIDATION_MESSAGE_INVALID_VALUE_VALIDATOR, [type]);
 
 	if (length > 1) {
-		message += VALIDATION_MESSAGE_INVALID_VALIDATOR_SUFFIX.replace(
-			TEMPLATE_PATTERN,
-			index.toString(),
-		);
+		message += getMessage(VALIDATION_MESSAGE_INVALID_VALIDATOR_SUFFIX, [index.toString()]);
 	}
 
 	return message;
@@ -145,11 +136,11 @@ export function getInputValueValidatorMessage(
 // #region Schematic
 
 export function getSchematicPropertyNullableMessage(key: string): string {
-	return SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE.replace(TEMPLATE_PATTERN, key);
+	return getMessage(SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_NULLABLE, [key]);
 }
 
 export function getSchematicPropertyTypeMessage(key: string): string {
-	return SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE.replace(TEMPLATE_PATTERN, key);
+	return getMessage(SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_TYPE, [key]);
 }
 
 // #endregion
