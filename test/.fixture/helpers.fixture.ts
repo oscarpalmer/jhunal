@@ -167,7 +167,9 @@ const properties = {
 	two: {...property, types: ['boolean', 'bigint']},
 };
 
-const Simple = schema({property: 'number'});
+const Simple = schema({
+	property: 'number',
+});
 
 export const cases = [
 	...values.map((value, index) => ({

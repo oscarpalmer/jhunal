@@ -18,7 +18,11 @@ function getFakeError(
 	message: string,
 	validator: GenericCallback,
 ): Err<ValueValidation> {
-	return error({message, validator, value});
+	return error({
+		message,
+		validator,
+		value,
+	});
 }
 
 function getFakeInvalidTypeMessage(type: string, actual: string): string {
@@ -38,7 +42,10 @@ function getFakeValidatorMessage(type: string, index: number, length: number): s
 	let message = VALIDATION_MESSAGE_INVALID_VALUE_VALIDATOR.replace(TEMPLATE_PATTERN, type);
 
 	if (length > 1) {
-		message += VALIDATION_MESSAGE_INVALID_VALIDATOR_SUFFIX.replace(TEMPLATE_PATTERN, String(index));
+		message += VALIDATION_MESSAGE_INVALID_VALIDATOR_SUFFIX.replace(
+			TEMPLATE_PATTERN,
+			index.toString(),
+		);
 	}
 
 	return message;
@@ -90,7 +97,15 @@ export const firstError = {
 	validators: firstErrorValidators,
 };
 
-const invalidCases = [null, undefined, {}, new Map(), schema({test: 'string'})];
+const invalidCases = [
+	null,
+	undefined,
+	{},
+	new Map(),
+	schema({
+		test: 'string',
+	}),
+];
 
 const invalidMessages = [
 	VALIDATOR_MESSAGE_INVALID_PROPERTY_NULLABLE,

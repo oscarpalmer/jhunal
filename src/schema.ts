@@ -3,7 +3,7 @@ import type {PlainObject} from '@oscarpalmer/atoms/models';
 import {PROPERTY_SCHEMA, SCHEMATIC_MESSAGE_SCHEMA_INVALID_TYPE} from './constants';
 import {getObjectHandler} from './handler/object.handler';
 import {isSchema} from './helpers/misc.helper';
-import {getResult, isResult} from './helpers/result.helper';
+import {getResult} from './helpers/result.helper';
 import type {Infer} from './models/infer.model';
 import type {Schema} from './models/schema.model';
 import type {Schematic} from './models/schematic.plain.model';
@@ -42,8 +42,8 @@ export function schema(input: unknown): unknown {
 	const handler = getObjectHandler(input);
 
 	const instance = {
-		get: (value: unknown, options?: unknown) => getResult(handler, value, options),
-		is: (value: unknown, options?: unknown) => isResult(handler, value, options),
+		get: (value: unknown, options?: unknown) => getResult(handler, value, true, options),
+		is: (value: unknown, options?: unknown) => getResult(handler, value, false, options),
 	};
 
 	Object.defineProperty(instance, PROPERTY_SCHEMA, {

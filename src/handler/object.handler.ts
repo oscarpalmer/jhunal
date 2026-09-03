@@ -16,11 +16,12 @@ import {
 	getInputTypeMessage,
 	getUnknownKeysMessage,
 } from '../helpers/message.helper';
+import {generateValidationInformation} from '../helpers/misc.helper';
 import {report} from '../helpers/report.helper';
+import type {ReportData} from '../models/report.model';
 import {
 	SchematicError,
 	ValidationError,
-	type PropertyValidation,
 	type PropertyValidationKey,
 	type ValidationHandler,
 	type ValidationHandlerItem,
@@ -101,7 +102,7 @@ export function getObjectHandler(
 
 	const validatorsLength = items.length;
 
-	return (input, parameters, get) => {
+	return (input, parameters, getValue) => {
 		if (!isPlainObject(input)) {
 			if (parameters.reporting.none || origin != null) {
 				return [];
@@ -110,8 +111,8 @@ export function getObjectHandler(
 			return report(
 				{
 					message: {
-						arguments: [input],
 						callback: getInputTypeMessage,
+						parameters: [input],
 					},
 					original: parameters,
 					value: input,
@@ -137,23 +138,26 @@ export function getObjectHandler(
 			}
 
 			if (unknownKeys != null) {
-				const information: PropertyValidation = {
+				const report: ReportData = {
 					key: origin,
-					message: getUnknownKeysMessage(unknownKeys),
+					message: {
+						callback: getUnknownKeysMessage,
+						parameters: [unknownKeys],
+					},
 					value: input,
 				};
 
 				if (parameters.reporting.throw) {
-					throw new ValidationError([information]);
+					throw new ValidationError(generateValidationInformation([report]));
 				}
 
-				parameters.information?.push(information);
+				parameters.reports?.push(report);
 
-				return [information];
+				return [report];
 			}
 		}
 
-		const allInformation: PropertyValidation[] = [];
+		const allReports: ReportData[] = [];
 
 		for (let validatorIndex = 0; validatorIndex < validatorsLength; validatorIndex += 1) {
 			const {defaults, handler, key, required, types} = items[validatorIndex];
@@ -162,7 +166,7 @@ export function getObjectHandler(
 
 			if (value === undefined) {
 				if (required) {
-					if (get && defaults != null) {
+					if (getValue && defaults != null) {
 						const defaultValue = clone(defaults.value, CLONE_OPTIONS);
 
 						parameters.defaulted ??= {};
@@ -178,12 +182,12 @@ export function getObjectHandler(
 					const reported = report({
 						key,
 						value,
-						information: {
-							all: allInformation,
+						data: {
+							all: allReports,
 						},
 						message: {
-							arguments: [key.full, types],
 							callback: getInputPropertyMissingMessage,
+							parameters: [key.full, types],
 						},
 						original: parameters,
 					});
@@ -200,7 +204,7 @@ export function getObjectHandler(
 
 			parameters.key = key.full;
 
-			const result = handler(value, parameters, get);
+			const result = handler(value, parameters, getValue);
 
 			if (result === true) {
 				continue;
@@ -213,14 +217,14 @@ export function getObjectHandler(
 			const reported = report({
 				key,
 				value,
-				extract: false,
-				information: {
-					all: allInformation,
+				data: {
+					all: allReports,
 					existing: typeof result !== 'boolean' && result.length > 0 ? result : undefined,
 				},
+				extract: false,
 				message: {
-					arguments: [key.full, types, value],
 					callback: getInputPropertyTypeMessage,
+					parameters: [key.full, types, value],
 				},
 				original: parameters,
 			});
@@ -232,7 +236,7 @@ export function getObjectHandler(
 			return reported;
 		}
 
-		return allInformation.length === 0 ? true : allInformation;
+		return allReports.length === 0 ? true : allReports;
 	};
 }
 

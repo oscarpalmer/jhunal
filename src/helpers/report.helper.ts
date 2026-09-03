@@ -1,75 +1,49 @@
-import {
-	ValidationError,
-	type PropertyValidation,
-	type PropertyValidationKey,
-	type ValidationHandlerParameters,
-} from '../models/validation.model';
-
-// #region Types
-
-type ReportParameters<Callback extends (...args: any[]) => string> = {
-	extract?: boolean;
-	information?: ReportParametersInformation;
-	key?: PropertyValidationKey;
-	message: ReportParametersMessage<Callback>;
-	original: ValidationHandlerParameters;
-	value: unknown;
-};
-
-type ReportParametersMessage<Callback extends (...args: any[]) => string> = {
-	arguments: Parameters<Callback>;
-	callback: Callback;
-};
-
-type ReportParametersInformation = {
-	all: PropertyValidation[];
-	existing?: PropertyValidation[];
-};
-
-// #endregion
+import type {ReportData, ReportParameters} from '../models/report.model';
+import {ValidationError} from '../models/validation.model';
+import {generateValidationInformation} from './misc.helper';
 
 // #region Functions
 
 export function report<Callback extends (...args: any[]) => string>(
 	parameters: ReportParameters<Callback>,
 	getReports: true,
-): PropertyValidation[];
+): ReportData[];
 
 export function report<Callback extends (...args: any[]) => string>(
 	parameters: ReportParameters<Callback>,
-): PropertyValidation[] | undefined;
+): ReportData[] | undefined;
 
 export function report<Callback extends (...args: any[]) => string>(
 	parameters: ReportParameters<Callback>,
 	getReports?: boolean,
-): PropertyValidation[] | undefined {
-	const {information, message, original} = parameters;
+): ReportData[] | undefined {
+	const {data, message, original} = parameters;
 
-	let reported: PropertyValidation[];
+	let reported: ReportData[];
 
-	if (information?.existing == null) {
-		reported = [
-			{
-				value: parameters.value,
-				message: message.callback(...message.arguments),
-			},
-		];
+	if (data?.existing == null) {
+		const report: ReportData = {
+			message,
+			value: parameters.value,
+		};
 
 		if (parameters.key != null) {
-			reported[0].key = parameters.key;
+			report.key = parameters.key;
 		}
+
+		reported = [report];
 	} else {
-		reported = information.existing;
+		reported = data.existing;
 	}
 
 	if (original.reporting.throw) {
-		throw new ValidationError(reported);
+		throw new ValidationError(generateValidationInformation(reported));
 	}
 
-	information?.all.push(...reported);
+	data?.all.push(...reported);
 
 	if (parameters.extract ?? true) {
-		original.information?.push(...reported);
+		original.reports?.push(...reported);
 	}
 
 	return (getReports ?? false) || !original.reporting.all ? reported : undefined;

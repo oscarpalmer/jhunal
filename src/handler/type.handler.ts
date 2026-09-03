@@ -14,8 +14,8 @@ import {
 	getInputValueValidatorMessage,
 } from '../helpers/message.helper';
 import type {ValueType} from '../models/misc.model';
+import type {ReportData} from '../models/report.model';
 import {
-	type PropertyValidation,
 	type PropertyValidationKey,
 	type TypeValidators,
 	type ValidationHandler,
@@ -53,22 +53,22 @@ export function getTypeHandler(
 				return [];
 			}
 
-			const information: PropertyValidation = {
+			const report: ReportData = {
 				validator,
-				message:
-					key == null
-						? getInputValueValidatorMessage(type, index, length)
-						: getInputPropertyValidatorMessage(key.full, type, index, length),
+				message: {
+					callback: key == null ? getInputValueValidatorMessage : getInputPropertyValidatorMessage,
+					parameters: key == null ? [type, index, length] : [key.full, type, index, length],
+				},
 				value: input,
 			};
 
 			if (key != null) {
-				information.key = key;
+				report.key = key;
 			}
 
-			parameters.information?.push(information);
+			parameters.reports?.push(report);
 
-			return [information];
+			return [report];
 		}
 
 		return true;

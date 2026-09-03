@@ -179,12 +179,17 @@ test('is strictness', () => {
 	expect(nestedError.message).toBe(strictness.cases.nested.error);
 
 	expect(() =>
-		strictness.instance.is(strictness.cases.basic.input, {strict: true, errors: 'throw'}),
+		strictness.instance.is(strictness.cases.basic.input, {
+			strict: true,
+			errors: 'throw',
+		}),
 	).toThrow(strictness.cases.basic.error);
 });
 
 test('is typed', () => {
-	const outer = schema<OuterSchema>({inner: typed.inner});
+	const outer = schema<OuterSchema>({
+		inner: typed.inner,
+	});
 
 	for (let index = 0; index < typed.cases.length; index += 1) {
 		expect(outer.is(typed.cases[index].input)).toBe(typed.cases[index].ok);
@@ -192,7 +197,9 @@ test('is typed', () => {
 });
 
 test('is typed: throw', () => {
-	const outer = schema<OuterSchema>({inner: typed.inner});
+	const outer = schema<OuterSchema>({
+		inner: typed.inner,
+	});
 
 	const invalidCases = typed.cases.filter(item => !item.ok);
 

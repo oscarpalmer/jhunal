@@ -1,6 +1,6 @@
 import type {CloneOptions} from '@oscarpalmer/atoms/value/clone';
 import type {ValueType} from './models/misc.model';
-import type {ReportingType} from './models/validation.model';
+import type {ReportingType} from './models/report.model';
 
 // #region Variables
 

@@ -8,11 +8,11 @@ import {schemaHandlers} from '../schema';
 export function getSchemaHandler(schematic: Schema<unknown>): ValidationHandler {
 	const handler = schemaHandlers.get(schematic)!;
 
-	return (input, parameters, get) => {
+	return (input, parameters, getValue) => {
 		let result: ReturnType<ValidationHandler>;
 
 		if (isPlainObject(input)) {
-			result = handler(input, parameters, get);
+			result = handler(input, parameters, getValue);
 		} else {
 			result = [];
 		}
@@ -22,7 +22,7 @@ export function getSchemaHandler(schematic: Schema<unknown>): ValidationHandler 
 		}
 
 		if (!parameters.reporting.none) {
-			parameters.information?.push(...result);
+			parameters.reports?.push(...result);
 		}
 
 		return result;

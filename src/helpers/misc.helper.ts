@@ -11,15 +11,31 @@ import {
 	REPORTING_THROW,
 	REPORTING_TYPES,
 } from '../constants';
+import type {ReportData, ReportingInformation, ReportingType} from '../models/report.model';
 import type {Schema} from '../models/schema.model';
-import type {
-	ReportingInformation,
-	ReportingType,
-	ValidationHandlerParameters,
-} from '../models/validation.model';
+import type {PropertyValidation, ValidationHandlerParameters} from '../models/validation.model';
 import type {Validator} from '../models/validator.model';
 
 // #region Functions
+
+export function generateValidationInformation(reports: ReportData[]): PropertyValidation[] {
+	const {length} = reports;
+
+	const validation: PropertyValidation[] = [];
+
+	for (let index = 0; index < length; index += 1) {
+		const {key, message, validator, value} = reports[index];
+
+		validation.push({
+			key,
+			validator,
+			value,
+			message: message.callback(...message.parameters),
+		});
+	}
+
+	return validation;
+}
 
 export function getParameters(input?: unknown): [ValidationHandlerParameters, boolean] {
 	const parameters: ValidationHandlerParameters = {

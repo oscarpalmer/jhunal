@@ -4,22 +4,35 @@ import {clone} from '@oscarpalmer/atoms/value/clone';
 import {setValue} from '@oscarpalmer/atoms/value/handle';
 import {CLONE_OPTIONS} from '../constants';
 import type {ValidationHandler, ValidationHandlerParameters} from '../models/validation.model';
-import {getParameters} from './misc.helper';
+import {generateValidationInformation, getParameters} from './misc.helper';
 
 // #region Functions
 
-export function getResult(handler: ValidationHandler, value: unknown, options?: unknown): unknown {
+export function getResult(
+	handler: ValidationHandler,
+	value: unknown,
+	getValue: boolean,
+	options?: unknown,
+): unknown {
 	const [parameters, cloneValue] = getParameters(options);
 
-	const result = handler(value, parameters, true);
+	const result = handler(value, parameters, getValue);
 
 	if (result === true) {
-		return getValidResult(value as PlainObject, parameters, cloneValue);
+		if (getValue) {
+			return getValidResult(value as PlainObject, parameters, cloneValue);
+		}
+
+		return parameters.reporting.none || parameters.reporting.throw ? result : ok(result);
 	}
 
-	return parameters.reporting.none
-		? undefined
-		: error(parameters.reporting.all ? result : result[0]);
+	if (parameters.reporting.none) {
+		return getValue ? undefined : false;
+	}
+
+	const validation = generateValidationInformation(result);
+
+	return error(parameters.reporting.all ? validation : validation[0]);
 }
 
 function getValidResult(
@@ -41,18 +54,6 @@ function getValidResult(
 	}
 
 	return parameters.reporting.none || parameters.reporting.throw ? output : ok(output);
-}
-
-export function isResult(handler: ValidationHandler, value: unknown, options?: unknown): unknown {
-	const [parameters] = getParameters(options);
-
-	const result = handler(value, parameters, false);
-
-	if (result === true) {
-		return parameters.reporting.none || parameters.reporting.throw ? result : ok(result);
-	}
-
-	return parameters.reporting.none ? false : error(parameters.reporting.all ? result : result[0]);
 }
 
 // #endregion

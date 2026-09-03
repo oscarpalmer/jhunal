@@ -2,28 +2,11 @@ import type {GenericCallback, PlainObject} from '@oscarpalmer/atoms/models';
 import {join} from '@oscarpalmer/atoms/string';
 import {NAME_ERROR_SCHEMATIC, NAME_ERROR_VALIDATION, NAME_ERROR_VALIDATOR} from '../constants';
 import type {ValueType} from './misc.model';
+import type {ReportData, ReportingInformation, ReportingType} from './report.model';
 import type {Schema} from './schema.model';
 import type {Validator} from './validator.model';
 
 // #region Types
-
-// #region Reporting
-
-export type ReportingInformation = Record<ReportingType, boolean> & {
-	type: ReportingType;
-};
-
-/**
- * Controls how validation failures are reported
- *
- * - `'none'`, returns a boolean _(default)_
- * - `'first'` or `'result'`, returns the first failure as a `Result`
- * - `'all'`, returns all failures as a `Result` _(from same level)_
- * - `'throw'`, throws a {@link ValidationError} on failure
- */
-export type ReportingType = 'all' | 'first' | 'none' | 'result' | 'throw';
-
-// #endregion
 
 // #region Errors
 
@@ -158,8 +141,8 @@ export type TypeValidators = Record<ValueType, (value: unknown) => boolean>;
 export type ValidationHandler = (
 	input: unknown,
 	parameters: ValidationHandlerParameters,
-	get: boolean,
-) => true | PropertyValidation[];
+	getValue: boolean,
+) => true | ReportData[];
 
 export type ValidationHandlerDefaults = {
 	value: unknown;
@@ -175,9 +158,9 @@ export type ValidationHandlerItem = {
 
 export type ValidationHandlerParameters = {
 	defaulted?: PlainObject;
-	information?: PropertyValidation[];
 	key?: string;
 	reporting: ReportingInformation;
+	reports?: ReportData[];
 	strict: boolean;
 };
 

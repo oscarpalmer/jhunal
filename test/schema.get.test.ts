@@ -1,6 +1,6 @@
 import {isError, isOk} from '@oscarpalmer/atoms/result/misc';
 import {Err, Ok} from '@oscarpalmer/atoms/result/models';
-import {clone} from '@oscarpalmer/atoms/value/clone'
+import {clone} from '@oscarpalmer/atoms/value/clone';
 import {expect, test} from 'vitest';
 import {PropertyValidation, ValidationError} from '../src/models/validation.model';
 import {defaults, get} from './.fixture/schema.get.fixture';
@@ -66,7 +66,7 @@ test('get throw', () => {
 		expect(() => get.schema.get(get.failures[index], 'throw')).toThrow(ValidationError);
 	}
 
-	const result = get.schema.get(get.success);
+	const result = get.schema.get(get.success, 'throw');
 
 	expect(result).toEqual(get.success);
 

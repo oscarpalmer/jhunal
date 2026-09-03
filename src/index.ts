@@ -1,4 +1,5 @@
 export {instanceOf, isSchema} from './helpers/misc.helper';
+export type {ReportingType} from './models/report.model';
 export type {Schema} from './models/schema.model';
 export type {Schematic} from './models/schematic.plain.model';
 export type {TypedSchematic} from './models/schematic.typed.model';

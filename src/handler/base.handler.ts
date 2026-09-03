@@ -1,28 +1,29 @@
-import type {PropertyValidation, ValidationHandler} from '../models/validation.model';
+import type {ReportData} from '../models/report.model';
+import type {ValidationHandler} from '../models/validation.model';
 
 // #region Functions
 
 export function getBaseHandler(handlers: ValidationHandler[]): ValidationHandler {
 	const {length} = handlers;
 
-	return (input, parameters, get) => {
-		const allInformation: PropertyValidation[] = [];
+	return (input, parameters, getValue) => {
+		const allReports: ReportData[] = [];
 
 		for (let index = 0; index < length; index += 1) {
-			let previousInformation: PropertyValidation[] | undefined;
+			let previousReports: ReportData[] | undefined;
 
 			if (!parameters.reporting.none) {
-				previousInformation = parameters.information;
+				previousReports = parameters.reports;
 
-				const nextInformation: PropertyValidation[] = [];
+				const nextReports: ReportData[] = [];
 
-				parameters.information = nextInformation;
+				parameters.reports = nextReports;
 			}
 
-			const result = handlers[index](input, parameters, get);
+			const result = handlers[index](input, parameters, getValue);
 
-			if (previousInformation != null) {
-				parameters.information = previousInformation;
+			if (previousReports != null) {
+				parameters.reports = previousReports;
 			}
 
 			if (result === true) {
@@ -33,12 +34,12 @@ export function getBaseHandler(handlers: ValidationHandler[]): ValidationHandler
 				continue;
 			}
 
-			parameters.information?.push(...result);
+			parameters.reports?.push(...result);
 
-			allInformation.push(...result);
+			allReports.push(...result);
 		}
 
-		return allInformation;
+		return allReports;
 	};
 }
 

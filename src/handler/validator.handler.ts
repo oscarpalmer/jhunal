@@ -14,8 +14,8 @@ export function getValidatorHandler(
 		value,
 	});
 
-	const validator: ValidationHandler = (input, parameters, get) => {
-		const result = handler(input, parameters, get);
+	const validator: ValidationHandler = (input, parameters, getValue) => {
+		const result = handler(input, parameters, getValue);
 
 		if (result === true) {
 			return true;
@@ -27,14 +27,14 @@ export function getValidatorHandler(
 
 		return report({
 			value: input,
-			extract: false,
-			information: {
-				all: parameters.information ?? [],
+			data: {
+				all: parameters.reports ?? [],
 				existing: result.length > 0 ? result : undefined,
 			},
+			extract: false,
 			message: {
-				arguments: [types, input],
 				callback: getInputValueTypeMessage,
+				parameters: [types, input],
 			},
 			original: parameters,
 		})!;

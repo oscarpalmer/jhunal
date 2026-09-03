@@ -2,7 +2,7 @@ import type {Constructor} from '@oscarpalmer/atoms/models';
 import {PROPERTY_VALIDATOR} from './constants';
 import {getValidatorHandler} from './handler/validator.handler';
 import {isValidator} from './helpers/misc.helper';
-import {isResult} from './helpers/result.helper';
+import {getResult} from './helpers/result.helper';
 import type {InferValidatorValue} from './models/infer.model';
 import type {Values, ValueType} from './models/misc.model';
 import type {ValidationHandler, ValidationHandlerType, Validators} from './models/validation.model';
@@ -86,7 +86,7 @@ export function validator(input: unknown, validators?: unknown): unknown {
 	const [handler, types] = getValidatorHandler(input, validators);
 
 	const instance = {
-		is: (value: unknown, options?: unknown): unknown => isResult(handler, value, options),
+		is: (value: unknown, options?: unknown): unknown => getResult(handler, value, false, options),
 	};
 
 	Object.defineProperty(instance, PROPERTY_VALIDATOR, {

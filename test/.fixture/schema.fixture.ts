@@ -41,10 +41,15 @@ const type = PROPERTY_TYPE;
 const validators = PROPERTY_VALIDATORS;
 
 const basicCases = [
-	...Array.from({length: typeValues.length - 1}, (_, index) => ({
-		schema: typeValues[index],
-		error: invalidType,
-	})),
+	...Array.from(
+		{
+			length: typeValues.length - 1,
+		},
+		(_, index) => ({
+			schema: typeValues[index],
+			error: invalidType,
+		}),
+	),
 	{
 		schema: {},
 		error: invalidEmpty,
