@@ -1,5 +1,4 @@
-import type {CloneOptions} from '@oscarpalmer/atoms/value/clone';
-import type {ValueType} from './models/misc.model';
+import type {UnknownKeysStrategy, ValueType} from './models/misc.model';
 import type {ReportingType} from './models/report.model';
 
 // #region Variables
@@ -19,12 +18,6 @@ export const CONJUNCTION_AND_COMMA = ', and ';
 // #endregion
 
 // #region Misc.
-
-export const CLONE_OPTIONS: CloneOptions = {
-	copyFunctions: true,
-	copySymbols: true,
-	flat: false,
-};
 
 export const MESSAGE_CONSTRUCTOR = 'Expected a constructor function';
 
@@ -78,7 +71,7 @@ export const VALIDATION_MESSAGE_INVALID_VALUE_TYPE = 'Expected <> but received <
 export const VALIDATION_MESSAGE_INVALID_VALUE_VALIDATOR =
 	"Value does not satisfy validator for type '<>'";
 
-export const VALIDATION_MESSAGE_UNKNOWN_KEYS = 'Found keys that are not defined in the schema: <>';
+export const VALIDATION_MESSAGE_UNKNOWN_KEY = 'Found key that is not defined in the schema: <>';
 
 // #endregion
 
@@ -187,7 +180,23 @@ export const TYPES_PREFIXED: Record<ValueType, string> = {
 
 // #endregion
 
-// #region Validator validation
+// #region Validation
+
+export const UNKNOWN_KEYS_ALLOW: UnknownKeysStrategy = 'allow';
+
+export const UNKNOWN_KEYS_REJECT: UnknownKeysStrategy = 'reject';
+
+export const UNKNOWN_KEYS_REMOVE: UnknownKeysStrategy = 'remove';
+
+export const UNKNOWN_KEYS_TYPES = new Set<UnknownKeysStrategy>([
+	UNKNOWN_KEYS_ALLOW,
+	UNKNOWN_KEYS_REJECT,
+	UNKNOWN_KEYS_REMOVE,
+]);
+
+// #endregion
+
+// #region Validator
 
 export const VALIDATOR_MESSAGE_INVALID_PROPERTY_NULLABLE =
 	"Validator must not be 'null' or 'undefined'";

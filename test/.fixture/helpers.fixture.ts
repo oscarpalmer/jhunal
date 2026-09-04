@@ -83,6 +83,13 @@ export const values = [
 
 export const length = values.length;
 
+const defaultKeys = {
+	allow: false,
+	reject: false,
+	remove: true,
+	value: 'remove',
+};
+
 const defaultReporting = {
 	all: false,
 	first: false,
@@ -96,13 +103,18 @@ export const parameters = {
 		invalid: {
 			input: 'not a valid input',
 			result: {
+				clone: true,
+				keys: {...defaultKeys},
+				output: {},
 				reporting: {...defaultReporting},
-				strict: false,
 			},
 		},
 		valid: {
 			input: 'all',
 			result: {
+				clone: true,
+				keys: {...defaultKeys},
+				output: {},
 				reporting: {
 					all: true,
 					first: false,
@@ -110,7 +122,6 @@ export const parameters = {
 					throw: false,
 					type: 'all',
 				},
-				strict: false,
 			},
 		},
 	},
@@ -118,16 +129,27 @@ export const parameters = {
 		invalid: {
 			input: 'not a valid object',
 			result: {
+				clone: true,
+				keys: {...defaultKeys},
+				output: {},
 				reporting: {...defaultReporting},
-				strict: false,
 			},
 		},
 		valid: {
 			input: {
+				clone: false,
 				errors: 'first',
-				strict: true,
+				keys: 'reject',
 			},
 			result: {
+				clone: false,
+				keys: {
+					allow: false,
+					reject: true,
+					remove: false,
+					value: 'reject',
+				},
+				output: {},
 				reporting: {
 					all: false,
 					first: true,
@@ -135,7 +157,6 @@ export const parameters = {
 					throw: false,
 					type: 'first',
 				},
-				strict: true,
 			},
 		},
 	},
@@ -143,15 +164,19 @@ export const parameters = {
 		invalid: {
 			input: 'not a valid input',
 			result: {
+				clone: true,
+				keys: {...defaultKeys},
+				output: {},
 				reporting: {...defaultReporting},
-				strict: false,
 			},
 		},
 		valid: {
 			input: true,
 			result: {
+				clone: true,
+				keys: {...defaultKeys},
+				output: {},
 				reporting: {...defaultReporting},
-				strict: true,
 			},
 		},
 	},

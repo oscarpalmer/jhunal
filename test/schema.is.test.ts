@@ -154,11 +154,15 @@ test('is schematics', () => {
 });
 
 test('is strictness', () => {
-	expect(strictness.instance.is(strictness.cases.basic.input, true)).toEqual(false);
+	expect(
+		strictness.instance.is(strictness.cases.basic.input, {
+			keys: 'reject',
+		}),
+	).toEqual(false);
 
 	const basic = strictness.instance.is(strictness.cases.basic.input, {
 		errors: 'first',
-		strict: true,
+		keys: 'reject',
 	});
 
 	expect(basic.ok).toBe(strictness.cases.basic.ok);
@@ -169,7 +173,7 @@ test('is strictness', () => {
 
 	const nested = strictness.instance.is(strictness.cases.nested.input, {
 		errors: 'first',
-		strict: true,
+		keys: 'reject',
 	});
 
 	expect(nested.ok).toBe(strictness.cases.nested.ok);
@@ -180,8 +184,8 @@ test('is strictness', () => {
 
 	expect(() =>
 		strictness.instance.is(strictness.cases.basic.input, {
-			strict: true,
 			errors: 'throw',
+			keys: 'reject',
 		}),
 	).toThrow(strictness.cases.basic.error);
 });

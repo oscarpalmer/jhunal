@@ -25,7 +25,7 @@ import {
 	VALIDATION_MESSAGE_INVALID_VALIDATOR_SUFFIX,
 	VALIDATION_MESSAGE_INVALID_VALUE_TYPE,
 	VALIDATION_MESSAGE_INVALID_VALUE_VALIDATOR,
-	VALIDATION_MESSAGE_UNKNOWN_KEYS,
+	VALIDATION_MESSAGE_UNKNOWN_KEY,
 } from '../constants';
 import type {ValueType} from '../models/misc.model';
 import type {ValidationHandlerType} from '../models/validation.model';
@@ -244,7 +244,7 @@ function renderTypes(types: ValidationHandlerType[]): string {
 // #region Required
 
 export function getRequiredMessage(key: string): string {
-	return SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED.replace(TEMPLATE_PATTERN, key);
+	return getMessage(SCHEMATIC_MESSAGE_SCHEMA_INVALID_PROPERTY_REQUIRED, [key]);
 }
 
 // #endregion
@@ -252,7 +252,7 @@ export function getRequiredMessage(key: string): string {
 // #region Strictness
 
 export function getUnknownKeysMessage(keys: string[]): string {
-	return VALIDATION_MESSAGE_UNKNOWN_KEYS.replace(TEMPLATE_PATTERN, renderKeys(keys));
+	return getMessage(VALIDATION_MESSAGE_UNKNOWN_KEY, [renderKeys(keys)]);
 }
 
 // #endregion

@@ -136,3 +136,34 @@ test('get: defaults', () => {
 
 	expect(defaults.input.updated.num).toBe(42);
 });
+
+test('get: unknown keys', () => {
+	const allowed = get.schema.get(
+		{
+			...get.success,
+			unknownKey: 'hello, world!',
+		},
+		{
+			keys: 'allow',
+		},
+	);
+
+	const rejected = get.schema.get(
+		{
+			...get.success,
+			unknownKey: 'hello, world!',
+		},
+		{
+			keys: 'reject',
+		},
+	);
+
+	const removed = get.schema.get({
+		...get.success,
+		unknownKey: 'hello, world!',
+	});
+
+	expect((allowed as any).unknownKey).toBe('hello, world!');
+	expect(rejected).toBe(undefined);
+	expect((removed as any).unknownKey).toBe(undefined);
+});

@@ -164,6 +164,11 @@ export type UnionToTuple<Value, Items extends unknown[] = []> = [Value] extends 
 	: UnionToTuple<Exclude<Value, LastOfUnion<Value>>, [LastOfUnion<Value>, ...Items]>;
 
 /**
+ * Type of validation and handling for unknown keys
+ */
+export type UnknownKeysStrategy = 'allow' | 'reject' | 'remove';
+
+/**
  * Unwraps a single-element tuple to its inner type
  *
  * For tuples of length 2–5, returns all {@link TuplePermutations} to allow types in any order. Longer tuples are returned as-is

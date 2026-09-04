@@ -1,5 +1,6 @@
 import {isConstructor, isPlainObject} from '@oscarpalmer/atoms/is';
 import type {Constructor} from '@oscarpalmer/atoms/models';
+import {initializeCloner} from '@oscarpalmer/atoms/value/clone';
 import {
 	MESSAGE_CONSTRUCTOR,
 	PROPERTY_SCHEMA,
@@ -10,10 +11,19 @@ import {
 	REPORTING_RESULT,
 	REPORTING_THROW,
 	REPORTING_TYPES,
+	UNKNOWN_KEYS_ALLOW,
+	UNKNOWN_KEYS_REJECT,
+	UNKNOWN_KEYS_REMOVE,
+	UNKNOWN_KEYS_TYPES,
 } from '../constants';
+import type {UnknownKeysStrategy} from '../models/misc.model';
 import type {ReportData, ReportingInformation, ReportingType} from '../models/report.model';
 import type {Schema} from '../models/schema.model';
-import type {PropertyValidation, ValidationHandlerParameters} from '../models/validation.model';
+import type {
+	PropertyValidation,
+	ValidationHandlerParameters,
+	ValidationHandlerParametersKeys,
+} from '../models/validation.model';
 import type {Validator} from '../models/validator.model';
 
 // #region Functions
@@ -37,31 +47,37 @@ export function generateValidationInformation(reports: ReportData[]): PropertyVa
 	return validation;
 }
 
-export function getParameters(input?: unknown): [ValidationHandlerParameters, boolean] {
-	const parameters: ValidationHandlerParameters = {
-		reporting: undefined as never,
-		strict: false,
+function getKeys(input?: unknown): ValidationHandlerParametersKeys {
+	const type = UNKNOWN_KEYS_TYPES.has(input as UnknownKeysStrategy)
+		? (input as UnknownKeysStrategy)
+		: UNKNOWN_KEYS_REMOVE;
+
+	return {
+		allow: type === UNKNOWN_KEYS_ALLOW,
+		reject: type === UNKNOWN_KEYS_REJECT,
+		remove: type === UNKNOWN_KEYS_REMOVE,
+		value: type,
 	};
+}
 
-	if (typeof input === 'boolean') {
-		parameters.reporting = getReporting();
-		parameters.strict = input;
-
-		return [parameters, true];
-	}
-
+export function getParameters(input?: unknown): ValidationHandlerParameters {
 	if (REPORTING_TYPES.has(input as ReportingType)) {
-		parameters.reporting = getReporting(input as ReportingType);
-
-		return [parameters, true];
+		return {
+			clone: true,
+			keys: getKeys(),
+			output: {},
+			reporting: getReporting(input as ReportingType),
+		};
 	}
 
 	const options = isPlainObject(input) ? input : {};
 
-	parameters.reporting = getReporting(options.errors);
-	parameters.strict = typeof options.strict === 'boolean' ? options.strict : false;
-
-	return [parameters, typeof options.clone === 'boolean' ? options.clone : true];
+	return {
+		clone: typeof options.clone === 'boolean' ? options.clone : true,
+		keys: getKeys(options.keys),
+		output: {},
+		reporting: getReporting(options.errors),
+	};
 }
 
 export function getReporting(value?: unknown): ReportingInformation {
@@ -71,10 +87,10 @@ export function getReporting(value?: unknown): ReportingInformation {
 
 	return {
 		type,
-		[REPORTING_ALL]: type === REPORTING_ALL,
-		[REPORTING_FIRST]: type === REPORTING_FIRST || type === REPORTING_RESULT,
-		[REPORTING_NONE]: type === REPORTING_NONE,
-		[REPORTING_THROW]: type === REPORTING_THROW,
+		all: type === REPORTING_ALL,
+		first: type === REPORTING_FIRST || type === REPORTING_RESULT,
+		none: type === REPORTING_NONE,
+		throw: type === REPORTING_THROW,
 	} as ReportingInformation;
 }
 
@@ -116,5 +132,14 @@ export function isSchema(value: unknown): value is Schema<unknown> {
 export function isValidator(value: unknown): value is Validator<unknown> {
 	return isPlainObject(value) && value[PROPERTY_VALIDATOR] === true;
 }
+
+// #endregion
+
+// #region Variables
+
+export const cloner = initializeCloner({
+	copyFunctions: true,
+	copySymbols: true,
+});
 
 // #endregion

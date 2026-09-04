@@ -1,8 +1,6 @@
 import {isPlainObject} from '@oscarpalmer/atoms/is';
 import type {PlainObject} from '@oscarpalmer/atoms/models';
-import {clone} from '@oscarpalmer/atoms/value/clone';
 import {
-	CLONE_OPTIONS,
 	PROPERTY_DEFAULT,
 	PROPERTY_REQUIRED,
 	PROPERTY_TYPE,
@@ -16,7 +14,7 @@ import {
 	getInputTypeMessage,
 	getUnknownKeysMessage,
 } from '../helpers/message.helper';
-import {generateValidationInformation} from '../helpers/misc.helper';
+import {cloner, generateValidationInformation} from '../helpers/misc.helper';
 import {report} from '../helpers/report.helper';
 import type {ReportData} from '../models/report.model';
 import {
@@ -121,43 +119,50 @@ export function getObjectHandler(
 			);
 		}
 
-		if (parameters.strict) {
-			const inputKeys = Object.keys(input);
-			const inputKeysLength = inputKeys.length;
+		let allowedKeys: string[] | undefined;
 
-			let unknownKeys: string[] | undefined;
+		const inputKeys = Object.keys(input);
+		const inputKeysLength = inputKeys.length;
 
-			for (let inputKeyIndex = 0; inputKeyIndex < inputKeysLength; inputKeyIndex += 1) {
-				const inputKey = inputKeys[inputKeyIndex];
+		for (let inputKeyIndex = 0; inputKeyIndex < inputKeysLength; inputKeyIndex += 1) {
+			const inputKey = inputKeys[inputKeyIndex];
 
-				if (!set.has(inputKey)) {
-					unknownKeys ??= [];
+			if (!set.has(inputKey)) {
+				if (parameters.keys.allow) {
+					allowedKeys ??= [];
 
-					unknownKeys.push(inputKey);
+					allowedKeys.push(inputKey);
+				} else {
+					parameters.keys.values ??= [];
+
+					parameters.keys.values.push(inputKey);
 				}
-			}
-
-			if (unknownKeys != null) {
-				const report: ReportData = {
-					key: origin,
-					message: {
-						callback: getUnknownKeysMessage,
-						parameters: [unknownKeys],
-					},
-					value: input,
-				};
-
-				if (parameters.reporting.throw) {
-					throw new ValidationError(generateValidationInformation([report]));
-				}
-
-				parameters.reports?.push(report);
-
-				return [report];
 			}
 		}
 
+		if (parameters.keys.values != null && parameters.keys.reject) {
+			const report: ReportData = {
+				key: origin,
+				message: {
+					callback: getUnknownKeysMessage,
+					parameters: [parameters.keys.values],
+				},
+				value: input,
+			};
+
+			if (parameters.reporting.throw) {
+				throw new ValidationError(generateValidationInformation([report]));
+			}
+
+			parameters.reports?.push(report);
+
+			return [report];
+		}
+
+		const getAndClone = getValue && parameters.clone;
+
 		const allReports: ReportData[] = [];
+		const output: PlainObject = {};
 
 		for (let validatorIndex = 0; validatorIndex < validatorsLength; validatorIndex += 1) {
 			const {defaults, handler, key, required, types} = items[validatorIndex];
@@ -167,10 +172,13 @@ export function getObjectHandler(
 			if (value === undefined) {
 				if (required) {
 					if (getValue && defaults != null) {
-						const defaultValue = clone(defaults.value, CLONE_OPTIONS);
+						const defaultValue = cloner(defaults.value);
 
-						parameters.defaulted ??= {};
-						parameters.defaulted[key.full] = defaultValue;
+						if (parameters.clone) {
+							output[key.short] = defaultValue;
+						} else {
+							input[key.short] = defaultValue;
+						}
 
 						continue;
 					}
@@ -202,11 +210,22 @@ export function getObjectHandler(
 				continue;
 			}
 
+			const previousKey = parameters.key;
+			const previousOutput = parameters.output;
+
 			parameters.key = key.full;
+			parameters.output = output;
 
 			const result = handler(value, parameters, getValue);
 
+			parameters.key = previousKey;
+			parameters.output = previousOutput;
+
 			if (result === true) {
+				if (getAndClone && !isPlainObject(value)) {
+					output[key.short] = cloner(value);
+				}
+
 				continue;
 			}
 
@@ -234,6 +253,24 @@ export function getObjectHandler(
 			}
 
 			return reported;
+		}
+
+		if (parameters.keys.allow && allowedKeys != null && getAndClone) {
+			const {length} = allowedKeys;
+
+			for (let allowedKeyIndex = 0; allowedKeyIndex < length; allowedKeyIndex += 1) {
+				const key = allowedKeys[allowedKeyIndex];
+
+				output[key] = cloner((input as PlainObject)[key]);
+			}
+		}
+
+		if (getAndClone) {
+			if (origin == null) {
+				parameters.output = output;
+			} else {
+				parameters.output[origin.short] = output;
+			}
 		}
 
 		return allReports.length === 0 ? true : allReports;

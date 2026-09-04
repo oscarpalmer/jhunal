@@ -90,7 +90,9 @@ describe('get: none', () => {
 	bench(
 		'valid, strict',
 		() => {
-			instance.get(validWithExtra, true);
+			instance.get(validWithExtra, {
+				keys: 'reject',
+			});
 		},
 		benchOptions,
 	);
@@ -98,7 +100,9 @@ describe('get: none', () => {
 	bench(
 		'valid, strict (options)',
 		() => {
-			instance.get(validWithExtra, {strict: true});
+			instance.get(validWithExtra, {
+				keys: 'reject',
+			});
 		},
 		benchOptions,
 	);
@@ -234,7 +238,9 @@ describe('is: none', () => {
 	bench(
 		'valid, strict',
 		() => {
-			instance.is(validWithExtra, true);
+			instance.is(validWithExtra, {
+				keys: 'reject',
+			});
 		},
 		benchOptions,
 	);
@@ -242,7 +248,9 @@ describe('is: none', () => {
 	bench(
 		'valid, strict (options)',
 		() => {
-			instance.is(validWithExtra, {strict: true});
+			instance.is(validWithExtra, {
+				keys: 'reject',
+			});
 		},
 		benchOptions,
 	);

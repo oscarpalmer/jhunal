@@ -1,7 +1,7 @@
 import type {GenericCallback, PlainObject} from '@oscarpalmer/atoms/models';
 import {join} from '@oscarpalmer/atoms/string';
 import {NAME_ERROR_SCHEMATIC, NAME_ERROR_VALIDATION, NAME_ERROR_VALIDATOR} from '../constants';
-import type {ValueType} from './misc.model';
+import type {UnknownKeysStrategy, ValueType} from './misc.model';
 import type {ReportData, ReportingInformation, ReportingType} from './report.model';
 import type {Schema} from './schema.model';
 import type {Validator} from './validator.model';
@@ -98,9 +98,9 @@ type BaseOptions<Errors extends ReportingType> = {
 	 */
 	errors: Errors;
 	/**
-	 * Validate if unknown keys are present in the object? _(defaults to `false`)_
+	 * How should unknown keys be handled when `strict` is `false`? _(defaults to `'allow'`)_
 	 */
-	strict?: boolean;
+	keys?: UnknownKeysStrategy;
 };
 
 /**
@@ -157,11 +157,17 @@ export type ValidationHandlerItem = {
 };
 
 export type ValidationHandlerParameters = {
-	defaulted?: PlainObject;
+	clone: boolean;
 	key?: string;
+	keys: ValidationHandlerParametersKeys;
+	output: PlainObject;
 	reporting: ReportingInformation;
 	reports?: ReportData[];
-	strict: boolean;
+};
+
+export type ValidationHandlerParametersKeys = Record<UnknownKeysStrategy, boolean> & {
+	value: UnknownKeysStrategy;
+	values?: string[];
 };
 
 export type ValidationHandlerType =
